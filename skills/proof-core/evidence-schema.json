@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Proof evidence ledger",
+  "description": "The files a Proof run writes under proof/. Every tool writes these, validate.py checks them, verdict.py reads them. A finding only counts toward the verdict when its status is 'verified'.",
+  "$defs": {
+    "target": {
+      "type": "object",
+      "required": ["name", "kind", "authorised", "required_skills"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "kind": {"type": "string", "enum": ["web", "mobile", "api", "repo", "mixed"]},
+        "urls": {"type": "array", "items": {"type": "string"}},
+        "repo": {"type": "string"},
+        "platforms": {"type": "array", "items": {"type": "string", "enum": ["web", "ios", "android", "api", "desktop"]}},
+        "authorised": {"type": "boolean", "description": "The user owns this target or has written permission to test it."},
+        "required_skills": {"type": "array", "items": {"type": "string", "pattern": "^proof-[a-z0-9-]+$"}, "description": "The skills whose evidence the verdict waits for; the user picks them. Every other skill is optional: it can still be run on its own, and not running it never counts against the verdict."},
+        "done_means": {"type": "string"},
+        "fail_on": {"type": "string", "enum": ["critical", "high", "medium", "low"], "description": "Lowest verified severity that blocks Ship. Default high."},
+        "created": {"type": "string"}
+      }
+    },
+    "finding": {
+      "type": "object",
+      "required": ["id", "skill", "severity", "title", "status", "created"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$"},
+        "skill": {"type": "string", "pattern": "^proof-[a-z0-9-]+$"},
+        "severity": {"type": "string", "enum": ["critical", "high", "medium", "low", "info"]},
+        "title": {"type": "string", "minLength": 1},
+        "description": {"type": "string"},
+        "category": {"type": "string", "description": "The check or attack class this belongs to, e.g. authz, injection, flow:checkout."},
+        "location": {"type": "string", "description": "File:line, URL, screen or endpoint."},
+        "evidence": {"type": "array", "items": {"type": "string"}, "description": "Paths under proof/ (screenshots, logs, request captures, failing test output)."},
+        "repro": {"type": "string", "description": "A command or steps that reproduce the finding."},
+        "status": {"type": "string", "enum": ["unverified", "verified", "false_positive"]},
+        "verified_by": {"type": "string", "enum": ["evidence-file", "repro-run", "manual"]},
+        "verified_note": {"type": "string"},
+        "fix": {"type": "string"},
+        "references": {"type": "array", "items": {"type": "string"}},
+        "created": {"type": "string"},
+        "updated": {"type": "string"}
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "required": ["skill", "checks"],
+      "properties": {
+        "skill": {"type": "string", "pattern": "^proof-[a-z0-9-]+$"},
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "title", "status"],
+            "properties": {
+              "id": {"type": "string", "minLength": 1},
+              "title": {"type": "string", "minLength": 1},
+              "status": {"type": "string", "enum": ["not_run", "covered", "not_applicable"]},
+              "note": {"type": "string"},
+              "evidence": {"type": "array", "items": {"type": "string"}}
+            }
+          }
+        },
+        "updated": {"type": "string"}
+      }
+    },
+    "scores": {
+      "type": "object",
+      "required": ["skill", "metrics"],
+      "properties": {
+        "skill": {"type": "string", "pattern": "^proof-[a-z0-9-]+$"},
+        "metrics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "value", "unit", "budget", "op"],
+            "properties": {
+              "id": {"type": "string", "minLength": 1},
+              "value": {"type": "number"},
+              "unit": {"type": "string"},
+              "budget": {"type": "number"},
+              "op": {"type": "string", "enum": ["<=", ">=", "<", ">", "=="]},
+              "source": {"type": "string", "description": "What measured it (tool and version, or a file under proof/)."},
+              "evidence": {"type": "array", "items": {"type": "string"}}
+            }
+          }
+        },
+        "updated": {"type": "string"}
+      }
+    }
+  }
+}

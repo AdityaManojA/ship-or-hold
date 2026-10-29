@@ -1,0 +1,43 @@
+{
+  "flows": [
+    {
+      "id": "sign-in",
+      "title": "A returning customer signs in",
+      "critical": true,
+      "start": "http://localhost:3000/login",
+      "steps": [
+        "Enter a known email and password.",
+        "Press Sign in.",
+        "Land on the account home."
+      ],
+      "expect": "The account home shows the customer's name and no error.",
+      "data": {"email": "test@example.test"}
+    },
+    {
+      "id": "add-to-cart",
+      "title": "Add an item to the cart",
+      "critical": false,
+      "start": "http://localhost:3000/products",
+      "steps": [
+        "Open a product.",
+        "Choose a size.",
+        "Press Add to cart.",
+        "Open the cart."
+      ],
+      "expect": "The cart shows the item once, with the chosen size and the right price."
+    },
+    {
+      "id": "checkout",
+      "title": "Check out and pay",
+      "critical": true,
+      "start": "http://localhost:3000/cart",
+      "steps": [
+        "Press Checkout.",
+        "Fill in shipping details.",
+        "Enter test card details.",
+        "Press Pay."
+      ],
+      "expect": "A confirmation page with a single order number; the order appears once in the account."
+    }
+  ]
+}

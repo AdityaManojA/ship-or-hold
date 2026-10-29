@@ -1,0 +1,21 @@
+{
+  "name": "proof-skill",
+  "description": "Evidence-first testing and audit skills for Claude: web and mobile testing, security, SEO, performance, accessibility and finance, where every verdict is computed from verified evidence instead of written by the model. Free, MIT.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Aditya Manoj"
+  },
+  "homepage": "https://github.com/adityamanoj/proof-skill",
+  "repository": "https://github.com/adityamanoj/proof-skill",
+  "license": "MIT",
+  "keywords": [
+    "claude-code",
+    "claude-skills",
+    "testing",
+    "qa",
+    "security-audit",
+    "evidence",
+    "playwright",
+    "subagents"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "name": "checkout-explorers",
+  "purpose": "Try the checkout flow of a small online shop the way a real shopper would, and report anything that goes wrong.",
+  "dimensions": {
+    "device": [
+      {"value": "phone", "share": 0.55, "detail": "Small screen, thumb typing, sometimes on a train with a weak signal."},
+      {"value": "laptop", "share": 0.35, "detail": "Full keyboard, several tabs open."},
+      {"value": "tablet", "share": 0.10, "detail": "Rotates between portrait and landscape."}
+    ],
+    "patience": [
+      {"value": "low", "share": 0.40, "detail": "Leaves if a step takes more than a few seconds or asks for anything twice."},
+      {"value": "medium", "share": 0.45},
+      {"value": "high", "share": 0.15, "detail": "Will retry, go back, and try again a different way."}
+    ],
+    "tech_comfort": [
+      {"value": "new to online shopping", "share": 0.20, "detail": "Unsure what a field wants; pastes things in odd formats."},
+      {"value": "everyday", "share": 0.60},
+      {"value": "power user", "share": 0.20, "detail": "Uses the back button, autofill, password managers and keyboard shortcuts."}
+    ],
+    "intent": [
+      {"value": "buying a gift", "share": 0.35, "detail": "Shipping to a different address than billing."},
+      {"value": "reordering", "share": 0.40},
+      {"value": "comparing prices", "share": 0.25, "detail": "Adds items, removes them, changes quantities, may abandon."}
+    ]
+  },
+  "answer": {
+    "outcome": "found_problem",
+    "fields": {
+      "found_problem": {"type": "boolean", "prompt": "true if anything went wrong, confused you or blocked you"},
+      "severity": {"type": "enum", "values": ["none", "low", "medium", "high", "critical"], "prompt": "how bad it would be for a real shopper"},
+      "what_happened": {"type": "string", "prompt": "what you did and what you saw, in your own words"},
+      "repro_steps": {"type": "string", "prompt": "the exact steps to make it happen again, or empty"},
+      "would_block_release": {"type": "boolean", "prompt": "true if you think the shop should not launch with this"}
+    }
+  }
+}
