@@ -1,0 +1,339 @@
+{
+  "spec": "openapi.example.json",
+  "spec_sha256": "6a8c508814cebbfaf63b49fa2c245d38c5abde8a5fb3f9ea9d8d837172365717",
+  "generated": "2026-10-29T22:23:42+00:00",
+  "cases": [
+    {
+      "id": "get-health-no-auth",
+      "endpoint": "GET /health",
+      "kind": "no-auth",
+      "title": "Call with no credentials; the spec marks this operation as open",
+      "expect": "2xx is right only if it is meant to be public: confirm that with the user, and that nothing private is in the body",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/get-health-no-auth.json"
+    },
+    {
+      "id": "get-users-no-auth",
+      "endpoint": "GET /users",
+      "kind": "no-auth",
+      "title": "Call with no credentials at all (no Authorization header, no cookie)",
+      "expect": "401 or 403 with the declared error shape and no data; the spec says this needs bearerAuth",
+      "severity_hint": "high",
+      "evidence_hint": "evidence/proof-api/get-users-no-auth.json"
+    },
+    {
+      "id": "get-users-wrong-type-params",
+      "endpoint": "GET /users",
+      "kind": "wrong-type-params",
+      "title": "Send text where a number or boolean is expected: limit=twelve",
+      "expect": "400 or 422; never a 500 and never a silently coerced value",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/get-users-wrong-type-params.json",
+      "fields": [
+        "limit"
+      ],
+      "value": "twelve"
+    },
+    {
+      "id": "get-users-negative-zero-numbers",
+      "endpoint": "GET /users",
+      "kind": "negative-zero-numbers",
+      "title": "Send -1 and then 0 in each numeric input: limit (query)",
+      "expect": "rejected when the schema sets a minimum above it, otherwise a sensible result; never a 500",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/get-users-negative-zero-numbers.json",
+      "fields": [
+        "limit (query)"
+      ],
+      "values": {
+        "first": -1,
+        "then": 0
+      }
+    },
+    {
+      "id": "post-users-no-auth",
+      "endpoint": "POST /users",
+      "kind": "no-auth",
+      "title": "Call with no credentials at all (no Authorization header, no cookie)",
+      "expect": "401 or 403 with the declared error shape and no data; the spec says this needs bearerAuth",
+      "severity_hint": "high",
+      "evidence_hint": "evidence/proof-api/post-users-no-auth.json"
+    },
+    {
+      "id": "post-users-missing-required",
+      "endpoint": "POST /users",
+      "kind": "missing-required",
+      "title": "Send the body without each required field in turn: email, name",
+      "expect": "400 or 422 naming the field; nothing created or changed",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/post-users-missing-required.json",
+      "fields": [
+        "email",
+        "name"
+      ]
+    },
+    {
+      "id": "post-users-wrong-types",
+      "endpoint": "POST /users",
+      "kind": "wrong-types",
+      "title": "Send each field with a value of the wrong type: email=12345, name=12345, role=12345, nickname=12345, age=\"twelve\"",
+      "expect": "400 or 422; the value must not be coerced silently (for example \"12\" stored as 12)",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/post-users-wrong-types.json",
+      "fields": [
+        "email",
+        "name",
+        "role",
+        "nickname",
+        "age"
+      ],
+      "values": {
+        "email": 12345,
+        "name": 12345,
+        "role": 12345,
+        "nickname": 12345,
+        "age": "twelve"
+      }
+    },
+    {
+      "id": "post-users-null-fields",
+      "endpoint": "POST /users",
+      "kind": "null-fields",
+      "title": "Send null in each field that is not nullable: email, name, role, age",
+      "expect": "400 or 422 for each one; never a 500",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/post-users-null-fields.json",
+      "fields": [
+        "email",
+        "name",
+        "role",
+        "age"
+      ]
+    },
+    {
+      "id": "post-users-bad-enum",
+      "endpoint": "POST /users",
+      "kind": "bad-enum",
+      "title": "Send a value outside the allowed set: role=not-a-valid-choice",
+      "expect": "400 or 422 listing the allowed values",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/post-users-bad-enum.json",
+      "fields": [
+        "role"
+      ],
+      "value": "not-a-valid-choice"
+    },
+    {
+      "id": "post-users-extra-field",
+      "endpoint": "POST /users",
+      "kind": "extra-field",
+      "title": "Add a field the schema does not declare: \"unexpected_field\": \"proof\"",
+      "expect": "ignored, or 400 when the schema forbids extra fields; never stored or echoed back as if it were real",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/post-users-extra-field.json",
+      "fields": [
+        "unexpected_field"
+      ],
+      "value": "proof"
+    },
+    {
+      "id": "post-users-huge-strings",
+      "endpoint": "POST /users",
+      "kind": "huge-strings",
+      "title": "Put a 100000-character string in each string field in turn: email, name, role, nickname",
+      "expect": "413 or 400 within the usual response time; never a timeout, a 500 or an unbounded stored value",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/post-users-huge-strings.json",
+      "fields": [
+        "email",
+        "name",
+        "role",
+        "nickname"
+      ],
+      "value": "the letter a repeated 100000 times"
+    },
+    {
+      "id": "post-users-sqlish-strings",
+      "endpoint": "POST /users",
+      "kind": "sqlish-strings",
+      "title": "Send text that looks like a query fragment, as plain data, in each string field: \"Smith' OR 'a'='a\"",
+      "expect": "stored and returned exactly as sent (it is only text), or rejected by a length or format rule; never a 500 and never a changed result set",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/post-users-sqlish-strings.json",
+      "fields": [
+        "email",
+        "name",
+        "role",
+        "nickname"
+      ],
+      "value": "Smith' OR 'a'='a"
+    },
+    {
+      "id": "post-users-htmlish-strings",
+      "endpoint": "POST /users",
+      "kind": "htmlish-strings",
+      "title": "Send text that looks like markup, as plain data, in each string field: \"<b>Jo</b> & <script>x</script>\"",
+      "expect": "returned exactly as sent, as JSON data; never a 500 (escaping on display is the web app's job)",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/post-users-htmlish-strings.json",
+      "fields": [
+        "email",
+        "name",
+        "role",
+        "nickname"
+      ],
+      "value": "<b>Jo</b> & <script>x</script>"
+    },
+    {
+      "id": "post-users-negative-zero-numbers",
+      "endpoint": "POST /users",
+      "kind": "negative-zero-numbers",
+      "title": "Send -1 and then 0 in each numeric input: age (body)",
+      "expect": "rejected when the schema sets a minimum above it, otherwise a sensible result; never a 500",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/post-users-negative-zero-numbers.json",
+      "fields": [
+        "age (body)"
+      ],
+      "values": {
+        "first": -1,
+        "then": 0
+      }
+    },
+    {
+      "id": "get-users-id-no-auth",
+      "endpoint": "GET /users/{id}",
+      "kind": "no-auth",
+      "title": "Call with no credentials at all (no Authorization header, no cookie)",
+      "expect": "401 or 403 with the declared error shape and no data; the spec says this needs bearerAuth",
+      "severity_hint": "high",
+      "evidence_hint": "evidence/proof-api/get-users-id-no-auth.json"
+    },
+    {
+      "id": "get-users-id-other-user",
+      "endpoint": "GET /users/{id}",
+      "kind": "other-user",
+      "title": "As test account B, use a value of id that belongs to account A",
+      "expect": "403 or 404, and none of A's data in the body",
+      "severity_hint": "high",
+      "evidence_hint": "evidence/proof-api/get-users-id-other-user.json",
+      "fields": [
+        "id"
+      ]
+    },
+    {
+      "id": "get-users-id-unknown-id",
+      "endpoint": "GET /users/{id}",
+      "kind": "unknown-id",
+      "title": "Use a value that matches no record: id=999999999",
+      "expect": "404 with the declared error shape; never a 500",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/get-users-id-unknown-id.json",
+      "fields": [
+        "id"
+      ],
+      "value": 999999999
+    },
+    {
+      "id": "get-users-id-wrong-type-params",
+      "endpoint": "GET /users/{id}",
+      "kind": "wrong-type-params",
+      "title": "Send text where a number or boolean is expected: id=twelve",
+      "expect": "400 or 422; never a 500 and never a silently coerced value",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/get-users-id-wrong-type-params.json",
+      "fields": [
+        "id"
+      ],
+      "value": "twelve"
+    },
+    {
+      "id": "get-users-id-negative-zero-numbers",
+      "endpoint": "GET /users/{id}",
+      "kind": "negative-zero-numbers",
+      "title": "Send -1 and then 0 in each numeric input: id (path)",
+      "expect": "rejected when the schema sets a minimum above it, otherwise a sensible result; never a 500",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/get-users-id-negative-zero-numbers.json",
+      "fields": [
+        "id (path)"
+      ],
+      "values": {
+        "first": -1,
+        "then": 0
+      }
+    },
+    {
+      "id": "delete-users-id-no-auth",
+      "endpoint": "DELETE /users/{id}",
+      "kind": "no-auth",
+      "title": "Call with no credentials at all (no Authorization header, no cookie)",
+      "expect": "401 or 403 with the declared error shape and no data; the spec says this needs bearerAuth",
+      "severity_hint": "high",
+      "evidence_hint": "evidence/proof-api/delete-users-id-no-auth.json"
+    },
+    {
+      "id": "delete-users-id-other-user",
+      "endpoint": "DELETE /users/{id}",
+      "kind": "other-user",
+      "title": "As test account B, use a value of id that belongs to account A",
+      "expect": "403 or 404, and none of A's data in the body",
+      "severity_hint": "high",
+      "evidence_hint": "evidence/proof-api/delete-users-id-other-user.json",
+      "fields": [
+        "id"
+      ]
+    },
+    {
+      "id": "delete-users-id-unknown-id",
+      "endpoint": "DELETE /users/{id}",
+      "kind": "unknown-id",
+      "title": "Use a value that matches no record: id=999999999",
+      "expect": "404 with the declared error shape; never a 500",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/delete-users-id-unknown-id.json",
+      "fields": [
+        "id"
+      ],
+      "value": 999999999
+    },
+    {
+      "id": "delete-users-id-wrong-type-params",
+      "endpoint": "DELETE /users/{id}",
+      "kind": "wrong-type-params",
+      "title": "Send text where a number or boolean is expected: id=twelve",
+      "expect": "400 or 422; never a 500 and never a silently coerced value",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/delete-users-id-wrong-type-params.json",
+      "fields": [
+        "id"
+      ],
+      "value": "twelve"
+    },
+    {
+      "id": "delete-users-id-negative-zero-numbers",
+      "endpoint": "DELETE /users/{id}",
+      "kind": "negative-zero-numbers",
+      "title": "Send -1 and then 0 in each numeric input: id (path)",
+      "expect": "rejected when the schema sets a minimum above it, otherwise a sensible result; never a 500",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/delete-users-id-negative-zero-numbers.json",
+      "fields": [
+        "id (path)"
+      ],
+      "values": {
+        "first": -1,
+        "then": 0
+      }
+    },
+    {
+      "id": "fuzz-run",
+      "endpoint": "*",
+      "kind": "fuzz",
+      "title": "Property-based fuzz run over the whole spec, when a fuzzer such as Schemathesis is installed (check with /proof-doctor --for proof-api)",
+      "expect": "no 500s and no response that breaks its schema; save the run's output as evidence. Without a fuzzer: skip fuzz-run --note \"no fuzzer installed\"",
+      "severity_hint": "medium",
+      "evidence_hint": "evidence/proof-api/fuzz-run.txt"
+    }
+  ]
+}

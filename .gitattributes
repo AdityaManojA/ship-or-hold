@@ -1,0 +1,7 @@
+# Keep line endings LF in the repository on every platform.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary

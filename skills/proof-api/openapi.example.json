@@ -1,0 +1,191 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Example user service",
+    "version": "1.2.0",
+    "description": "A small spec that exercises what schema_check.py reads: path and query parameters, a required JSON body, a nullable field, an enum, a closed object (additionalProperties false), an array response, a response with no body, and an operation that is open to everyone."
+  },
+  "servers": [
+    {"url": "http://localhost:8080"}
+  ],
+  "security": [
+    {"bearerAuth": []}
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "health",
+        "summary": "Liveness check, open to everyone",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The service is up",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["status"],
+                  "properties": {
+                    "status": {"type": "string", "enum": ["ok"]}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "operationId": "listUsers",
+        "summary": "List users, newest first",
+        "parameters": [
+          {"name": "limit", "in": "query", "required": false, "schema": {"type": "integer", "minimum": 1, "maximum": 100}},
+          {"name": "q", "in": "query", "required": false, "schema": {"type": "string"}}
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of users",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/UserList"}
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/Unauthorised"}
+        }
+      },
+      "post": {
+        "operationId": "createUser",
+        "summary": "Create a user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/NewUser"}
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created user",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/User"}
+              }
+            }
+          },
+          "400": {
+            "description": "The body did not validate",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          },
+          "401": {"$ref": "#/components/responses/Unauthorised"}
+        }
+      }
+    },
+    "/users/{id}": {
+      "parameters": [
+        {"name": "id", "in": "path", "required": true, "schema": {"type": "integer", "minimum": 1}}
+      ],
+      "get": {
+        "operationId": "getUser",
+        "summary": "Fetch one user",
+        "responses": {
+          "200": {
+            "description": "The user",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/User"}
+              }
+            }
+          },
+          "404": {
+            "description": "No such user",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteUser",
+        "summary": "Delete one user",
+        "responses": {
+          "204": {"description": "Deleted; no body"},
+          "404": {
+            "description": "No such user",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Error"}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {"type": "http", "scheme": "bearer"}
+    },
+    "responses": {
+      "Unauthorised": {
+        "description": "No valid credentials",
+        "content": {
+          "application/json": {
+            "schema": {"$ref": "#/components/schemas/Error"}
+          }
+        }
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "email", "name", "role", "created"],
+        "properties": {
+          "id": {"type": "integer"},
+          "email": {"type": "string", "format": "email"},
+          "name": {"type": "string"},
+          "role": {"type": "string", "enum": ["admin", "member"]},
+          "nickname": {"type": "string", "nullable": true},
+          "age": {"type": "integer", "minimum": 0},
+          "created": {"type": "string", "format": "date-time"}
+        }
+      },
+      "NewUser": {
+        "type": "object",
+        "required": ["email", "name"],
+        "properties": {
+          "email": {"type": "string", "format": "email"},
+          "name": {"type": "string"},
+          "role": {"type": "string", "enum": ["admin", "member"], "default": "member"},
+          "nickname": {"type": "string", "nullable": true},
+          "age": {"type": "integer", "minimum": 0}
+        }
+      },
+      "UserList": {
+        "type": "object",
+        "required": ["items", "total"],
+        "properties": {
+          "items": {"type": "array", "items": {"$ref": "#/components/schemas/User"}},
+          "total": {"type": "integer"}
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["code", "message"],
+        "properties": {
+          "code": {"type": "string"},
+          "message": {"type": "string"}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "about": "A web performance budget. Edit the numbers to the line your team decided on; remove a metric you do not care about rather than setting it loose. Units: s = seconds, ms = milliseconds, kb = 1024 bytes, score = unitless, count = how many.",
+  "metrics": [
+    {
+      "id": "lcp",
+      "label": "Largest Contentful Paint",
+      "unit": "s",
+      "budget": 2.5,
+      "op": "<="
+    },
+    {
+      "id": "cls",
+      "label": "Cumulative Layout Shift",
+      "unit": "score",
+      "budget": 0.1,
+      "op": "<="
+    },
+    {
+      "id": "tbt",
+      "label": "Total Blocking Time",
+      "unit": "ms",
+      "budget": 200,
+      "op": "<="
+    },
+    {
+      "id": "fcp",
+      "label": "First Contentful Paint",
+      "unit": "s",
+      "budget": 1.8,
+      "op": "<="
+    },
+    {
+      "id": "ttfb",
+      "label": "Time to first byte",
+      "unit": "ms",
+      "budget": 800,
+      "op": "<="
+    },
+    {
+      "id": "total_js",
+      "label": "JavaScript transferred",
+      "unit": "kb",
+      "budget": 300,
+      "op": "<="
+    },
+    {
+      "id": "total_transfer",
+      "label": "Total bytes transferred",
+      "unit": "kb",
+      "budget": 1600,
+      "op": "<="
+    },
+    {
+      "id": "requests",
+      "label": "Network requests",
+      "unit": "count",
+      "budget": 80,
+      "op": "<="
+    }
+  ]
+}
