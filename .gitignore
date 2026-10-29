@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Proof working directory (per-project run artifacts live here)
+proof/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
