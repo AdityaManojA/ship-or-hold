@@ -22,6 +22,16 @@ Anthropic's `webapp-testing`, Trail of Bits' skills, Cloudflare's security-audit
 skill, Strix, Lighthouse, axe-core, Maestro, promptfoo, ponytail, the claude-seo /
 geo-seo-claude / seomachine SEO packs, and the OWASP guides.
 
+## Credits
+
+Proof is **original work**. It takes *inspiration* — ideas and patterns — from a
+number of excellent open-source projects, but copies no code, text, schemas, names
+or assets from any of them. With thanks to MiroFish, founder-skill, Anthropic's
+`webapp-testing`, Trail of Bits' skills, Cloudflare's security-audit skill, Strix,
+ponytail, the claude-seo / geo-seo-claude / seomachine SEO packs, Lighthouse,
+axe-core, Maestro, promptfoo, and the OWASP WSTG / MASTG / ASVS guides.
+
 ## License
 
 MIT.
+

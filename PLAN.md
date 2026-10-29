@@ -42,6 +42,18 @@ Pack name: **`proof`**; commands `/proof-*`; plugin `proof-skill`; MIT.
 3. **Sequencing**: one plan, built in **4 phases**, each phase a usable commit.
 4. **License** MIT. OWASP material (WSTG/MASTG/ASVS, CC-BY-SA) is cited and linked,
    never copied in.
+5. **Originality / clean-room — nothing traces back to any source repo.** This is a
+   hard requirement: we borrow *ideas and patterns*, and write **100% original
+   code, text, schemas and names** from scratch. No file, function, comment,
+   docstring, prompt, SKILL.md paragraph, test, config or asset is copied or
+   paraphrased from MiroFish, founder-skill, cloudflare/security-audit-skill,
+   ponytail, the SEO packs, Trail of Bits, Strix, Anthropic's `webapp-testing`, or
+   any other repo. "Model on X" / "borrow Y's idea" in this plan means *reimplement
+   the concept cleanly*, never port the source. No source repo's name, command
+   prefix (e.g. `founder-`, `geo-`), brand, logo or wording appears in our code or
+   UI — only in the README credits, as plain prose links acknowledging inspiration
+   (which every source's MIT/Apache/CC-BY-SA license permits). Rationale: the user
+   wants zero licensing/attribution/IP exposure once this is public.
 
 ## What we borrow and improve
 
@@ -155,16 +167,24 @@ SHA-256-manifested report folder so a reviewer can trust the run).
   worked end-to-end sample app; CI; final pass confirming the 4 founder-skill bug
   fixes and that every advertised flag exists.
 
-## Critical files / patterns to reuse
+## Patterns to reimplement cleanly (NOT copy — see decision 5)
 
-- founder-skill clone in scratchpad (`…\scratchpad\founder\`): copy `tests/`
-  structure, `_load.py`, frontmatter + flag-existence tests.
-- `verdict.py` ← model on founder-skill `compile.py` (`verdict()` tuple, `--check`
-  exit) but reading the ledger, missing-input → `Incomplete`.
-- `swarm.py` ← model on `panel.py` (deal/seed/brief/check/tally, waves of 10, never
-  answer for an agent), generalised with a per-caller brief template.
-- `with_server.py` + Playwright recon loop ← port anthropics `webapp-testing`.
-- `unit_economics.py` ← port founder-skill's with the bug fixes.
+The scratchpad clones are **read-only references for understanding the idea**; no
+line is copied out of them. Each item below is a concept to rebuild from scratch:
+
+- Repo layout + a frontmatter/flag-existence/no-copied-string test suite — the
+  *shape* is a common convention; we write our own `tests/` and helpers.
+- `verdict.py` — the concept of a tuple `(verdict, checks, numbers)` + a `--check`
+  exit code, reading our ledger, missing-input → `Incomplete`. Written fresh.
+- `swarm.py` — the concept of deal/seed/brief/check/tally in waves, never answering
+  for an agent, per-caller brief templates. Written fresh.
+- Dev-server + browser recon→act loop — the *technique* (start server, wait for
+  idle, inspect DOM, act); our own code, with the built-in browser as fallback.
+- `report-schema.json` + coverage ledger — the *concept* of machine-readable,
+  independently-validated findings and a "did we look?" ledger. Our own schema,
+  field names and Python validator.
+- `unit_economics.py` — the *concept* of input-traceable unit economics with
+  missing-is-error + locale-safe parsing. Written fresh.
 
 ## The commit (this step)
 
@@ -193,6 +213,10 @@ Commit message: `docs: plan the Proof evidence-first testing skill pack`, with t
 5. Reproduce the 4 founder-skill bugs against our code and confirm each is fixed.
 6. `/plugin marketplace add <repo>` → `/plugin install proof-skill@proof-skill`;
    skills load as `/proof-*`.
+7. **Originality gate (decision 5):** a `tests/test_originality.py` scans our tree
+   for any source-repo name/command-prefix/brand outside the README credits, and a
+   manual diff spot-check confirms no file mirrors a source file's structure or
+   wording. The README credits are plain-prose acknowledgements with links only.
 
 ## Out of scope (v1)
 
