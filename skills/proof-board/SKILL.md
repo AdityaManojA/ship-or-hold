@@ -44,7 +44,7 @@ lenses (facts, principles, behaviour and verbatim quotes with sources) are in
 | seat | lens | judges | veto |
 | --- | --- | --- | --- |
 | CEO | Steve Jobs | the overall call: focus, quality, saying no | none (chairs) |
-| CTO | Werner Vogels | does it work and keep working | core flows, API, load, mobile flows |
+| CTO | Werner Vogels | does it work and keep working, and does it read as made by people (reads /proof-slop) | core flows, API, load, mobile flows |
 | CISO | Steve Katz | security and customer data | security, secrets, dependencies, infra, AI |
 | CFO | Ruth Porat | unit economics, cost of fixing versus delaying | unit economics |
 | CMO | David Ogilvy | how the market meets it: claims, research, reach | none |

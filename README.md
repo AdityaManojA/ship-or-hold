@@ -181,7 +181,7 @@ researched from their own talks, interviews, books and letters:
 | seat | lens | judges | veto |
 | --- | --- | --- | --- |
 | CEO | Steve Jobs | the overall call: focus, quality, saying no | none (chairs) |
-| CTO | Werner Vogels | does it work and keep working, and does it read as made by people | core flows, API, load |
+| CTO | Werner Vogels | does it work and keep working, and does it read as made by people (reads `/proof-slop`) | core flows, API, load |
 | CISO | Steve Katz | security and customer data | security, secrets, dependencies, infra, AI |
 | CFO | Ruth Porat | unit economics, cost of fixing versus delaying | unit economics |
 | CMO | David Ogilvy | claims, research, how the market meets it | none |
