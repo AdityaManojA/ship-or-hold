@@ -105,6 +105,38 @@ class Adapters(unittest.TestCase):
         self.assertEqual(len(fs), 1)
         self.assertIn("promptinject", fs[0]["title"])
 
+    def test_own_eval_suite_jsonl_import(self):
+        rows = [
+            {"case": "identity-1", "metric": "identity_no_vendor_leak", "value": 1, "comment": "clean"},
+            {"case": "identity-2", "metric": "identity_no_vendor_leak", "value": 0, "comment": "leaked 'openai'"},
+            {"case": "gate-1", "metric": "context_gate_correct", "value": True},
+            {"case": "judge-1", "metric": "llm_judge_rubric", "value": 1},
+        ]
+        p = self.write_json("evals-out.jsonl", "\n".join(json.dumps(r) for r in rows) + "\n")
+        rc, out = quiet(evals.main, ["--dir", self.d, "results", p, "--name", "policy-evals", "--min-pass", "0.9",
+                                     "--verify"])
+        self.assertEqual(rc, 0, out)
+        self.assertIn("identity_no_vendor_leak", out)
+        metrics = [s for s in ledger.load_all_scores(self.d) if s["skill"] == "proof-ai"][0]["metrics"]
+        m = next(x for x in metrics if x["id"] == "policy-evals_pass_rate")
+        self.assertAlmostEqual(m["value"], 0.75)
+        self.assertFalse(ledger.metric_passes(m))
+        fs = ledger.load_findings(self.d, "proof-ai")
+        self.assertEqual(len(fs), 1)
+        self.assertIn("identity-2", fs[0]["title"])
+        self.assertEqual(fs[0]["status"], "verified")
+
+    def test_own_eval_suite_scores_and_bad_rows(self):
+        p = self.write_json("judge.json", {"results": [{"id": "a", "name": "rubric", "score": "0,8"},
+                                                       {"id": "b", "name": "rubric", "score": 0.5}]})
+        rc, out = quiet(evals.main, ["--dir", self.d, "results", p, "--pass-at", "0.7"])
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(len(ledger.load_findings(self.d, "proof-ai")), 1)
+        p = self.write_json("bad.json", [{"case": "x"}])
+        rc, out = quiet(evals.main, ["--dir", self.d, "results", p])
+        self.assertNotEqual(rc, 0)
+        self.assertIn("no value", out)
+
     def test_garak_empty_refused(self):
         p = self.write_json("g.jsonl", '{"entry_type": "start_run"}\n')
         rc, out = quiet(evals.main, ["--dir", self.d, "garak", p])

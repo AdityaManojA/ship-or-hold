@@ -1,6 +1,6 @@
 # Proof
 
-Forty Claude skills that test a product before you ship it, then present it to a board of directors. Free, MIT, no
+Forty-two Claude skills that test a product before you ship it, then present it to a board of directors. Free, MIT, no
 signup, no API key, nothing to connect.
 
 Most testing tools let the model say something passed. Proof does not. Every skill
@@ -100,7 +100,7 @@ Or start with `/proof-plan`, which records what is under test and asks you to
 confirm you own it or have permission to test it, then pick the skills you need.
 Everything Proof writes goes into a `proof/` folder in your project.
 
-## The forty
+## The forty-two
 
 | command | job | what it does |
 | --- | --- | --- |
@@ -126,6 +126,8 @@ Everything Proof writes goes into a `proof/` folder in your project.
 | `/proof-infra` | Infrastructure | Flags risky settings in Dockerfiles, Compose, Kubernetes, Terraform and CI workflows. |
 | `/proof-privacy` | Privacy | Trackers that load before consent, first-visit cookies, missing policy links, personal data in URLs. |
 | `/proof-mobile-e2e` | Mobile flows | Plans mobile flows, generates Maestro files, and records each result with a screenshot. |
+| `/proof-pwa` | PWA | Checks an installable web app: the manifest, icons, service worker, offline fallback and HTTPS, from saved files. |
+| `/proof-react-native` | React Native | Audits a React Native or Expo project: secrets in the bundle, tokens in AsyncStorage, cleartext URLs, permissions without usage text, debug settings, OTA updates, expo-doctor results. |
 | `/proof-mobile-explore` | Mobile explore | An agent explores the real app on your own device or emulator toward goals; crashes, ANRs and dead ends become findings with screenshots and logs. |
 | `/proof-mobile-a11y` | Mobile accessibility | Unlabelled controls, touch targets under 48 dp / 44 pt, meaningless labels and large-text clipping, from the app's UI trees. |
 | `/proof-design-match` | Design match | Compares screens with the design export and the last build: pixel difference, and elements that are new, missing, moved or resized. |
@@ -198,7 +200,7 @@ the area was not tested.
 Neither full check includes the optional skills, which need setup, a second run or
 a person, or only fit some projects: `/proof-mutation`, `/proof-compat`,
 `/proof-visual`, `/proof-release`, `/proof-design-match`, `/proof-mobile-explore`,
-`/proof-mobile-a11y` and `/proof-llm-device`. Run any of them on its own; the full
+`/proof-mobile-a11y`, `/proof-llm-device`, `/proof-pwa` and `/proof-react-native`. Run any of them on its own; the full
 check's plan lists them.
 
 An example run: an online shop, running locally, with a checkout.
@@ -393,6 +395,8 @@ skills/proof-sec-diff/          SKILL.md, diffscope.py
 skills/proof-infra/             SKILL.md, infra.py
 skills/proof-privacy/           SKILL.md, privacy.py
 skills/proof-mobile-e2e/        SKILL.md, flowgen.py
+skills/proof-pwa/               SKILL.md, pwa.py
+skills/proof-react-native/      SKILL.md, rncheck.py
 skills/proof-mobile-explore/    SKILL.md, mexplore.py
 skills/proof-mobile-a11y/       SKILL.md, ma11y.py
 skills/proof-design-match/      SKILL.md, design.py

@@ -65,6 +65,8 @@ OPTIONAL = [
     ("proof-mobile-explore", "an agent explores the real app on a device"),
     ("proof-mobile-a11y", "phone accessibility from UI trees"),
     ("proof-llm-device", "on-device LLM speed, memory, heat and battery"),
+    ("proof-pwa", "installable web app: manifest, service worker, offline"),
+    ("proof-react-native", "React Native and Expo config and code audit"),
 ]
 REPO = {"proof-sec-secrets", "proof-sec-deps", "proof-infra", "proof-restraint", "proof-slop"}
 BY_KIND = {

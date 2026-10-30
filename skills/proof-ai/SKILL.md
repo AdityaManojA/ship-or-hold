@@ -102,6 +102,29 @@ python3 "${CLAUDE_SKILL_DIR}/eval_import.py" promptfoo promptfoo.json --min-pass
 python3 "${CLAUDE_SKILL_DIR}/eval_import.py" garak garak.report.jsonl --min-pass 0.95
 ```
 
+For an eval suite of your own (a custom runner, an LLM judge, Langfuse
+experiments), save one row per case and check as JSON or JSON lines, with `case`,
+`metric`, `value` (true/false, 0/1 or a 0..1 score) and `comment`, and import it:
+
+```bash
+python3 "${CLAUDE_SKILL_DIR}/eval_import.py" results evals-out.jsonl --name policy-evals --min-pass 0.9
+python3 "${CLAUDE_SKILL_DIR}/eval_import.py" results judge-scores.json --pass-at 0.7   # 0..1 scores
+```
+
+A runner that already loops over its results needs only a few lines to write that
+file, for example after a Langfuse `run_experiment`:
+
+```python
+with open("evals-out.jsonl", "w") as fh:
+    for item in result.item_results:
+        for ev in item.evaluations or []:
+            fh.write(json.dumps({"case": item.item.id, "metric": ev.name,
+                                 "value": ev.value, "comment": ev.comment}) + "\n")
+```
+
+It prints the pass rate per metric, records the overall pass rate as a score with
+your budget, and turns each failed row into a finding.
+
 Failures arrive unverified; read the transcript in the report, then verify or
 reject. `/proof-doctor --for proof-ai` shows which of these tools are installed.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Import LLM evaluation results (promptfoo, garak) into the Proof ledger.
+"""Import LLM evaluation results (promptfoo, garak, or your own eval suite) into the Proof ledger.
 
 Standard library only, no network. Run the evaluation tool yourself against your
 own app's model feature, then import its output here: each failed test becomes a
@@ -10,6 +10,13 @@ budget, so it counts in the verdict.
     python3 eval_import.py promptfoo promptfoo.json --min-pass 0.95
     garak ... (writes a report .jsonl)      # then:
     python3 eval_import.py garak garak.report.jsonl --min-pass 0.95
+    python3 eval_import.py results my-evals.jsonl --name policy-evals --min-pass 0.9
+
+The results format is for any suite of your own: a JSON list (or {"results": [...]})
+or JSON lines, one row per case and check, with any of these keys:
+case (or id, item), metric (or name, evaluator), value (or score, pass: true/false,
+0/1 or a 0..1 score) and comment (or reason). A row passes when its value is true
+or at least --pass-at (default 1).
 """
 
 import argparse
@@ -99,6 +106,52 @@ def parse_garak(path):
     return total, passed, fails
 
 
+def _first(row, *keys):
+    for k in keys:
+        if k in row and row[k] is not None:
+            return row[k]
+    return None
+
+
+def parse_results(path, pass_at=1.0):
+    """Rows of {case, metric, value, comment} from JSON or JSON lines. Returns (total, fails, by_metric)."""
+    with open(path, encoding="utf-8-sig") as fh:
+        text = fh.read()
+    try:
+        data = json.loads(text)
+        rows = data.get("results") if isinstance(data, dict) else data
+    except ValueError:
+        rows = []
+        for n, line in enumerate(text.splitlines(), 1):
+            if line.strip():
+                try:
+                    rows.append(json.loads(line))
+                except ValueError:
+                    raise SystemExit("line %d of %s is not JSON" % (n, path))
+    if not isinstance(rows, list) or not rows:
+        raise SystemExit("no result rows in %s; see eval_import.py --help for the format" % path)
+    fails, by_metric = [], {}
+    for n, row in enumerate(rows, 1):
+        if not isinstance(row, dict):
+            raise SystemExit("row %d of %s is not an object" % (n, path))
+        value = _first(row, "value", "score", "pass", "passed")
+        if value is None:
+            raise SystemExit("row %d of %s has no value, score or pass" % (n, path))
+        if isinstance(value, bool):
+            ok = value
+        else:
+            ok = num.parse_number(value, field="value") >= pass_at
+        metric = str(_first(row, "metric", "name", "evaluator") or "check")
+        case = str(_first(row, "case", "id", "item", "case_id") or "case %d" % n)
+        stats = by_metric.setdefault(metric, [0, 0])
+        stats[0] += 1
+        stats[1] += 1 if ok else 0
+        if not ok:
+            reason = _first(row, "comment", "reason", "message") or "below the pass mark"
+            fails.append({"name": "%s on %s" % (metric, case), "reason": " ".join(str(reason).split())[:200]})
+    return len(rows), fails, by_metric
+
+
 def _record(d, tool, rel, total, passed, fails, min_pass, verify):
     cid = "eval-%s" % tool
     _ensure_check(d, cid, "Automated evaluation with %s" % tool)
@@ -138,6 +191,17 @@ def cmd_garak(a):
     return 0
 
 
+def cmd_results(a):
+    total, fails, by_metric = parse_results(a.path, a.pass_at)
+    tool = ledger.slug(a.name) or "evals"
+    rel = _copy(a.dir, a.path, "%s%s" % (tool, os.path.splitext(a.path)[1] or ".json"))
+    for metric in sorted(by_metric):
+        n, ok = by_metric[metric]
+        print("  %s %-40s %3d of %3d passed" % (ledger.OK if ok == n else ledger.BAD, metric, ok, n))
+    _record(a.dir, tool, rel, total, total - len(fails), fails, a.min_pass, a.verify)
+    return 0
+
+
 def main(argv=None):
     ledger.console()
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
@@ -149,6 +213,13 @@ def main(argv=None):
         p.add_argument("--min-pass", type=float, default=0.95, help="pass-rate budget (0..1)")
         p.add_argument("--verify", action="store_true", help="verify failure findings by the report file")
         p.set_defaults(func=func)
+    r = sub.add_parser("results", help="import your own eval suite's per-case results (JSON or JSON lines)")
+    r.add_argument("path")
+    r.add_argument("--name", default="evals", help="what to call the suite in the report (default evals)")
+    r.add_argument("--pass-at", type=float, default=1.0, help="lowest value that counts as a pass (default 1)")
+    r.add_argument("--min-pass", type=float, default=0.95, help="pass-rate budget (0..1)")
+    r.add_argument("--verify", action="store_true", help="verify failure findings by the results file")
+    r.set_defaults(func=cmd_results)
     a = ap.parse_args(argv)
     return a.func(a)
 

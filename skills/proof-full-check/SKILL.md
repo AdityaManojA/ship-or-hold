@@ -67,6 +67,8 @@ on its own when you want it:
 - `/proof-mobile-explore`: an agent explores the real app on a device
 - `/proof-mobile-a11y`: phone accessibility from UI trees
 - `/proof-llm-device`: on-device LLM speed, memory, heat and battery
+- `/proof-pwa`: an installable web app (manifest, service worker, offline)
+- `/proof-react-native`: a React Native or Expo project's config and code
 
 ## Step 3: work through them
 
