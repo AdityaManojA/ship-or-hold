@@ -107,7 +107,7 @@ class Repo(unittest.TestCase):
                    "signal", "random", "datetime", "importlib", "math", "hashlib", "io",
                    "contextlib", "shutil", "tempfile", "collections", "itertools", "glob",
                    "pathlib", "typing", "zipfile", "plistlib", "xml", "csv", "statistics",
-                   "ledger", "num", "validate", "urllib", "html", "textwrap", "difflib",
+                   "ledger", "num", "validate", "review", "urllib", "html", "textwrap", "difflib",
                    "base64", "binascii", "unicodedata", "fnmatch", "string", "ast",
                    "tokenize", "webbrowser", "plistlib", "zlib", "struct", "email", "mimetypes", "threading",
                    "uuid", "calendar", "copy", "functools", "operator", "heapq", "bisect",

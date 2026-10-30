@@ -88,6 +88,63 @@ class FullCheck(unittest.TestCase):
         rc, out = run("--dir", self.d, "next")
         self.assertNotIn(first, out)
 
+    def project(self, files):
+        root = os.path.join(self.tp.base, "app")
+        for rel, text in files.items():
+            path = os.path.join(root, rel)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(text if isinstance(text, str) else json.dumps(text))
+        return root
+
+    WEB_AI = {
+        "frontend/package.json": {"dependencies": {"next": "15", "react-dom": "19"}},
+        "frontend/app/manifest.ts": "export default function manifest() { return {} }",
+        "frontend/app/layout.tsx": "navigator.serviceWorker.register('/sw.js')",
+        "backend/requirements.txt": "fastapi==0.1\nopenai==1.0\npgvector==0.3\nalembic==1.0\npyjwt==2\npytest==8\n",
+    }
+
+    def test_review_reads_a_web_ai_project(self):
+        r = fc.appreview.review([self.project(self.WEB_AI)])
+        self.assertEqual(r["kind"], "web")
+        for sig in ("web", "pwa", "api", "llm", "rag", "database", "auth", "tests"):
+            self.assertIn(sig, r["signals"], sig)
+        self.assertNotIn("react_native", r["signals"])
+
+    def test_review_reads_an_expo_app_as_mobile(self):
+        r = fc.appreview.review([self.project({
+            "package.json": {"dependencies": {"expo": "52", "react-native": "0.76", "react-dom": "19",
+                                              "react-native-webrtc": "1", "expo-apple-authentication": "1"},
+                             "devDependencies": {"jest": "29"}},
+            "app.json": {"expo": {"name": "x"}}})])
+        self.assertEqual(r["kind"], "mobile")  # react-dom from react-native-web is not a second app
+        self.assertEqual(r["mobile"], ["android", "ios"])
+        for sig in ("react_native", "voice", "auth", "tests"):
+            self.assertIn(sig, r["signals"], sig)
+
+    def test_plan_reviews_first_and_ultra_adds_what_fits(self):
+        self.target("web")
+        root = self.project(self.WEB_AI)
+        rc, out = run("--dir", self.d, "plan", "--project", root)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("Review of", out)
+        full = set(ledger.load_target(self.d)["required_skills"])
+        self.assertIn("proof-ai", full)  # the review found an LLM, no --has-llm needed
+        self.assertNotIn("proof-rag", full)
+        self.assertTrue(os.path.isfile(os.path.join(self.d, "review.json")))
+        rc, out = run("--dir", self.d, "plan", "--ultra", "--project", root)
+        self.assertEqual(rc, 0, out)
+        self.assertIn("ultra check", out)
+        ultra = set(ledger.load_target(self.d)["required_skills"])
+        installed = fc._installed()
+        for s in ("proof-rag", "proof-database", "proof-auth", "proof-llm-cost", "proof-pwa", "proof-mutation",
+                  "proof-release", "proof-licenses", "proof-resilience", "proof-compat"):
+            if s in installed:
+                self.assertIn(s, ultra, s)
+        for s in ("proof-react-native", "proof-mobile-explore", "proof-store-ready", "proof-voice", "proof-llm-device"):
+            self.assertNotIn(s, ultra, s)
+        self.assertTrue(full < ultra)
+
 
 if __name__ == "__main__":
     unittest.main()

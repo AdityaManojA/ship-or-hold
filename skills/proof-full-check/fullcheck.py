@@ -7,8 +7,10 @@ for all of them), and then tracks progress: which skills have reported, which
 still have checks not run, and which one to run next. The verdict at the end comes
 from proof-report as usual.
 
-    python3 fullcheck.py plan                     # every applicable skill
+    python3 fullcheck.py review                   # what kind of app this is and what it uses
+    python3 fullcheck.py plan                     # review, then every applicable skill
     python3 fullcheck.py plan --no-seo            # the same, without SEO and GEO
+    python3 fullcheck.py plan --ultra             # review, then every skill that fits, optional ones too
     python3 fullcheck.py plan --has-llm --skip proof-finance
     python3 fullcheck.py status
     python3 fullcheck.py next
@@ -22,7 +24,9 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "proof-core"))
+sys.path.insert(0, HERE)
 import ledger  # noqa: E402
+import review as appreview  # noqa: E402
 
 PLAN_FILE = "fullcheck.json"
 
@@ -67,7 +71,36 @@ OPTIONAL = [
     ("proof-llm-device", "on-device LLM speed, memory, heat and battery"),
     ("proof-pwa", "installable web app: manifest, service worker, offline"),
     ("proof-react-native", "React Native and Expo config and code audit"),
+    ("proof-database", "row-level security, public buckets, risky migrations"),
+    ("proof-auth", "password reset, sessions, logout, OAuth, rate limits"),
+    ("proof-rag", "retrieval answer quality and leaks between users"),
+    ("proof-llm-cost", "LLM cost per user and response times"),
+    ("proof-resilience", "offline, slow network, server errors, double submits"),
+    ("proof-voice", "voice and real-time audio"),
+    ("proof-store-ready", "App Store and Google Play rejection risks"),
+    ("proof-licenses", "dependency licences and a software bill of materials"),
 ]
+# Which optional skills the ultra check adds, from what the review found.
+ULTRA_WHEN = {
+    "proof-mutation": lambda s: "tests" in s,
+    "proof-compat": lambda s: "web" in s or "pwa" in s,
+    "proof-visual": lambda s: bool({"web", "pwa", "react_native", "native_mobile"} & set(s)),
+    "proof-release": lambda s: True,
+    "proof-design-match": lambda s: bool({"web", "pwa", "react_native", "native_mobile"} & set(s)),
+    "proof-mobile-explore": lambda s: "react_native" in s or "native_mobile" in s,
+    "proof-mobile-a11y": lambda s: "react_native" in s or "native_mobile" in s,
+    "proof-store-ready": lambda s: "react_native" in s or "native_mobile" in s,
+    "proof-llm-device": lambda s: "on_device_llm" in s,
+    "proof-pwa": lambda s: "pwa" in s,
+    "proof-react-native": lambda s: "react_native" in s,
+    "proof-database": lambda s: "database" in s,
+    "proof-auth": lambda s: "auth" in s,
+    "proof-rag": lambda s: "rag" in s,
+    "proof-llm-cost": lambda s: "llm" in s,
+    "proof-resilience": lambda s: bool({"web", "pwa", "api", "react_native", "native_mobile"} & set(s)),
+    "proof-voice": lambda s: "voice" in s,
+    "proof-licenses": lambda s: True,
+}
 REPO = {"proof-sec-secrets", "proof-sec-deps", "proof-infra", "proof-restraint", "proof-slop"}
 BY_KIND = {
     "web": lambda s: s not in MOBILE,
@@ -105,6 +138,36 @@ def select(kind, no_seo=False, has_llm=False, mobile=False, skip=(), installed=N
     return out
 
 
+def _review_path(d):
+    return os.path.join(ledger.root(d), "review.json")
+
+
+def run_review(d, projects):
+    """Review the project folders, save proof/review.json and print what was found."""
+    r = appreview.review(projects or ["."])
+    r["reviewed"] = ledger.now()
+    os.makedirs(ledger.root(d), exist_ok=True)
+    with open(_review_path(d), "w", encoding="utf-8") as fh:
+        json.dump(r, fh, indent=2)
+    print("Review of %s:" % ", ".join(projects or ["."]))
+    for line in appreview.summary_lines(r):
+        print("  " + line)
+    return r
+
+
+def ultra_extra(signals, skip=(), installed=None):
+    """The optional skills an ultra check adds for these review signals, in the listed order."""
+    installed = _installed() if installed is None else installed
+    return [(s, why) for s, why in OPTIONAL
+            if s in installed and s not in skip and ULTRA_WHEN.get(s, lambda _: False)(signals)]
+
+
+def cmd_review(a):
+    run_review(a.dir, a.project)
+    print("\nSaved to %s. Next: fullcheck.py plan [--no-seo | --ultra]" % _review_path(a.dir))
+    return 0
+
+
 def _plan_path(d):
     return os.path.join(ledger.root(d), PLAN_FILE)
 
@@ -119,13 +182,24 @@ def cmd_plan(a):
         if not SKILL_RE.match(s):
             print("error: %r is not a skill name" % s, file=sys.stderr)
             return 2
-    chosen = select(t["kind"], a.no_seo, a.has_llm, bool(a.mobile), set(a.skip or []))
+    mode = a.mode or ("ultra" if a.ultra else ("no-seo" if a.no_seo else "full"))
+    rv = run_review(a.dir, a.project)
+    sig = rv["signals"]
+    if rv["kind"] != t["kind"]:
+        print("  Note: the review reads this as %s; target.json says %s. Using target.json; re-run "
+              "/proof-plan to change it." % (rv["kind"], t["kind"]))
+    has_llm = a.has_llm or "llm" in sig
+    mobile = bool(a.mobile) or "react_native" in sig or "native_mobile" in sig
+    skip = set(a.skip or [])
+    chosen = select(t["kind"], mode == "no-seo", has_llm, mobile, skip)
+    if mode == "ultra":
+        chosen += [x for x in ultra_extra(sig, skip) if x[0] not in dict(chosen)]
     if not chosen:
         print("error: no applicable skills are installed for a %s target." % t["kind"], file=sys.stderr)
         return 2
     t["required_skills"] = [s for s, _ in chosen]
     ledger.write_target(a.dir, t)
-    mode = "full check without SEO" if a.no_seo else "full check"
+    mode = {"full": "full check", "no-seo": "full check without SEO", "ultra": "ultra check"}[mode]
     with open(_plan_path(a.dir), "w", encoding="utf-8") as fh:
         json.dump({"mode": mode, "kind": t["kind"], "skills": [s for s, _ in chosen],
                    "created": ledger.now()}, fh, indent=2)
@@ -135,9 +209,9 @@ def cmd_plan(a):
     if not t.get("authorised"):
         print("\nNote: target.json says authorised: no. The security and load skills will refuse to "
               "act against a live target until it is yes.")
-    extra = [(s, why) for s, why in OPTIONAL if s in _installed()]
+    extra = [(s, why) for s, why in OPTIONAL if s in _installed() and s not in dict(chosen)]
     if extra:
-        print("\nNot part of a full check; run on their own when you want them:")
+        print("\nNot in this plan; run on their own when you want them:")
         for s, why in extra:
             print("      /%s - %s" % (s, why))
     print("\nRun them in order (fullcheck.py next tells you which), then /proof-report.")
@@ -207,9 +281,15 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--dir", default="proof")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    p = sub.add_parser("plan", help="pick every applicable skill and require them")
+    rv = sub.add_parser("review", help="what kind of app this is and what it uses")
+    rv.add_argument("--project", action="append", help="a project folder to review (repeatable; default .)")
+    rv.set_defaults(func=cmd_review)
+    p = sub.add_parser("plan", help="review the app, then pick every applicable skill and require them")
     p.add_argument("--no-seo", action="store_true", help="leave out SEO and GEO")
-    p.add_argument("--has-llm", action="store_true", help="include the LLM safety skill")
+    p.add_argument("--ultra", action="store_true", help="every skill that fits the app, the optional ones too")
+    p.add_argument("--mode", choices=["full", "no-seo", "ultra"], help="the same choice as --no-seo / --ultra")
+    p.add_argument("--project", action="append", help="a project folder to review (repeatable; default .)")
+    p.add_argument("--has-llm", action="store_true", help="include the LLM safety skill (the review also finds it)")
     p.add_argument("--mobile", choices=["ios", "android"], help="include the mobile skills")
     p.add_argument("--skip", action="append", help="leave out a skill (repeatable)")
     p.set_defaults(func=cmd_plan)

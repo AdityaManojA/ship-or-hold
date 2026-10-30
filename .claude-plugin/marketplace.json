@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "proof-skill",
-      "description": "Forty-two evidence-first testing and audit skills: web and mobile flows, API, security, secrets, dependencies, infrastructure, privacy, performance, accessibility, compatibility, visual, SEO, AI safety, finance and launch readiness, a Ship / Not yet / Incomplete verdict computed from the evidence ledger, and a board of directors that votes on the launch.",
+      "description": "Fifty-one evidence-first testing and audit skills: web and mobile flows, API, security, secrets, dependencies, infrastructure, privacy, performance, accessibility, compatibility, visual, SEO, AI safety, finance and launch readiness, a Ship / Not yet / Incomplete verdict computed from the evidence ledger, and a board of directors that votes on the launch.",
       "source": "./",
       "category": "testing",
       "homepage": "https://github.com/AdityaManojA/ship-or-hold"

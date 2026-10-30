@@ -40,7 +40,23 @@ it records what is under test and asks whether you own it or have written
 permission to test it. The security and load skills refuse to act against a live
 target until that is yes.
 
-## Step 2: plan the full check
+## Step 2: review the app, then plan
+
+The plan always starts by reviewing the app: it reads the manifests and a sample of
+the source and reports what it is (web, PWA, API, React Native or native mobile)
+and what it uses (an LLM, retrieval, a database, sign-in, voice, tests), with the
+file behind each signal, and saves it to `proof/review.json`. Run it on its own
+first and show the user what it found:
+
+```bash
+python3 "${CLAUDE_SKILL_DIR}/fullcheck.py" review --project .
+```
+
+Give `--project` once per folder when the product spans several repositories. The
+review turns on the AI safety skill when it finds an LLM and the mobile skills when
+it finds a mobile app, so `--has-llm` and `--mobile` are only needed to force them.
+For every skill that fits, the optional ones too, use `/proof-ultracheck`.
+
 
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/fullcheck.py" plan
@@ -69,6 +85,17 @@ on its own when you want it:
 - `/proof-llm-device`: on-device LLM speed, memory, heat and battery
 - `/proof-pwa`: an installable web app (manifest, service worker, offline)
 - `/proof-react-native`: a React Native or Expo project's config and code
+- `/proof-database`: row-level security, public buckets, risky migrations
+- `/proof-auth`: password reset, sessions, logout, OAuth, rate limits
+- `/proof-rag`: retrieval answer quality and leaks between users
+- `/proof-llm-cost`: LLM cost per user and response times
+- `/proof-resilience`: offline, slow network, server errors, double submits
+- `/proof-voice`: voice and real-time audio
+- `/proof-store-ready`: App Store and Google Play rejection risks
+- `/proof-licenses`: dependency licences and a software bill of materials
+
+`/proof-ultracheck` runs the full check plus every one of these the review finds a
+reason for.
 
 ## Step 3: work through them
 

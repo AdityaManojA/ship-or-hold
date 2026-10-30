@@ -40,7 +40,18 @@ it records what is under test and asks whether you own it or have written
 permission to test it. The security and load skills refuse to act against a live
 target until that is yes.
 
-## Step 2: plan
+## Step 2: review the app, then plan
+
+The plan reviews the app first (what it is and what it uses, saved to
+`proof/review.json`); run the review on its own and show the user what it found:
+
+```bash
+python3 "${CLAUDE_SKILL_DIR}/../proof-full-check/fullcheck.py" review --project .
+```
+
+The review turns on the AI safety skill when it finds an LLM and the mobile skills
+when it finds a mobile app.
+
 
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/../proof-full-check/fullcheck.py" plan --no-seo

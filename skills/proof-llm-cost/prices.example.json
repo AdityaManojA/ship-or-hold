@@ -1,0 +1,5 @@
+{
+  "_note": "PLACEHOLDER prices, not real ones. Replace every number with your provider's current price in USD per 1 million tokens, and use the model names exactly as they appear in your usage records. Prices change; check the provider's pricing page before each run.",
+  "example-model-large": {"input_per_1m": 0.0, "output_per_1m": 0.0, "cached_input_per_1m": 0.0},
+  "example-model-small": {"input_per_1m": 0.0, "output_per_1m": 0.0, "cached_input_per_1m": 0.0}
+}

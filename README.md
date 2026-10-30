@@ -1,6 +1,6 @@
 # Proof
 
-Forty-two Claude skills that test a product before you ship it, then present it to a board of directors. Free, MIT, no
+Fifty-one Claude skills that test a product before you ship it, then present it to a board of directors. Free, MIT, no
 signup, no API key, nothing to connect.
 
 Most testing tools let the model say something passed. Proof does not. Every skill
@@ -96,16 +96,26 @@ Don't want SEO (an internal tool, a build in stealth, a private beta):
 run a full check without SEO and present it to the board
 ```
 
+Every check that fits the app, the optional ones too:
+
+```
+run the ultracheck and present it to the board
+```
+
+Each one reviews the app first (web, PWA, API, mobile, LLM, database, sign-in and so on) and shows you what it
+found before planning.
+
 Or start with `/proof-plan`, which records what is under test and asks you to
 confirm you own it or have permission to test it, then pick the skills you need.
 Everything Proof writes goes into a `proof/` folder in your project.
 
-## The forty-two
+## The fifty-one
 
 | command | job | what it does |
 | --- | --- | --- |
 | `/proof-board` | Board of directors | Nine directors, each applying the researched thinking of one person (Jobs, Vogels, Katz, Porat, Ogilvy, Patterson, Cook, Fadell, Smith), hear the evidence and vote. The meeting runs by itself in the chat and as a page; Go, Go with conditions or Hold is computed. |
 | `/proof-full-check` | Full check | Every skill that applies to the target, including SEO and AI search, run in order to a verdict. |
+| `/proof-ultracheck` | Ultra check | Reviews the app, then runs the full check plus every optional skill the review finds a reason for, all required. |
 | `/proof-full-check-no-seo` | Full check, no SEO | The same, minus SEO and AI search, which then never hold the launch. For internal tools, stealth builds, private betas. |
 | `/proof-plan` | Planner | Records what is under test, whether you are authorised to test it, and which skills the verdict waits for. |
 | `/proof-report` | Verdict | Computes Ship, Not yet or Incomplete. Writes Markdown, HTML and SARIF reports, and compares runs. |
@@ -126,6 +136,14 @@ Everything Proof writes goes into a `proof/` folder in your project.
 | `/proof-infra` | Infrastructure | Flags risky settings in Dockerfiles, Compose, Kubernetes, Terraform and CI workflows. |
 | `/proof-privacy` | Privacy | Trackers that load before consent, first-visit cookies, missing policy links, personal data in URLs. |
 | `/proof-mobile-e2e` | Mobile flows | Plans mobile flows, generates Maestro files, and records each result with a screenshot. |
+| `/proof-database` | Database | Row-level security off or too open, public storage buckets, a service-role key in client code, risky migrations, schema smells. |
+| `/proof-auth` | Auth | Password reset, session expiry, logout, token storage, cookie flags, JWT hygiene, OAuth redirects, rate limits, account enumeration. |
+| `/proof-rag` | RAG quality | Retrieval hit rate, citations that support the answer, invented citations, abstaining when nothing fits, leaks between users. |
+| `/proof-llm-cost` | LLM cost | Cost per call, conversation and user from usage records and your price file, response times, runaway conversations, uncapped calls. |
+| `/proof-resilience` | Resilience | Offline, slow network, server errors, timeouts, cold starts, double submits and retry storms, with a HAR analyser. |
+| `/proof-voice` | Voice | Mic permission, response latency, interrupting, background and lock, audio routes, poor networks, word error rate, WebRTC stats. |
+| `/proof-store-ready` | Store readiness | App Store and Google Play rejection risks: account deletion, Sign in with Apple, target SDK, privacy manifest, icons, screenshots. |
+| `/proof-licenses` | Licences | Dependency licences against your project's licence, and a CycloneDX software bill of materials. |
 | `/proof-pwa` | PWA | Checks an installable web app: the manifest, icons, service worker, offline fallback and HTTPS, from saved files. |
 | `/proof-react-native` | React Native | Audits a React Native or Expo project: secrets in the bundle, tokens in AsyncStorage, cleartext URLs, permissions without usage text, debug settings, OTA updates, expo-doctor results. |
 | `/proof-mobile-explore` | Mobile explore | An agent explores the real app on your own device or emulator toward goals; crashes, ANRs and dead ends become findings with screenshots and logs. |
@@ -200,7 +218,9 @@ the area was not tested.
 Neither full check includes the optional skills, which need setup, a second run or
 a person, or only fit some projects: `/proof-mutation`, `/proof-compat`,
 `/proof-visual`, `/proof-release`, `/proof-design-match`, `/proof-mobile-explore`,
-`/proof-mobile-a11y`, `/proof-llm-device`, `/proof-pwa` and `/proof-react-native`. Run any of them on its own; the full
+`/proof-mobile-a11y`, `/proof-llm-device`, `/proof-pwa`, `/proof-react-native`, `/proof-database`, `/proof-auth`,
+`/proof-rag`, `/proof-llm-cost`, `/proof-resilience`, `/proof-voice`, `/proof-store-ready` and
+`/proof-licenses`. `/proof-ultracheck` adds every one the app's review calls for. Run any of them on its own; the full
 check's plan lists them.
 
 An example run: an online shop, running locally, with a checkout.
@@ -395,6 +415,15 @@ skills/proof-sec-diff/          SKILL.md, diffscope.py
 skills/proof-infra/             SKILL.md, infra.py
 skills/proof-privacy/           SKILL.md, privacy.py
 skills/proof-mobile-e2e/        SKILL.md, flowgen.py
+skills/proof-ultracheck/        SKILL.md
+skills/proof-database/          SKILL.md, dbcheck.py
+skills/proof-auth/              SKILL.md, auth.py
+skills/proof-rag/               SKILL.md, rag.py
+skills/proof-llm-cost/          SKILL.md, llmcost.py, prices.example.json
+skills/proof-resilience/        SKILL.md, resilience.py
+skills/proof-voice/             SKILL.md, voice.py
+skills/proof-store-ready/       SKILL.md, store.py
+skills/proof-licenses/          SKILL.md, licenses.py
 skills/proof-pwa/               SKILL.md, pwa.py
 skills/proof-react-native/      SKILL.md, rncheck.py
 skills/proof-mobile-explore/    SKILL.md, mexplore.py
