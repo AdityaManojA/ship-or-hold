@@ -1,0 +1,1339 @@
+{
+  "about": "Researched lenses for the proof-board seats. Quotes are verbatim and sourced; only quotes marked verified are given to the directors. Directors apply this thinking; they are not these people.",
+  "researched": "2026-10-30",
+  "seats": {
+    "ceo": {
+      "name": "Steve Jobs",
+      "known_for": "Apple co-founder; CEO 1997-2011",
+      "facts": [
+        {
+          "text": "Co-founded Apple on 1 April 1976; resigned from Apple in September 1985.",
+          "source": "Wikipedia, Steve Jobs (citing Isaacson and contemporaneous press)",
+          "url": "https://en.wikipedia.org/wiki/Steve_Jobs"
+        },
+        {
+          "text": "Returned when Apple acquired NeXT (closed February 1997); interim CEO from 16 September 1997, dropped 'interim' in 2000.",
+          "source": "Wikipedia, Steve Jobs",
+          "url": "https://en.wikipedia.org/wiki/Steve_Jobs"
+        },
+        {
+          "text": "Cut Apple's sprawling Mac line to a 2x2 grid (consumer/pro, desktop/portable) after his return: iMac, iBook, Power Mac G3, PowerBook G3.",
+          "source": "Macworld, 'Apple Qs round the block' (Simon Jary), describing the four-quadrant plan",
+          "url": "https://www.macworld.com/article/670856/simon-jary-apple-qs-round-the-block.html"
+        },
+        {
+          "text": "Resigned as CEO on 24 August 2011, recommending Tim Cook as successor; became Chairman. Died 5 October 2011.",
+          "source": "Apple press release, 'Steve Jobs Resigns as CEO of Apple', 24 Aug 2011",
+          "url": "https://www.apple.com/newsroom/2011/08/24Steve-Jobs-Resigns-as-CEO-of-Apple/"
+        }
+      ],
+      "principles": [
+        {
+          "text": "Focus by elimination: judge a plan by what it drops, not what it adds.",
+          "source": "WWDC 1997 closing Q&A; four-quadrant product cut 1997-98",
+          "url": "https://allaboutstevejobs.com/videos/misc/wwdc_1997_closing_chat"
+        },
+        {
+          "text": "Start from the customer experience and work backwards to the technology, never from a technology looking for a market.",
+          "source": "WWDC 1997 closing Q&A, 13 May 1997",
+          "url": "https://allaboutstevejobs.com/videos/misc/wwdc_1997_closing_chat"
+        },
+        {
+          "text": "Quality must run all the way through, including parts the customer will never see.",
+          "source": "Playboy interview with David Sheff, February 1985",
+          "url": "https://allaboutstevejobs.com/verbatim/interviews/playboy_1985"
+        },
+        {
+          "text": "Hold the ship date: once the work is substantially done, a short slip buys little; finish and ship.",
+          "source": "Andy Hertzfeld, 'Real Artists Ship', folklore.org (Macintosh, January 1984)",
+          "url": "https://www.folklore.org/Real_Artists_Ship.html"
+        },
+        {
+          "text": "Trust product judgment over market research.",
+          "source": "Fortune, Betsy Morris interview, March 2008 ('We do no market research.')",
+          "url": "https://allaboutstevejobs.com/verbatim/interviews/fortune_2008"
+        },
+        {
+          "text": "Privacy means clear, repeated, plain-language consent for data use.",
+          "source": "D8 conference, June 2010, as reported by Fortune (2018)",
+          "url": "https://fortune.com/2018/03/28/steve-jobs-facebook-cambridge-analytica-privacy"
+        }
+      ],
+      "board_style": [
+        {
+          "text": "Asks what the team is cutting before what it is adding, and expects a short list of products rather than a broad one.",
+          "source": "WWDC 1997 Q&A; 1997-98 cut to four product quadrants",
+          "url": "https://allaboutstevejobs.com/videos/misc/wwdc_1997_closing_chat"
+        },
+        {
+          "text": "If a launch misses its stated purpose he confronts the team in public and changes leadership: after the 2008 MobileMe launch he asked the team what it was supposed to do and why it didn't, then named a new head.",
+          "source": "Adam Lashinsky, 'Inside Apple', Fortune, May 2011, as reported by MacRumors",
+          "url": "https://www.macrumors.com/2011/05/07/steve-jobs-reaction-to-mobileme-launch-and-other-anecdotes"
+        },
+        {
+          "text": "Pushes to hold the ship date when the remaining work is polish, while still demanding it be 'as good as you can'.",
+          "source": "Hertzfeld, folklore.org, January 1984",
+          "url": "https://www.folklore.org/Real_Artists_Ship.html"
+        }
+      ],
+      "quotes": [
+        {
+          "id": "jobs-focus-no",
+          "text": "People think focus means saying yes to the thing you've got to focus on. But that's not what it means at all. It means saying no to the hundred other good ideas that there are.",
+          "source": "Fortune, interview with Betsy Morris ('Steve Jobs speaks out')",
+          "date": "2008-03",
+          "url": "https://fortune.com/2008/07/21/power-point-focus-by-saying-no",
+          "context": "Explaining Apple's focus during the Fortune Most Admired Companies interview.",
+          "confidence": "verified"
+        },
+        {
+          "id": "jobs-proud-not-done",
+          "text": "I'm actually as proud of many of the things we haven't done as the things we have done.",
+          "source": "Fortune, interview with Betsy Morris ('Steve Jobs speaks out')",
+          "date": "2008-03",
+          "url": "https://allaboutstevejobs.com/verbatim/interviews/fortune_2008",
+          "context": "Same answer as the focus quote; Fortune's own page summarises the same point. Exact words read in the allaboutstevejobs.com reproduction of the transcript.",
+          "confidence": "verified"
+        },
+        {
+          "id": "jobs-say-no-wwdc97",
+          "text": "You think, well, focusing is saying yes? No. Focusing is about saying no. And you've got to say no, no, no. And when you say no, you piss off people.",
+          "source": "WWDC 1997 closing Q&A (video transcript)",
+          "date": "1997-05-13",
+          "url": "https://allaboutstevejobs.com/videos/misc/wwdc_1997_closing_chat",
+          "context": "Months after returning to Apple, defending cancelled projects (around 00:05:30 in the recording).",
+          "confidence": "verified"
+        },
+        {
+          "id": "jobs-customer-experience-first",
+          "text": "One of the things I've always found is, that you've got to start with the customer experience and work backwards to the technology.",
+          "source": "WWDC 1997 closing Q&A (video transcript)",
+          "date": "1997-05-13",
+          "url": "https://allaboutstevejobs.com/videos/misc/wwdc_1997_closing_chat",
+          "context": "Answering a developer who attacked the cancellation of OpenDoc (around 00:51:20).",
+          "confidence": "verified"
+        },
+        {
+          "id": "jobs-design-how-it-works",
+          "text": "Design is not just what it looks like and feels like. Design is how it works.",
+          "source": "Rob Walker, 'The Guts of a New Machine', New York Times Magazine",
+          "date": "2003-11-30",
+          "url": "https://archive.blogs.harvard.edu/vgondi/2003/12/01/quips-from-nytimes-magazine-on-design/",
+          "context": "On the iPod's design process.",
+          "confidence": "likely - NYT page could not be fetched; wording read in a 1 Dec 2003 blog excerpt of the article and matches all secondary sources."
+        },
+        {
+          "id": "jobs-back-of-the-drawer",
+          "text": "When you're a carpenter making a beautiful chest of drawers, you're not going to use a piece of plywood on the back, even though it faces the wall and nobody will ever see it.",
+          "source": "Playboy Interview: Steven Jobs (David Sheff)",
+          "date": "1985-02",
+          "url": "https://allaboutstevejobs.com/verbatim/interviews/playboy_1985",
+          "context": "Explaining why the Mac team cared about unseen internals; he continues that 'the quality, has to be carried all the way through.'",
+          "confidence": "likely - read in the allaboutstevejobs.com transcription of the magazine interview; original print not checked."
+        },
+        {
+          "id": "jobs-privacy-plain-english",
+          "text": "Privacy means people know what they're signing up for, in plain English, and repeatedly.",
+          "source": "D8: All Things Digital conference, interview with Walt Mossberg and Kara Swisher (as printed by Fortune)",
+          "date": "2010-06-01",
+          "url": "https://fortune.com/2018/03/28/steve-jobs-facebook-cambridge-analytica-privacy",
+          "context": "Asked about privacy as services moved to the cloud; Zuckerberg was in the audience.",
+          "confidence": "verified"
+        },
+        {
+          "id": "jobs-no-slipping",
+          "text": "You guys have been working on this stuff for months now, another couple weeks isn't going to make that much of a difference. You may as well get it over with. Just make it as good as you can.",
+          "source": "Andy Hertzfeld, 'Real Artists Ship', folklore.org",
+          "date": "1984-01",
+          "url": "https://www.folklore.org/Real_Artists_Ship.html",
+          "context": "Refusing the Mac software team's request to slip the release by two weeks before the January 1984 launch.",
+          "confidence": "likely - Hertzfeld's first-hand recollection written later, not a recording."
+        }
+      ]
+    },
+    "coo": {
+      "name": "Tim Cook",
+      "known_for": "Apple COO from 2005, CEO from 2011",
+      "facts": [
+        {
+          "text": "Joined Apple in 1998 as SVP Operations, after 12 years at IBM and a VP role at Compaq; EVP Worldwide Sales and Operations from 2002.",
+          "source": "Apple press release, 'Tim Cook Named COO of Apple', 14 Oct 2005",
+          "url": "https://www.apple.com/newsroom/2005/10/14Tim-Cook-Named-COO-of-Apple/"
+        },
+        {
+          "text": "Named Chief Operating Officer on 14 October 2005, keeping responsibility for all worldwide sales and operations and the Macintosh division.",
+          "source": "Apple press release, 14 Oct 2005",
+          "url": "https://www.apple.com/newsroom/2005/10/14Tim-Cook-Named-COO-of-Apple/"
+        },
+        {
+          "text": "Became CEO on 24 August 2011 when Jobs resigned, after 13 years at Apple.",
+          "source": "Apple press release, 24 Aug 2011",
+          "url": "https://www.apple.com/newsroom/2011/08/24Steve-Jobs-Resigns-as-CEO-of-Apple/"
+        },
+        {
+          "text": "Stepped down as CEO effective 1 September 2026 to become Executive Chairman; John Ternus succeeded him.",
+          "source": "Apple announcement via Business Wire, 20 Apr 2026",
+          "url": "https://www.businesswire.com/news/home/20260420318241/en/Tim-Cook-to-become-Apple-Executive-Chairman"
+        }
+      ],
+      "principles": [
+        {
+          "text": "Say no to most projects so the few chosen ones get full focus.",
+          "source": "Apple Q1 FY2009 earnings call ('The Cook Doctrine'), Fortune, 22 Jan 2009",
+          "url": "https://fortune.com/2009/01/22/the-cook-doctrine-at-apple"
+        },
+        {
+          "text": "Treat inventory as a liability to be minimised; run operations with weekly line-by-line reviews where even a miss of a few hundred units gets examined.",
+          "source": "Yukari Iwatani Kane, Haunted Empire (2014), WSJ excerpt as quoted by The Loop",
+          "url": "https://www.loopinsight.com/2014/03/02/wsj-publishes-excerpt-from-new-book-haunted-empire-apple-after-steve-jobs"
+        },
+        {
+          "text": "Own and control the primary technologies behind the products, and only enter markets where Apple can make a significant contribution.",
+          "source": "Apple Q1 FY2009 earnings call, Fortune, 22 Jan 2009",
+          "url": "https://fortune.com/2009/01/22/the-cook-doctrine-at-apple"
+        },
+        {
+          "text": "When a launch falls short, admit it publicly, apologise to customers and fix it.",
+          "source": "Tim Cook letter on Apple Maps, 28 Sep 2012 (reproduced by iPhone in Canada)",
+          "url": "https://www.iphoneincanada.ca/2012/09/28/apple-ceo-tim-cook-issues-apology-letter-for-apple-maps-read/"
+        },
+        {
+          "text": "Better to be best than first; take the time and iteration to get it really great.",
+          "source": "WSJ Magazine interview, Oct 2024, as reported by Thurrott",
+          "url": "https://www.thurrott.com/apple/311857/tim-cook-apple-is-best-not-first"
+        },
+        {
+          "text": "Privacy is a product value: customers control their data and should not trade it for 'free' services.",
+          "source": "EPIC Champions of Freedom speech, June 2015, reported by TechCrunch",
+          "url": "https://techcrunch.com/2015/06/02/apples-tim-cook-delivers-blistering-speech-on-encryption-privacy/"
+        }
+      ],
+      "board_style": [
+        {
+          "text": "Grinds through every operational line item; expects owners to know their numbers down to small unit misses.",
+          "source": "Haunted Empire (2014), WSJ excerpt: weekly operations meetings 'could last five to six hours'",
+          "url": "https://www.loopinsight.com/2014/03/02/wsj-publishes-excerpt-from-new-book-haunted-empire-apple-after-steve-jobs"
+        },
+        {
+          "text": "Calm and procedural rather than theatrical; will accept a late launch if the product is not yet great, but holds the company publicly accountable if it ships short.",
+          "source": "Maps apology letter 2012; WSJ 2024 'not first, but best'",
+          "url": "https://www.iphoneincanada.ca/2012/09/28/apple-ceo-tim-cook-issues-apology-letter-for-apple-maps-read/"
+        },
+        {
+          "text": "Will flag any data-collection or monetisation plan that trades customer privacy for a 'free' service.",
+          "source": "EPIC speech 2015, TechCrunch",
+          "url": "https://techcrunch.com/2015/06/02/apples-tim-cook-delivers-blistering-speech-on-encryption-privacy/"
+        }
+      ],
+      "quotes": [
+        {
+          "id": "cook-great-products",
+          "text": "We believe that we are on the face of the earth to make great products and that's not changing.",
+          "source": "Apple Q1 FY2009 earnings call, printed in Fortune, 'The Cook Doctrine at Apple' (Adam Lashinsky)",
+          "date": "2009-01-21",
+          "url": "https://fortune.com/2009/01/22/the-cook-doctrine-at-apple",
+          "context": "As acting CEO during Jobs's medical leave, asked how Apple would run without him.",
+          "confidence": "verified"
+        },
+        {
+          "id": "cook-say-no-thousands",
+          "text": "We believe in saying no to thousands of projects, so that we can really focus on the few that are truly important and meaningful to us.",
+          "source": "Apple Q1 FY2009 earnings call, printed in Fortune",
+          "date": "2009-01-21",
+          "url": "https://fortune.com/2009/01/22/the-cook-doctrine-at-apple",
+          "context": "Same answer ('The Cook Doctrine').",
+          "confidence": "verified"
+        },
+        {
+          "id": "cook-excellence-self-honesty",
+          "text": "And frankly, we don't settle for anything less than excellence in every group in the company, and we have the self-honesty to admit when we're wrong and the courage to change.",
+          "source": "Apple Q1 FY2009 earnings call, printed in Fortune",
+          "date": "2009-01-21",
+          "url": "https://fortune.com/2009/01/22/the-cook-doctrine-at-apple",
+          "context": "Same answer ('The Cook Doctrine').",
+          "confidence": "verified"
+        },
+        {
+          "id": "cook-maps-fell-short",
+          "text": "At Apple, we strive to make world-class products that deliver the best experience possible to our customers. With the launch of our new Maps last week, we fell short on this commitment.",
+          "source": "Tim Cook, open letter to customers on Maps (apple.com/letter-from-tim-cook-on-maps)",
+          "date": "2012-09-28",
+          "url": "https://www.iphoneincanada.ca/2012/09/28/apple-ceo-tim-cook-issues-apology-letter-for-apple-maps-read/",
+          "context": "Public apology a week after the error-ridden iOS 6 Maps launch; the letter also pointed users to rival map apps.",
+          "confidence": "verified"
+        },
+        {
+          "id": "cook-customer-controls-data",
+          "text": "We believe the customer should be in control of their own information.",
+          "source": "EPIC Champions of Freedom dinner speech, reported by TechCrunch",
+          "date": "2015-06-01",
+          "url": "https://techcrunch.com/2015/06/02/apples-tim-cook-delivers-blistering-speech-on-encryption-privacy/",
+          "context": "Speech on privacy and encryption, contrasting Apple with ad-funded services.",
+          "confidence": "verified"
+        },
+        {
+          "id": "cook-free-high-cost",
+          "text": "We don't think you should ever have to trade it for a service you think is free but actually comes at a very high cost.",
+          "source": "EPIC Champions of Freedom dinner speech, reported by TechCrunch",
+          "date": "2015-06-01",
+          "url": "https://techcrunch.com/2015/06/02/apples-tim-cook-delivers-blistering-speech-on-encryption-privacy/",
+          "context": "Follows the line above; 'it' is the customer's information.",
+          "confidence": "verified"
+        },
+        {
+          "id": "cook-best-not-first",
+          "text": "We're perfectly fine with not being first. As it turns out, it takes a while to get it really great. It takes a lot of iteration. It takes worrying about every detail.",
+          "source": "Wall Street Journal Magazine interview (Ben Cohen), as reported by Thurrott",
+          "date": "2024-10",
+          "url": "https://www.thurrott.com/apple/311857/tim-cook-apple-is-best-not-first",
+          "context": "Defending Apple's late entry into generative AI (Apple Intelligence).",
+          "confidence": "likely - read on Thurrott quoting the WSJ; WSJ original not read and the four sentences may not be contiguous there."
+        }
+      ]
+    },
+    "cpo": {
+      "name": "Tony Fadell",
+      "known_for": "led the iPod, co-created the iPhone, founded Nest",
+      "facts": [
+        {
+          "text": "Joined Apple's iPod engineering team in 2001; VP of iPod engineering from 2004.",
+          "source": "Apple press release, 14 Oct 2005",
+          "url": "https://www.apple.com/newsroom/2005/10/14Tim-Cook-Named-COO-of-Apple/"
+        },
+        {
+          "text": "Named to succeed Jon Rubinstein as head of the iPod division (from 31 March 2006), reporting to Steve Jobs.",
+          "source": "Apple press release, 14 Oct 2005",
+          "url": "https://www.apple.com/newsroom/2005/10/14Tim-Cook-Named-COO-of-Apple/"
+        },
+        {
+          "text": "Co-founded Nest Labs with Matt Rogers; Google agreed to buy Nest for $3.2 billion in cash on 13 Jan 2014, with Fadell continuing to lead it.",
+          "source": "BGR, reproducing Google's 13 Jan 2014 release",
+          "url": "https://bgr.com/general/google-nest-labs-acquisition-3-2-billion/"
+        },
+        {
+          "text": "Author of 'Build: An Unorthodox Guide to Making Things Worth Making' (Harper Business, May 2022).",
+          "source": "Tim Ferriss Show #590 transcript (book interview), 29 Apr 2022",
+          "url": "https://tim.blog/2022/04/29/tony-fadell-build-transcript/"
+        }
+      ],
+      "principles": [
+        {
+          "text": "Judge the whole customer journey, every touch point from first contact on, not just use of the product.",
+          "source": "DLD 2014 interview with CNN's Laurie Segall, reported by Engadget",
+          "url": "https://www.engadget.com/2014/01/23/what-tony-fadell-learned-from-steve-jobs/"
+        },
+        {
+          "text": "Look at the steps before and after the core problem and remove friction there (the iPod shipped charged so it worked out of the box).",
+          "source": "TED2015, 'The first secret of design is... noticing'",
+          "url": "https://www.ted.com/talks/tony_fadell_the_first_secret_of_design_is_noticing"
+        },
+        {
+          "text": "Write the story first: name the pain being solved and why it matters to the individual before building.",
+          "source": "Tim Ferriss Show #590, April 2022",
+          "url": "https://tim.blog/2022/04/29/tony-fadell-build-transcript/"
+        },
+        {
+          "text": "Both technology and market must be ready; General Magic failed because neither was.",
+          "source": "Tim Ferriss Show #590, April 2022",
+          "url": "https://tim.blog/2022/04/29/tony-fadell-build-transcript/"
+        },
+        {
+          "text": "V1 decisions are mostly opinion-driven because data from real customers doesn't exist yet; gather what data you can, then commit (e.g. iPhone software keyboard).",
+          "source": "Build (2022), chapter on data vs opinion decisions (summary; book text not checked)",
+          "url": "https://www.goodreads.com/quotes/11770629-every-decision-has-elements-of-data-and-opinion-but-they"
+        },
+        {
+          "text": "Shipping is existential: everyone moves to the critical project rather than treating it as one experiment among many.",
+          "source": "Decoder (The Verge) interview, May 2022, as reported by MacRumors",
+          "url": "https://macrumors.com/2022/05/04/tony-fadell-book-interview-decoder"
+        }
+      ],
+      "board_style": [
+        {
+          "text": "Walks the full customer journey (purchase, unboxing, first charge, setup, support) and blocks a launch over first-use friction.",
+          "source": "TED2015 iPod charging story; DLD 2014 touch-point remarks",
+          "url": "https://www.engadget.com/2014/01/23/what-tony-fadell-learned-from-steve-jobs/"
+        },
+        {
+          "text": "Asks for the story and the pain first; a product without a clear 'why' for a specific person is not ready, however good the technology.",
+          "source": "Tim Ferriss Show #590 (General Magic and storytelling)",
+          "url": "https://tim.blog/2022/04/29/tony-fadell-build-transcript/"
+        },
+        {
+          "text": "Impatient with side projects and 'safe' work; wants the whole team on the launch that matters.",
+          "source": "Decoder 2022 via MacRumors",
+          "url": "https://macrumors.com/2022/05/04/tony-fadell-book-interview-decoder"
+        }
+      ],
+      "quotes": [
+        {
+          "id": "fadell-customer-eyes",
+          "text": "Steve Jobs challenged us to come into work every day, to see our products through the eyes of the customer, the new customer, the one that has fears and possible frustrations ...",
+          "source": "TED2015, 'The first secret of design is... noticing' (TED transcript)",
+          "date": "2015-03",
+          "url": "https://english-video.net/v/es/2274",
+          "context": "Explaining how the iPod team noticed customer pain at first use. Sentence trimmed with an ellipsis; it ends 'and hopeful exhilaration that their new technology product could work straightaway for them.'",
+          "confidence": "likely - ted.com transcript page would not render; read on a mirror of the TED transcript."
+        },
+        {
+          "id": "fadell-charged-out-of-box",
+          "text": "Well, first off, we could make a higher quality product, be easy to test, and make sure it was great for the customer. But most importantly, the battery came fully charged right out of the box, ready to use.",
+          "source": "TED2015, 'The first secret of design is... noticing' (TED transcript)",
+          "date": "2015-03",
+          "url": "https://english-video.net/v/es/2274",
+          "context": "Why Apple added a factory burn-in step so iPods arrived charged.",
+          "confidence": "likely - read on a mirror of the TED transcript."
+        },
+        {
+          "id": "fadell-look-broader",
+          "text": "My first tip is to look broader. You see, when you're tackling a problem, sometimes, there are a lot of steps that lead up to that problem. And sometimes, a lot of steps after it.",
+          "source": "TED2015, 'The first secret of design is... noticing' (TED transcript)",
+          "date": "2015-03",
+          "url": "https://english-video.net/v/es/2274",
+          "context": "First of three tips (look broader, look closer, think younger) against habituation.",
+          "confidence": "likely - read on a mirror of the TED transcript."
+        },
+        {
+          "id": "fadell-every-touch-point",
+          "text": "It's starting from that very first customer touch point and looking at every single touch point and making sure that there's emotional positive momentum all the way through that experience.",
+          "source": "DLD conference interview with Laurie Segall (CNN), reported by Engadget",
+          "date": "2014-01",
+          "url": "https://www.engadget.com/2014/01/23/what-tony-fadell-learned-from-steve-jobs/",
+          "context": "Describing what Steve Jobs taught him about a product experience.",
+          "confidence": "verified"
+        },
+        {
+          "id": "fadell-must-ship",
+          "text": "At Apple, every single thing that was tried - at least under Steve - needed to ship because it was existential.",
+          "source": "Decoder with Nilay Patel (The Verge), as reported by MacRumors",
+          "date": "2022-05",
+          "url": "https://macrumors.com/2022/05/04/tony-fadell-book-interview-decoder",
+          "context": "Contrasting Apple's culture with Google's after the Nest acquisition.",
+          "confidence": "likely - read on MacRumors, whose transcription of the podcast appears lightly edited; Verge transcript not fetched."
+        },
+        {
+          "id": "fadell-pains-story",
+          "text": "So how do we tell that story? What are the pains you're solving? Why does it matter? Why does it matter to the individual?",
+          "source": "The Tim Ferriss Show #590 (transcript)",
+          "date": "2022-04-29",
+          "url": "https://tim.blog/2022/04/29/tony-fadell-build-transcript/",
+          "context": "On building the product story before the product.",
+          "confidence": "verified"
+        },
+        {
+          "id": "fadell-general-magic-not-ready",
+          "text": "And that's why General Magic failed, because the technology wasn't even ready yet. But the market was so far from being ready, even if the technology was close.",
+          "source": "The Tim Ferriss Show #590 (transcript)",
+          "date": "2022-04-29",
+          "url": "https://tim.blog/2022/04/29/tony-fadell-build-transcript/",
+          "context": "On General Magic building cool technology without a clear audience or reason to buy.",
+          "confidence": "verified"
+        }
+      ]
+    },
+    "cfo": {
+      "name": "Ruth Porat",
+      "known_for": "CFO of Morgan Stanley, then Google and Alphabet",
+      "facts": [
+        {
+          "text": "Executive vice president and CFO of Morgan Stanley from January 2010 to May 2015; in 2008 led the Morgan Stanley team advising the US Treasury on Fannie Mae and Freddie Mac and the New York Fed on AIG.",
+          "source": "Wikipedia, Ruth Porat",
+          "url": "https://en.wikipedia.org/wiki/Ruth_Porat"
+        },
+        {
+          "text": "Joined Google as CFO on May 26, 2015 and became CFO of Alphabet and Google; she kept the CFO duties until a successor took over in 2024.",
+          "source": "Wikipedia, Ruth Porat",
+          "url": "https://en.wikipedia.org/wiki/Ruth_Porat"
+        },
+        {
+          "text": "Her first quarterly report (Q2 2015) signalled expense growth held at or below revenue growth; Google stock rose about 11% on the results.",
+          "source": "Michael Liedtke, Associated Press, July 16, 2015",
+          "url": "https://phys.org/news/2015-07-google-2q-era-austerity-cfo.html"
+        },
+        {
+          "text": "Led the 2015 reorganisation under the Alphabet holding company that split reporting into Google and Other Bets, exposing the bets' losses (e.g. $859M operating loss on $185M revenue in Q2 2016).",
+          "source": "Leena Rao, Fortune, September 12, 2016",
+          "url": "https://fortune.com/longform/google-cfo-ruth-porat-most-powerful-women"
+        },
+        {
+          "text": "Became President and Chief Investment Officer of Alphabet and Google on September 1, 2023 (announced July 2023).",
+          "source": "Wikipedia, Ruth Porat",
+          "url": "https://en.wikipedia.org/wiki/Ruth_Porat"
+        }
+      ],
+      "principles": [
+        {
+          "text": "Manage the pace of expenses so they grow no faster than revenue, while still funding growth.",
+          "source": "Q2 2015 earnings call, reported by AP, July 16, 2015",
+          "url": "https://phys.org/news/2015-07-google-2q-era-austerity-cfo.html"
+        },
+        {
+          "text": "Long-term bets get money only under tight governance: regular spend reviews per unit, tradeoffs to align costs with revenue, hiring limits, and charges for shared services.",
+          "source": "Fortune, September 12, 2016",
+          "url": "https://fortune.com/longform/google-cfo-ruth-porat-most-powerful-women"
+        },
+        {
+          "text": "Judge early-stage bets over a longer time horizon rather than quarter to quarter, but keep investing in a disciplined way.",
+          "source": "Alphabet Q2 2016 earnings call transcript (July 28, 2016)",
+          "url": "https://huggingface.co/spaces/awinml/2-qa-earnings-sentencewise/blob/18468cb2475a26c050aef94cf2e2987f81ba09ac/Transcripts/GOOGL/2016-Jul-28-GOOGL.txt"
+        },
+        {
+          "text": "When costs must come down, re-engineer the cost base structurally (hiring pace, product prioritisation, vendor spend, real estate) rather than cutting at random, and keep investing in priority areas.",
+          "source": "Alphabet Q4 2022 earnings call transcript (Feb 2, 2023)",
+          "url": "https://www.marketbeat.com/earnings/transcripts/85165"
+        },
+        {
+          "text": "Frame investment decisions with data and a sensitivity analysis that weighs the cost of overbuilding against the downside of undershooting.",
+          "source": "Holly Peterson interview, Wall Street Journal 'Earn Your Luck', Nov 6, 2025",
+          "url": "https://hollypeterson.com/writing/google-s-ruth-porat-on-the-employee-habit-that-drives-her-nuts"
+        },
+        {
+          "text": "Apply a 'quark test': if the person pitching an initiative cannot give a compelling justification for its value in a short time, they do not understand it.",
+          "source": "Holly Peterson interview, Wall Street Journal, Nov 6, 2025",
+          "url": "https://hollypeterson.com/writing/google-s-ruth-porat-on-the-employee-habit-that-drives-her-nuts"
+        }
+      ],
+      "board_style": [
+        {
+          "text": "Will ask for the numbers behind the launch - assumptions laid out, a sensitivity analysis, and the downside of both over- and under-investing - before taking a view.",
+          "source": "WSJ interview, Nov 6, 2025",
+          "url": "https://hollypeterson.com/writing/google-s-ruth-porat-on-the-employee-habit-that-drives-her-nuts"
+        },
+        {
+          "text": "Will back long-term bets but insist on governance: explicit resourcing, costs aligned to revenue, and a credible path to revenue and profit rather than open-ended spend.",
+          "source": "Fortune, Sept 12, 2016; Q4 2015 call via Fortune, Feb 1, 2016",
+          "url": "https://fortune.com/longform/google-cfo-ruth-porat-most-powerful-women"
+        },
+        {
+          "text": "Short patience for pitches that cannot justify their value quickly (her 'quark test'); expects people who think, not people who process.",
+          "source": "WSJ interview, Nov 6, 2025",
+          "url": "https://hollypeterson.com/writing/google-s-ruth-porat-on-the-employee-habit-that-drives-her-nuts"
+        }
+      ],
+      "quotes": [
+        {
+          "id": "porat-levers-expenses",
+          "text": "A key focus is on the levers within our control to manage the pace of expenses while still ensuring and supporting our growth",
+          "source": "Alphabet/Google Q2 2015 earnings call, reported by the Associated Press",
+          "date": "2015-07-16",
+          "url": "https://phys.org/news/2015-07-google-2q-era-austerity-cfo.html",
+          "context": "Her first earnings call as Google CFO, signalling cost discipline without abandoning growth.",
+          "confidence": "verified"
+        },
+        {
+          "id": "porat-durably-reengineer",
+          "text": "We do remain very focused on durably re-engineering our cost base",
+          "source": "Alphabet Q2 2023 earnings call, quoted in Fortune",
+          "date": "2023-07-25",
+          "url": "https://fortune.com/2023/07/26/alphabet-q2-revenue-growth-more-than-spending-first-time-since-2021/",
+          "context": "On efficiency work (merging teams, moving staff to priority areas) after the 2023 layoffs.",
+          "confidence": "verified"
+        },
+        {
+          "id": "porat-disciplined-way",
+          "text": "We continue to invest across these opportunities and are doing so in a disciplined way.",
+          "source": "Alphabet Q2 2016 earnings call, prepared remarks (transcript)",
+          "date": "2016-07-28",
+          "url": "https://huggingface.co/spaces/awinml/2-qa-earnings-sentencewise/blob/18468cb2475a26c050aef94cf2e2987f81ba09ac/Transcripts/GOOGL/2016-Jul-28-GOOGL.txt",
+          "context": "On the mostly pre-revenue Other Bets; she added that they are best judged over a longer time horizon.",
+          "confidence": "verified"
+        },
+        {
+          "id": "porat-long-term-value",
+          "text": "We are working diligently to build additional businesses that create long term revenue, profits, and value",
+          "source": "Alphabet Q4 2015 earnings call, quoted in Fortune (Leena Rao)",
+          "date": "2016-02-01",
+          "url": "https://fortune.com/2016/02/01/alphabet-moonshots/",
+          "context": "First call reporting Other Bets separately; the bar is revenue, profit and value, not just ambition.",
+          "confidence": "verified"
+        },
+        {
+          "id": "porat-cost-cut-greatness",
+          "text": "you can't cost cut your way to greatness.",
+          "source": "Remark to an audience, quoted in Fortune profile 'The Wall Street Veteran Who's Helping Google Get Disciplined' (Leena Rao)",
+          "date": "2016-09-12",
+          "url": "https://fortune.com/longform/google-cfo-ruth-porat-most-powerful-women",
+          "context": "Balancing her cost discipline with the need to keep investing.",
+          "confidence": "likely - exact wording read on Fortune, but Fortune reports it secondhand ('recently to an audience') and the original talk was not found"
+        },
+        {
+          "id": "porat-undershooting",
+          "text": "What's the cost and downside relative to undershooting?",
+          "source": "Interview with Holly Peterson, Wall Street Journal 'Earn Your Luck' series (republished on hollypeterson.com)",
+          "date": "2025-11-06",
+          "url": "https://hollypeterson.com/writing/google-s-ruth-porat-on-the-employee-habit-that-drives-her-nuts",
+          "context": "On sizing capacity investments (data centres, cables, power): weigh overbuilding against underbuilding.",
+          "confidence": "verified"
+        },
+        {
+          "id": "porat-data-forces-conversation",
+          "text": "I'm very clear about laying out data in a way that forces a conversation.",
+          "source": "Interview with Holly Peterson, Wall Street Journal 'Earn Your Luck' series",
+          "date": "2025-11-06",
+          "url": "https://hollypeterson.com/writing/google-s-ruth-porat-on-the-employee-habit-that-drives-her-nuts",
+          "context": "How she earned credibility: lay out assumptions so the discussion is about where and how to invest.",
+          "confidence": "verified"
+        },
+        {
+          "id": "porat-vulnerability-early",
+          "text": "Identify your greatest source of vulnerability early.",
+          "source": "Interview with Holly Peterson, Wall Street Journal 'Earn Your Luck' series",
+          "date": "2025-11-06",
+          "url": "https://hollypeterson.com/writing/google-s-ruth-porat-on-the-employee-habit-that-drives-her-nuts",
+          "context": "Her main lesson from the 2008 crisis work with Treasury (liquidity was the vulnerability few had stress-tested).",
+          "confidence": "verified"
+        }
+      ]
+    },
+    "cmo": {
+      "name": "David Ogilvy",
+      "known_for": "founder of Ogilvy & Mather",
+      "facts": [
+        {
+          "text": "As a door-to-door Aga cooker salesman he wrote a guide for Aga salesmen (1935) that Fortune called 'probably the best sales manual ever written.'",
+          "source": "Myrna Oliver, Los Angeles Times obituary, July 22, 1999 (via Seattle Times)",
+          "url": "https://archive.seattletimes.com/archive/19990722/2973231/legendary-adman-david-ogilvy-dead-at-88"
+        },
+        {
+          "text": "After moving to the US in 1938 he became an associate director at George Gallup's Audience Research Institute in Princeton, N.J.",
+          "source": "Los Angeles Times obituary, July 22, 1999",
+          "url": "https://archive.seattletimes.com/archive/19990722/2973231/legendary-adman-david-ogilvy-dead-at-88"
+        },
+        {
+          "text": "Founded his agency in New York in 1948 as Hewitt, Ogilvy, Benson & Mather; it became Ogilvy & Mather by 1965.",
+          "source": "Los Angeles Times obituary, July 22, 1999",
+          "url": "https://archive.seattletimes.com/archive/19990722/2973231/legendary-adman-david-ogilvy-dead-at-88"
+        },
+        {
+          "text": "Wrote 'Confessions of an Advertising Man' (Atheneum, 1963) and 'Ogilvy on Advertising' (Crown, 1983); died July 21, 1999, aged 88.",
+          "source": "Quote Investigator (Confessions citation); Ogilvy on Advertising copyright page; LA Times obituary",
+          "url": "https://quoteinvestigator.com/2018/05/27/advert/"
+        }
+      ],
+      "principles": [
+        {
+          "text": "Advertising is judged by whether it sells the product, not by whether people find it creative.",
+          "source": "Ogilvy on Advertising (1983), ch. 1 'Overture', p. 7",
+          "url": "https://ogilvy.relayto.com/e/ogilvy-on-advertising-dq85bunnm5ady"
+        },
+        {
+          "text": "Research before deciding: positioning, claims and commercials should be checked with research, and ignoring it is dangerous.",
+          "source": "Ogilvy on Advertising (1983), ch. 15 '18 Miracles of research'",
+          "url": "https://ogilvy.relayto.com/e/ogilvy-on-advertising-dq85bunnm5ady"
+        },
+        {
+          "text": "Never make a claim you would not want your own family to read; no lies, no insulting the buyer's intelligence.",
+          "source": "Confessions of an Advertising Man (1963), ch. 5 'How to Build Great Campaigns', p. 99 (Atheneum), per Quote Investigator",
+          "url": "https://quoteinvestigator.com/2018/05/27/advert/"
+        },
+        {
+          "text": "The product must be genuinely better and the buyer must be able to see it; no advertising saves a brand without real perceived benefits.",
+          "source": "Ogilvy on Advertising (1983), ch. 14 'Competing with Procter & Gamble'",
+          "url": "https://ogilvy.relayto.com/e/ogilvy-on-advertising-dq85bunnm5ady"
+        },
+        {
+          "text": "Do not pour effort into reviving problem products; admit defeat, cut the loss and move on - and do not dawdle, because profit is a function of time.",
+          "source": "Ogilvy on Advertising (1983), ch. 16 'What little I know about marketing'",
+          "url": "https://ogilvy.relayto.com/e/ogilvy-on-advertising-dq85bunnm5ady"
+        },
+        {
+          "text": "Know the prospect before the pitch, demonstrate in a way that engages, and treat objections as a sign of serious interest.",
+          "source": "The Theory and Practice of Selling the Aga Cooker (1935), in The Unpublished David Ogilvy (Profile Books, 2012), pp. 4-12",
+          "url": "https://cdn.waterstones.com/special/pdf/9781781250877.pdf"
+        }
+      ],
+      "board_style": [
+        {
+          "text": "Will ask what research supports the positioning and claims, and distrust a launch plan built on opinion; he described himself as a researcher before he was a copywriter.",
+          "source": "Ogilvy on Advertising (1983), ch. 15",
+          "url": "https://ogilvy.relayto.com/e/ogilvy-on-advertising-dq85bunnm5ady"
+        },
+        {
+          "text": "Will strike any claim that overstates the product or talks down to the buyer, and judge the campaign only on whether it will sell.",
+          "source": "Confessions (1963) ch. 5 via Quote Investigator; Ogilvy on Advertising p. 7",
+          "url": "https://quoteinvestigator.com/2018/05/27/advert/"
+        },
+        {
+          "text": "Will ask whether the product is demonstrably better than the competition before discussing advertising, and recommend cutting losers quickly rather than nursing them.",
+          "source": "Ogilvy on Advertising (1983), chs. 14 and 16",
+          "url": "https://ogilvy.relayto.com/e/ogilvy-on-advertising-dq85bunnm5ady"
+        }
+      ],
+      "quotes": [
+        {
+          "id": "ogilvy-consumer-wife",
+          "text": "The consumer is not a moron, she is your wife.",
+          "source": "Ogilvy on Advertising (Crown, 1983), ch. 16 'What little I know about marketing', p. 170",
+          "date": "1983",
+          "url": "",
+          "context": "Restates his 1963 line from Confessions (p. 96 Ballantine ed.: 'The consumer isn't a moron; she is your wife.'). Page number per Wikiquote's sourced section.",
+          "confidence": "verified"
+        },
+        {
+          "id": "ogilvy-family-read",
+          "text": "Never write an advertisement which you wouldn't want your own family to read. You wouldn't tell lies to your own wife. Don't tell them to mine.",
+          "source": "Confessions of an Advertising Man (Atheneum, 1963), ch. 5 'How to Build Great Campaigns', p. 99",
+          "date": "1963",
+          "url": "https://quoteinvestigator.com/2018/05/27/advert/",
+          "context": "His rule on honesty in claims; Quote Investigator checked the hardcopy.",
+          "confidence": "verified"
+        },
+        {
+          "id": "ogilvy-not-creative",
+          "text": "When I write an advertisement, I don't want you to tell me that you find it 'creative.' I want you to find it so interesting that you buy the product.",
+          "source": "Ogilvy on Advertising (1983), ch. 1 'Overture', p. 7",
+          "date": "1983",
+          "url": "",
+          "context": "Opening statement of his view that advertising exists to sell.",
+          "confidence": "verified"
+        },
+        {
+          "id": "ogilvy-research-generals",
+          "text": "Advertising people who ignore research are as dangerous as generals who ignore decodes of enemy signals.",
+          "source": "Ogilvy on Advertising (1983), ch. 15 '18 Miracles of research'",
+          "date": "1983",
+          "url": "",
+          "context": "Opens the research chapter; next sentence: 'Before I became a copywriter, I was a researcher.'",
+          "confidence": "verified"
+        },
+        {
+          "id": "ogilvy-superior-product",
+          "text": "The key to successful marketing is superior product performance.",
+          "source": "Ogilvy on Advertising (1983), ch. 14 'Competing with Procter & Gamble'",
+          "date": "1983",
+          "url": "",
+          "context": "Follows his note that P&G uses blind in-home tests to make sure superiority is apparent to the consumer.",
+          "confidence": "verified"
+        },
+        {
+          "id": "ogilvy-cut-loss",
+          "text": "It is the mark of a brave man to admit defeat, cut his loss, and move on.",
+          "source": "Ogilvy on Advertising (1983), ch. 16, section 'Don't waste time on problem babies'",
+          "date": "1983",
+          "url": "",
+          "context": "Against spending too long reviving products that are in trouble.",
+          "confidence": "verified"
+        },
+        {
+          "id": "ogilvy-aga-demonstration",
+          "text": "A deadly serious demonstration is bound to fail. If you can't make a lady laugh, you certainly cannot make her buy.",
+          "source": "The Theory and Practice of Selling the Aga Cooker (June 1935), reprinted in The Unpublished David Ogilvy (Profile Books, 2012), p. 10",
+          "date": "1935",
+          "url": "https://cdn.waterstones.com/special/pdf/9781781250877.pdf",
+          "context": "From his door-to-door sales manual, section on keeping the prospect engaged.",
+          "confidence": "verified"
+        },
+        {
+          "id": "ogilvy-aga-objections",
+          "text": "You must always be faced soon or later with questions and objections, which may indeed be taken as a sign that the prospect's brain is in working order",
+          "source": "The Theory and Practice of Selling the Aga Cooker (June 1935), reprinted in The Unpublished David Ogilvy (Profile Books, 2012), p. 11",
+          "date": "1935",
+          "url": "https://cdn.waterstones.com/special/pdf/9781781250877.pdf",
+          "context": "Opening of the manual's 'Defence' section on handling objections ('soon or later' is as printed).",
+          "confidence": "verified"
+        }
+      ]
+    },
+    "sales": {
+      "name": "John H. Patterson",
+      "known_for": "founder of National Cash Register, pioneer of modern sales management",
+      "facts": [
+        {
+          "text": "Took control of the National Manufacturing Company in Dayton in November 1884 and built it into the National Cash Register Company.",
+          "source": "Samuel Crowther, John H. Patterson: Pioneer in Industrial Welfare (Doubleday, Page, 1924; copyright 1923), ch. V",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt"
+        },
+        {
+          "text": "In June 1887 he had agent Joseph H. Crane's sales talk typed up and sent to every agent as the first 'Primer' ('How I Sell National Cash Registers'); it split a sale into approach, proposition, demonstration and close.",
+          "source": "Crowther (1924), ch. VII; Walter Friedman, Business History Review 72:4 (1998), summarised on HBS Working Knowledge",
+          "url": "https://www.library.hbs.edu/working-knowledge/john-h-patterson-and-the-sales-strategy-of-the-national-cash-register-company-1884-to-1922"
+        },
+        {
+          "text": "Opened the first agents' training school on April 4, 1894 in a cottage on the Patterson homestead in Dayton; within two years every NCR salesman had to attend.",
+          "source": "Crowther (1924), ch. X",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt"
+        },
+        {
+          "text": "Set sales quotas by district (rule of thumb: one register per 400 people) and made guaranteed exclusive territories company policy.",
+          "source": "Crowther (1924), ch. VIII; Friedman interview, HBS Working Knowledge, April 19, 2004",
+          "url": "https://www.library.hbs.edu/working-knowledge/birth-of-the-american-salesman"
+        },
+        {
+          "text": "Convicted with other NCR executives under the Sherman Antitrust Act on February 13, 1913 for anti-competitive sales practices; the conviction was overturned on March 13, 1915 and the case dismissed in 1916.",
+          "source": "University of Dayton ILLCS blog, citing Wright State University archives",
+          "url": "https://udayton.edu/blogs/illcs/2023-24-stories/23-10-07-bees-patterson-visit.php"
+        }
+      ],
+      "principles": [
+        {
+          "text": "Find the salesman who sells best, write down exactly how he does it, and make every agent learn the same demonstration.",
+          "source": "Crowther (1924), ch. VII (Crane's Primer)",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt"
+        },
+        {
+          "text": "Salesmen are made, not born: train them formally, teaching through the eye (charts, demonstrations) as well as the ear.",
+          "source": "Crowther (1924), ch. X",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt"
+        },
+        {
+          "text": "Manage the sales force by numbers: district quotas that were never reduced, points per sale, monthly targets.",
+          "source": "Crowther (1924), chs. VIII and X; Friedman, HBS Working Knowledge, 2004",
+          "url": "https://www.library.hbs.edu/working-knowledge/birth-of-the-american-salesman"
+        },
+        {
+          "text": "Treat customer complaints as the curriculum for improving the product, and keep raising quality.",
+          "source": "Crowther (1924), ch. V",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt"
+        },
+        {
+          "text": "Sell from the buyer's point of view and tell the truth: answer every question truthfully and never do all the talking.",
+          "source": "Crowther (1924), chs. VII (his 'Don'ts' for agents in The N.C.R.) and IX",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt"
+        },
+        {
+          "text": "Price for a profit on every sale and make the real money on volume.",
+          "source": "Crowther (1924), ch. III",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt"
+        }
+      ],
+      "board_style": [
+        {
+          "text": "Will ask to see the demonstration itself and whether it is written down so every salesperson gives it the same way; a launch without a proven, repeatable sales talk is not ready.",
+          "source": "Crowther (1924), chs. VII and IX (Primer; 'treat all alike')",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt"
+        },
+        {
+          "text": "Will want trained sellers, quotas by territory and a way to measure each seller before go-live; he believed training could double sales.",
+          "source": "Crowther (1924), ch. X; Friedman, HBS Working Knowledge, 2004",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt"
+        },
+        {
+          "text": "Demanding to the point of harshness: historian Walter Friedman notes he treated managers 'cruelly at times' before rebuilding them, and his competitive sales tactics led to a 1913 antitrust conviction (later overturned) - a reminder to check that his aggression stays within the law.",
+          "source": "Friedman interview, HBS Working Knowledge, April 19, 2004; University of Dayton ILLCS",
+          "url": "https://www.library.hbs.edu/working-knowledge/birth-of-the-american-salesman"
+        }
+      ],
+      "quotes": [
+        {
+          "id": "patterson-complaints-schoolbooks",
+          "text": "Send in the complaints. They are our schoolbooks from which we learn what is needed and how to remedy the difficulty.",
+          "source": "Crowther, John H. Patterson: Pioneer in Industrial Welfare (1924), ch. V",
+          "date": "c. 1884-1885 (said to his people and 'repeated thousands of times afterward')",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt",
+          "context": "Early NCR years, when he set out to fix the quality of the registers.",
+          "confidence": "verified"
+        },
+        {
+          "id": "patterson-honest-straight",
+          "text": "It pays to be honest, truthful, straight - to say what you mean and mean what you say.",
+          "source": "Crowther (1924), ch. II 'The Early Years'",
+          "date": "undated saying, published 1923-1924",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt",
+          "context": "Introduced by Crowther with 'He said:' as the common-sense basis of his business conduct.",
+          "confidence": "verified"
+        },
+        {
+          "id": "patterson-charge-a-profit",
+          "text": "Charge a profit - a reasonable profit, but always a profit on every sale. Then make your real money by volume of business.",
+          "source": "Crowther (1924), ch. III 'In the Business Kindergarten'",
+          "date": "undated saying ('He used often to say')",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt",
+          "context": "His simple idea of good bookkeeping from his early coal and retail business.",
+          "confidence": "verified"
+        },
+        {
+          "id": "patterson-trained-force",
+          "text": "If we have a thoroughly trained selling force, the men can sell our goods in good times or bad.",
+          "source": "Crowther (1924), ch. VII 'The Primer and the Start of Big Business'",
+          "date": "undated ('often made this statement')",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt",
+          "context": "On the two things he gave most of his time to: advertising and the sales force.",
+          "confidence": "verified"
+        },
+        {
+          "id": "patterson-put-yourself",
+          "text": "Put yourself in his place from the very start. Make him feel, not that you are trying to force your business upon him but that you want to discuss how his business may be benefited by you.",
+          "source": "Crowther (1924), ch. IX 'Bridging the Panic of 1893'",
+          "date": "c. 1893",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt",
+          "context": "His instruction to agents on approaching a merchant.",
+          "confidence": "verified"
+        },
+        {
+          "id": "patterson-truth-only",
+          "text": "Don't answer a question except with the truth.",
+          "source": "Patterson's list of 'Don'ts' for agents in the house organ The N.C.R., reproduced in Crowther (1924), ch. VII",
+          "date": "c. 1887-1888",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt",
+          "context": "Same list includes 'Don't do all the talking.' and 'Don't wait for a man to come to your office to buy.'",
+          "confidence": "verified"
+        },
+        {
+          "id": "patterson-crane-demo",
+          "text": "Crane sells more machines than any of you fellows, and he sells them this way.",
+          "source": "Crowther (1924), ch. VII",
+          "date": "1887",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt",
+          "context": "Sending Joseph Crane's typed demonstration to all twelve agents - the origin of the Primer.",
+          "confidence": "verified"
+        },
+        {
+          "id": "patterson-preach-dissatisfaction",
+          "text": "To my mind, nothing can ever be good enough; I am always dissatisfied; I preach dissatisfaction.",
+          "source": "Crowther (1924), ch. XI 'Factory and Finance' (interview with the author)",
+          "date": "undated ('some years ago'), published 1923-1924",
+          "url": "https://archive.org/stream/johnhpattersonpi00crow/johnhpattersonpi00crow_djvu.txt",
+          "context": "On continually improving the product.",
+          "confidence": "verified"
+        }
+      ]
+    },
+    "cto": {
+      "name": "Werner Vogels",
+      "known_for": "Amazon CTO since 2005",
+      "facts": [
+        {
+          "text": "Joined Amazon in September 2004 as director of systems research; named CTO in January 2005 and Vice President later in 2005.",
+          "source": "TechRadar, 'Great tech innovators: Werner Vogels'; consistent with Wikipedia entry",
+          "url": "https://www.techradar.com/news/internet/cloud-services/great-tech-innovators-werner-vogels-1296758"
+        },
+        {
+          "text": "Before Amazon he was a researcher at Cornell University working on the scalability and robustness of mission-critical enterprise systems.",
+          "source": "All Things Distributed, 'Werner Vogels - Some Basic Information' (official bio)",
+          "url": "https://www.allthingsdistributed.com/2008/07/info.html"
+        },
+        {
+          "text": "Dates the start of AWS to the launch of Amazon S3 on March 14, 2006; S3 later grew from a few microservices to over 300 without customer-facing outages for upgrades.",
+          "source": "All Things Distributed, '10 Lessons from 10 Years of AWS' (2016-03-11) and 'Monoliths are not dinosaurs' (2023-05-05)",
+          "url": "https://www.allthingsdistributed.com/2016/03/10-lessons-from-10-years-of-aws.html"
+        },
+        {
+          "text": "Writes the blog All Things Distributed and gives the closing technical keynote at AWS re:Invent; launched 'The Frugal Architect' laws of cost-aware architecture.",
+          "source": "thefrugalarchitect.com (AWS site presenting Vogels' laws)",
+          "url": "https://www.thefrugalarchitect.com/"
+        }
+      ],
+      "principles": [
+        {
+          "text": "Assume every component will fail; design to contain the blast radius so the whole system stays up.",
+          "source": "All Things Distributed, '10 Lessons from 10 Years of AWS', lesson 2 'Expect the unexpected' (2016-03-11)",
+          "url": "https://www.allthingsdistributed.com/2016/03/10-lessons-from-10-years-of-aws.html"
+        },
+        {
+          "text": "The team that builds a service operates it, including being on call; no throwing software over the wall to operations.",
+          "source": "ACM Queue, 'A Conversation with Werner Vogels' (Jim Gray, May 2006), as quoted on the AWS News Blog",
+          "url": "https://aws.amazon.com/blogs/aws/acm_queue_inter/"
+        },
+        {
+          "text": "Security is a design-time partner from day one, not a validation step after the build; encryption is default and least privilege is the norm.",
+          "source": "All Things Distributed, lessons 7-8 (2016); eWeek/Silicon UK report of re:Invent 2017 keynote",
+          "url": "https://www.silicon.co.uk/cloud/aws-cto-security-225563"
+        },
+        {
+          "text": "Automate operations; if people still need to SSH into servers, the system is not ready to run at scale.",
+          "source": "All Things Distributed, '10 Lessons from 10 Years of AWS', lesson 4 'Automation is key' (2016-03-11)",
+          "url": "https://www.allthingsdistributed.com/2016/03/10-lessons-from-10-years-of-aws.html"
+        },
+        {
+          "text": "Ship a minimal feature set and let real customer use drive the roadmap; architectures must be evolvable and revisited at each order of magnitude of growth.",
+          "source": "All Things Distributed, '10 Lessons' lesson 3 (2016) and 'Monoliths are not dinosaurs' (2023-05-05)",
+          "url": "https://www.allthingsdistributed.com/2023/05/monoliths-are-not-dinosaurs.html"
+        },
+        {
+          "text": "Security is every developer's responsibility; the pace of innovation has to match the pace of protection, achieved through automation.",
+          "source": "Dark Reading, 'AWS' Werner Vogels: Security Is Everyone's Job' (AWS New York Summit, 2018-07-18)",
+          "url": "https://www.darkreading.com/cloud-security/aws-werner-vogels-security-is-everyone-s-job-"
+        }
+      ],
+      "board_style": [
+        {
+          "text": "Will ask what happens when each component fails and how far the failure spreads, and expects the system to stay up while parts are broken.",
+          "source": "All Things Distributed, '10 Lessons', lesson 2 (2016-03-11)",
+          "url": "https://www.allthingsdistributed.com/2016/03/10-lessons-from-10-years-of-aws.html"
+        },
+        {
+          "text": "Will ask who carries the pager on launch day; expects the builders to own operations and to have automated management rather than manual fixes.",
+          "source": "AWS News Blog quoting ACM Queue 2006 interview; All Things Distributed lesson 4 (2016)",
+          "url": "https://aws.amazon.com/blogs/aws/acm_queue_inter/"
+        },
+        {
+          "text": "Will reject security bolted on after the build and push for encryption of customer data and least-privilege access as launch conditions, while accepting a minimal feature set.",
+          "source": "eWeek/Silicon UK report of re:Invent 2017 keynote; All Things Distributed lessons 3 and 7 (2016)",
+          "url": "https://www.silicon.co.uk/cloud/aws-cto-security-225563"
+        }
+      ],
+      "quotes": [
+        {
+          "id": "vogels-failures-are-a-given",
+          "text": "Failures are a given and everything will eventually fail over time: from routers to hard disks, from operating systems to memory units corrupting TCP packets, from transient errors to permanent failures.",
+          "source": "All Things Distributed, '10 Lessons from 10 Years of Amazon Web Services'",
+          "date": "2016-03-11",
+          "url": "https://www.allthingsdistributed.com/2016/03/10-lessons-from-10-years-of-aws.html",
+          "context": "Lesson 2, 'Expect the unexpected', on designing AWS services.",
+          "confidence": "verified"
+        },
+        {
+          "id": "vogels-house-on-fire",
+          "text": "We needed to build systems that embrace failure as a natural occurrence even if we did not know what the failure might be. Systems need to keep running even if the \"house is on fire.\"",
+          "source": "All Things Distributed, '10 Lessons from 10 Years of Amazon Web Services'",
+          "date": "2016-03-11",
+          "url": "https://www.allthingsdistributed.com/2016/03/10-lessons-from-10-years-of-aws.html",
+          "context": "Lesson 2, on unknown failure modes at S3 scale.",
+          "confidence": "verified"
+        },
+        {
+          "id": "vogels-blast-radius",
+          "text": "We've developed the fundamental skill of managing the \"blast radius\" of a failure occurrence such that the overall health of the system can be maintained.",
+          "source": "All Things Distributed, '10 Lessons from 10 Years of Amazon Web Services'",
+          "date": "2016-03-11",
+          "url": "https://www.allthingsdistributed.com/2016/03/10-lessons-from-10-years-of-aws.html",
+          "context": "Lesson 2, on isolating failures without taking the whole system down.",
+          "confidence": "verified"
+        },
+        {
+          "id": "vogels-everything-fails",
+          "text": "everything fails all the time. We lose whole datacenters! Those things happen.",
+          "source": "The Next Web, 'Werner Vogels: Everything fails all the time' (Anne Helmond), report of his talk at The Next Web conference",
+          "date": "2008-04-04",
+          "url": "https://thenextweb.com/news/werner-vogels-everything-fails-all-the-time",
+          "context": "Answering startups worried about relying on AWS after S3 outages; wording is the reporter's transcription of the talk.",
+          "confidence": "verified"
+        },
+        {
+          "id": "vogels-you-build-it-you-run-it",
+          "text": "The traditional model is that you take your software to the wall that separates development and operations, and throw it over and then forget about it. Not at Amazon. You build it, you run it.",
+          "source": "ACM Queue, 'A Conversation with Werner Vogels' (interviewed by Jim Gray), quoted verbatim on the AWS News Blog",
+          "date": "2006-05",
+          "url": "https://aws.amazon.com/blogs/aws/acm_queue_inter/",
+          "context": "On giving developers operational responsibility for their services. ACM Queue page itself was blocked; wording read on the AWS blog excerpt.",
+          "confidence": "verified"
+        },
+        {
+          "id": "vogels-security-day-one",
+          "text": "The security team is not a group that does validation after something has been built. They must be partners on day one to make sure that security is fundamentally rock solid from the ground up.",
+          "source": "All Things Distributed, '10 Lessons from 10 Years of Amazon Web Services'",
+          "date": "2016-03-11",
+          "url": "https://www.allthingsdistributed.com/2016/03/10-lessons-from-10-years-of-aws.html",
+          "context": "Lesson 7, 'Build security in from the ground up'.",
+          "confidence": "verified"
+        },
+        {
+          "id": "vogels-protect-customer-first",
+          "text": "Protecting your customer should be your number one priority, without that you don't have a business,",
+          "source": "eWeek (Sean Michael Kerner), syndicated by Silicon UK, 'AWS CTO Defines Well-Architected Cloud Security Best Practices'",
+          "date": "2017-11-30",
+          "url": "https://www.silicon.co.uk/cloud/aws-cto-security-225563",
+          "context": "AWS re:Invent 2017 keynote (Nov 30, 2017); article published 2017-12-04.",
+          "confidence": "verified"
+        },
+        {
+          "id": "vogels-encrypt-like-everyone-is",
+          "text": "Make use of it. Dance like nobody is watching. Encrypt like everyone is.",
+          "source": "SDxCentral, 'Amazon's Werner Vogels: Dance Like Nobody's Watching. Encrypt Like Everyone Is'",
+          "date": "2019-03-27",
+          "url": "https://www.sdxcentral.com/news/amazons-werner-vogels-dance-like-nobodys-watching-encrypt-like-everyone-is/",
+          "context": "AWS Summit Santa Clara keynote, on encryption being built into nearly all AWS services. Similar line also reported from re:Invent 2017 (DZone), not used as source.",
+          "confidence": "verified"
+        }
+      ]
+    },
+    "ciso": {
+      "name": "Steve Katz",
+      "known_for": "widely cited as the first CISO, Citicorp 1995",
+      "facts": [
+        {
+          "text": "Became the first-ever Chief Information Security Officer in 1995 at Citicorp, leaving his role as head of information security at J.P. Morgan.",
+          "source": "CSO Online, '30 years of the CISO role - how things have changed since Steve Katz' (Christine Wong, 2024-03-04)",
+          "url": "https://www.csoonline.com/article/1310847/30-years-of-the-ciso-role-how-things-have-changed-since-steve-katz.html"
+        },
+        {
+          "text": "Hired after the 1994 Citicorp funds-transfer hack (Vladimir Levin): about $10-11 million in attempted transfers, roughly $400,000 actually lost.",
+          "source": "SecurityWeek, 'CISO Conversations: Steve Katz, the World's First CISO' (Kevin Townsend, 2021-12-01)",
+          "url": "https://www.securityweek.com/ciso-conversations-steve-katz-worlds-first-ciso/"
+        },
+        {
+          "text": "Served as Citicorp/Citigroup CISO from 1995 to 2001; later held security roles at Merrill Lynch and advised Deloitte on security and privacy.",
+          "source": "Cybercrime Magazine, 'Backstory Of The World's First Chief Information Security Officer' (2020-10-13); SC Media obituary (2023-12-06)",
+          "url": "https://cybersecurityventures.com/backstory-of-the-worlds-first-chief-information-security-officer/"
+        },
+        {
+          "text": "After the breach he personally visited Citicorp's 20 biggest customers to explain what happened; the bank did not lose a single customer.",
+          "source": "SecurityWeek, 'CISO Conversations: Steve Katz' (2021-12-01)",
+          "url": "https://www.securityweek.com/ciso-conversations-steve-katz-worlds-first-ciso/"
+        },
+        {
+          "text": "Helped create the model of security-intelligence sharing that became FS-ISAC; died in December 2023 aged 81.",
+          "source": "SC Media, 'Steve Katz dies: cybersecurity innovator known as world's first CISO' (2023-12-06); CSO Online (2024)",
+          "url": "https://www.scworld.com/news/steve-katz-dies-cybersecurity-innovator-known-as-worlds-first-ciso"
+        }
+      ],
+      "principles": [
+        {
+          "text": "Security exists to manage business risk; tools are only the means, and the CISO should report toward risk or the CEO, not under the CIO.",
+          "source": "SecurityWeek, 'CISO Conversations: Steve Katz' (2021-12-01)",
+          "url": "https://www.securityweek.com/ciso-conversations-steve-katz-worlds-first-ciso/"
+        },
+        {
+          "text": "Explain threats to the board as business consequences, not technology; he won a $400,000 anti-virus budget by describing corrupted trade figures.",
+          "source": "SecurityWeek, 'CISO Conversations: Steve Katz' (2021-12-01)",
+          "url": "https://www.securityweek.com/ciso-conversations-steve-katz-worlds-first-ciso/"
+        },
+        {
+          "text": "Define policy from business questions first: who you deal with, what limits apply, how fast you must learn of problems, and what downtime is acceptable.",
+          "source": "SecurityWeek, 'CISO Conversations: Steve Katz' (2021-12-01)",
+          "url": "https://www.securityweek.com/ciso-conversations-steve-katz-worlds-first-ciso/"
+        },
+        {
+          "text": "After an incident, be transparent with customers; customers have a right to ask how their provider protects them.",
+          "source": "SecurityWeek, 'CISO Conversations: Steve Katz' (2021-12-01)",
+          "url": "https://www.securityweek.com/ciso-conversations-steve-katz-worlds-first-ciso/"
+        },
+        {
+          "text": "A CISO must be willing to risk the job and escalate to the board when something is not right.",
+          "source": "Cybercrime Magazine, 'Today's Cyber Battles: Machines Vs. Machines' (David Braue, 2021-02-15)",
+          "url": "https://cybersecurityventures.com/?p=7605"
+        },
+        {
+          "text": "Avoid risks that can simply be avoided rather than managed (for example, he would not hire a reformed hacker).",
+          "source": "SecurityWeek, 'CISO Conversations: Steve Katz' (2021-12-01)",
+          "url": "https://www.securityweek.com/ciso-conversations-steve-katz-worlds-first-ciso/"
+        }
+      ],
+      "board_style": [
+        {
+          "text": "Will translate every security finding into a business consequence and ask the founders to do the same before asking for approval.",
+          "source": "SecurityWeek, Morgan Guaranty board anecdote (2021-12-01)",
+          "url": "https://www.securityweek.com/ciso-conversations-steve-katz-worlds-first-ciso/"
+        },
+        {
+          "text": "Will ask how quickly the team would learn of a problem, what downtime is acceptable for which system, and how customers would be told after a breach.",
+          "source": "SecurityWeek, key policy questions and post-breach customer tour (2021-12-01)",
+          "url": "https://www.securityweek.com/ciso-conversations-steve-katz-worlds-first-ciso/"
+        },
+        {
+          "text": "Will not quietly sign off on a launch he thinks is unsafe; he says the job requires being willing to escalate and risk being fired.",
+          "source": "Cybercrime Magazine (2021-02-15); SecurityWeek CIO anecdote (2021-12-01)",
+          "url": "https://cybersecurityventures.com/?p=7605"
+        }
+      ],
+      "quotes": [
+        {
+          "id": "katz-all-about-business-risk",
+          "text": "The role is all about business risk. If I had my way, the modern title would be Chief Information Risk Officer rather than Chief Information Security Officer.",
+          "source": "SecurityWeek, 'CISO Conversations: Steve Katz, the World's First CISO' (Kevin Townsend)",
+          "date": "2021-12-01",
+          "url": "https://www.securityweek.com/ciso-conversations-steve-katz-worlds-first-ciso/",
+          "context": "Interview on how he sees the CISO role. Next sentence in the article: 'Cyber security is a tool for managing business risk - it is not an end in itself.'",
+          "confidence": "verified"
+        },
+        {
+          "id": "katz-business-risk-from-day-one",
+          "text": "IT departments were the smallest part of the issue. From day one, the underlying philosophy was that information security is a business risk issue -- it's a business risk management issue.",
+          "source": "CSO Online, '30 years of the CISO role - how things have changed since Steve Katz', quoting Katz in 2021",
+          "date": "2021",
+          "url": "https://www.csoonline.com/article/1310847/30-years-of-the-ciso-role-how-things-have-changed-since-steve-katz.html",
+          "context": "Reflecting on how he approached the first CISO job at Citicorp in 1995 (CSO article published 2024-03-04).",
+          "confidence": "verified"
+        },
+        {
+          "id": "katz-trading-room",
+          "text": "You are sitting in a trading room at a trading terminal and before your eyes, sixes and sevens become nines, fives become eights, and threes become zeros. What does that do to your trade?",
+          "source": "SecurityWeek, 'CISO Conversations: Steve Katz, the World's First CISO'",
+          "date": "2021-12-01",
+          "url": "https://www.securityweek.com/ciso-conversations-steve-katz-worlds-first-ciso/",
+          "context": "What he told the Morgan Guaranty board about PC viruses instead of explaining the technology; they approved the spend.",
+          "confidence": "verified"
+        },
+        {
+          "id": "katz-how-quickly-downtime",
+          "text": "Do you want to know about problems - and if so, how quickly? If downtime cannot be avoided, what are the acceptable durations for which systems?",
+          "source": "SecurityWeek, 'CISO Conversations: Steve Katz, the World's First CISO'",
+          "date": "2021-12-01",
+          "url": "https://www.securityweek.com/ciso-conversations-steve-katz-worlds-first-ciso/",
+          "context": "Two of the half dozen business questions he gave his Citicorp security team as the basis of policy. Dash rendered as ASCII hyphen.",
+          "confidence": "verified"
+        },
+        {
+          "id": "katz-customer-right-to-know",
+          "text": "You are the customer. You have the right and a need to know how they will protect your money.",
+          "source": "SecurityWeek, 'CISO Conversations: Steve Katz, the World's First CISO'",
+          "date": "2021-12-01",
+          "url": "https://www.securityweek.com/ciso-conversations-steve-katz-worlds-first-ciso/",
+          "context": "To Citicorp customers whose other banks refused to discuss their security after the 1994 breach.",
+          "confidence": "verified"
+        },
+        {
+          "id": "katz-risk-your-job",
+          "text": "every CISO runs the risk of getting fired. You have to be willing to risk your job by saying 'what is happening here is not right, and we have to do more about it.'",
+          "source": "Cybercrime Magazine, 'Today's Cyber Battles: Machines Vs. Machines' (David Braue), from a Cybercrime Magazine podcast episode",
+          "date": "2021-02-15",
+          "url": "https://cybersecurityventures.com/?p=7605",
+          "context": "On the courage a CISO needs; he added that good CISOs who are fired for doing the right thing find another job within a month. Inner quotation marks rendered as single quotes.",
+          "confidence": "verified"
+        },
+        {
+          "id": "katz-speak-to-the-board",
+          "text": "Fine. You can fire me. But it won't be until after I have spoken to the board - and you will have to explain why you refused the security advice of the Chief Information Security Officer.",
+          "source": "SecurityWeek, 'CISO Conversations: Steve Katz, the World's First CISO'",
+          "date": "2021-12-01",
+          "url": "https://www.securityweek.com/ciso-conversations-steve-katz-worlds-first-ciso/",
+          "context": "His reply to a CIO who threatened to fire him over a system he opposed on risk grounds. SecurityWeek itself notes the story 'may be apocryphal in origin'; the wording is as Katz told it.",
+          "confidence": "verified"
+        },
+        {
+          "id": "katz-hacker-expertise",
+          "text": "But really, the biggest threat is the ever-increasing expertise of the hackers.",
+          "source": "SecurityWeek, 'CISO Conversations: Steve Katz, the World's First CISO'",
+          "date": "2021-12-01",
+          "url": "https://www.securityweek.com/ciso-conversations-steve-katz-worlds-first-ciso/",
+          "context": "Asked about the main threats ahead; he first named ransomware.",
+          "confidence": "verified"
+        }
+      ]
+    },
+    "legal": {
+      "name": "Brad Smith",
+      "known_for": "Microsoft general counsel from 2002, later President",
+      "facts": [
+        {
+          "text": "Joined Microsoft in 1993; named general counsel in 2002 and spent the following decade resolving the company's antitrust disputes with governments and rivals.",
+          "source": "Microsoft, official executive biography",
+          "url": "https://news.microsoft.com/exec/brad-smith/"
+        },
+        {
+          "text": "Now Microsoft's Vice Chair and President, leading about 2,000 legal and corporate affairs staff in 54 countries.",
+          "source": "Microsoft, official executive biography",
+          "url": "https://news.microsoft.com/exec/brad-smith/"
+        },
+        {
+          "text": "Co-wrote 'Tools and Weapons: The Promise and the Peril of the Digital Age' (2019) with Carol Ann Browne, urging tech to take more responsibility and governments to regulate faster.",
+          "source": "Microsoft, official executive biography and book page",
+          "url": "https://news.microsoft.com/on-the-issues/tools-and-weapons/"
+        },
+        {
+          "text": "Testified to the House Homeland Security Committee on June 13, 2024, accepting responsibility for the security failures in the Cyber Safety Review Board report.",
+          "source": "Written testimony of Brad Smith, House Committee on Homeland Security",
+          "url": "https://homeland.house.gov/wp-content/uploads/2024/06/2024-06-13-HRG-Testimony-Smith.pdf"
+        }
+      ],
+      "principles": [
+        {
+          "text": "Own failures publicly and fully, without defensiveness, then commit to fixing every finding.",
+          "source": "Written testimony, House Homeland Security Committee (2024-06-13)",
+          "url": "https://homeland.house.gov/wp-content/uploads/2024/06/2024-06-13-HRG-Testimony-Smith.pdf"
+        },
+        {
+          "text": "Security takes priority over shipping new features; culture and tone from the top decide whether that holds.",
+          "source": "Written testimony, House Homeland Security Committee (2024-06-13), section 'The Importance of Culture'",
+          "url": "https://homeland.house.gov/wp-content/uploads/2024/06/2024-06-13-HRG-Testimony-Smith.pdf"
+        },
+        {
+          "text": "For high-risk technology, invite public regulation instead of leaving the rules to companies, and do not move fast at the cost of people's rights.",
+          "source": "Microsoft On the Issues, 'Facial recognition technology: The need for public regulation and corporate responsibility' (2018-07-13); authorship confirmed by Fortune",
+          "url": "https://blogs.microsoft.com/on-the-issues/2018/07/13/facial-recognition-technology-the-need-for-public-regulation-and-corporate-responsibility/"
+        },
+        {
+          "text": "Cybersecurity is a shared responsibility: the vendor goes first, but customers must patch and governments must not stockpile vulnerabilities.",
+          "source": "Microsoft On the Issues, 'The need for urgent collective action to keep people safe online' (2017-05-14); authorship confirmed by Engadget and others",
+          "url": "https://blogs.microsoft.com/on-the-issues/2017/05/14/need-urgent-collective-action-keep-people-safe-online-lessons-last-weeks-cyberattack/"
+        },
+        {
+          "text": "Push for collective action and clear red lines with consequences for attackers.",
+          "source": "The Record, report of the House hearing (2024-06-13)",
+          "url": "https://therecord.media/microsoft-president-brad-smith-lawmakers-cyber"
+        }
+      ],
+      "board_style": [
+        {
+          "text": "Will ask whether the company is ready to own a failure in public, completely and without defensiveness, and will want the accountability plan written before launch.",
+          "source": "Written testimony, House Homeland Security Committee (2024-06-13)",
+          "url": "https://homeland.house.gov/wp-content/uploads/2024/06/2024-06-13-HRG-Testimony-Smith.pdf"
+        },
+        {
+          "text": "Will weigh security and people's rights above speed to market, and will accept delaying features or putting limits on use to get there.",
+          "source": "Written testimony (2024-06-13); facial recognition post (2018-07-13)",
+          "url": "https://blogs.microsoft.com/on-the-issues/2018/07/13/facial-recognition-technology-the-need-for-public-regulation-and-corporate-responsibility/"
+        },
+        {
+          "text": "Will ask what customers must do to stay safe (for example, patching) and how the product fits regulation that is coming, treating regulators as partners rather than obstacles.",
+          "source": "WannaCry post (2017-05-14); facial recognition post (2018-07-13)",
+          "url": "https://blogs.microsoft.com/on-the-issues/2017/05/14/need-urgent-collective-action-keep-people-safe-online-lessons-last-weeks-cyberattack/"
+        }
+      ],
+      "quotes": [
+        {
+          "id": "smith-accepts-responsibility",
+          "text": "Microsoft accepts responsibility for each and every one of the issues cited in the CSRB's report. Without equivocation or hesitation. And without any sense of defensiveness.",
+          "source": "Written testimony of Brad Smith, House Committee on Homeland Security hearing 'A Cascade of Security Failures'",
+          "date": "2024-06-13",
+          "url": "https://homeland.house.gov/wp-content/uploads/2024/06/2024-06-13-HRG-Testimony-Smith.pdf",
+          "context": "On the Cyber Safety Review Board report into the 2023 Chinese breach of government email accounts via Microsoft.",
+          "confidence": "verified"
+        },
+        {
+          "id": "smith-must-do-better",
+          "text": "We acknowledge that we can and must do better, and we apologize and express our deepest regrets to those who have been impacted.",
+          "source": "Written testimony of Brad Smith, House Committee on Homeland Security",
+          "date": "2024-06-13",
+          "url": "https://homeland.house.gov/wp-content/uploads/2024/06/2024-06-13-HRG-Testimony-Smith.pdf",
+          "context": "Apology to those affected by breaches the CSRB said stronger steps would have prevented.",
+          "confidence": "verified"
+        },
+        {
+          "id": "smith-security-above-all-else",
+          "text": "these steps are emblematic of a corporate-wide and permanent shift to ensure that we place security above all else in a world in which there is constant combat in cyberspace.",
+          "source": "Written testimony of Brad Smith, House Committee on Homeland Security",
+          "date": "2024-06-13",
+          "url": "https://homeland.house.gov/wp-content/uploads/2024/06/2024-06-13-HRG-Testimony-Smith.pdf",
+          "context": "Describing Microsoft's Secure Future Initiative changes. Not to be confused with Satya Nadella's separate 'Prioritizing security above all else' memo.",
+          "confidence": "verified"
+        },
+        {
+          "id": "smith-solarwinds-largest-attack",
+          "text": "I think from a software engineering perspective, it's probably fair to say that this is the largest and most sophisticated attack the world has ever seen.",
+          "source": "CBS News, 60 Minutes, 'SolarWinds: How Russian spies hacked the Justice, State, Treasury, Energy and Commerce Departments' (Bill Whitaker interview)",
+          "date": "2021-02-14",
+          "url": "https://www.cbsnews.com/news/solarwinds-hack-russia-cyberattack-60-minutes-2021-02-14/",
+          "context": "On the SolarWinds supply-chain attack; also confirmed by Reuters via Insurance Journal.",
+          "confidence": "verified"
+        },
+        {
+          "id": "smith-world-runs-on-software",
+          "text": "The world runs on software. It runs on information technology. But it can't run with confidence if major governments are disrupting and attacking the software supply chain in this way.",
+          "source": "CBS News, 60 Minutes (Bill Whitaker interview)",
+          "date": "2021-02-14",
+          "url": "https://www.cbsnews.com/news/solarwinds-hack-russia-cyberattack-60-minutes-2021-02-14/",
+          "context": "Calling the SolarWinds attack an act of recklessness.",
+          "confidence": "verified"
+        },
+        {
+          "id": "smith-shared-responsibility",
+          "text": "this attack demonstrates the degree to which cybersecurity has become a shared responsibility between tech companies and customers.",
+          "source": "Microsoft On the Issues, 'The need for urgent collective action to keep people safe online: Lessons from last week's cyberattack'",
+          "date": "2017-05-14",
+          "url": "https://blogs.microsoft.com/on-the-issues/2017/05/14/need-urgent-collective-action-keep-people-safe-online-lessons-last-weeks-cyberattack/",
+          "context": "After WannaCry, noting many computers were still unpatched two months after the fix. The page shows no byline; Smith's authorship is confirmed by Engadget, Fortune and others.",
+          "confidence": "verified"
+        },
+        {
+          "id": "smith-move-fast-rights-broken",
+          "text": "But if we move too fast with facial recognition, we may find that people's fundamental rights are being broken.",
+          "source": "Microsoft On the Issues, 'Facial recognition technology: The need for public regulation and corporate responsibility'",
+          "date": "2018-07-13",
+          "url": "https://blogs.microsoft.com/on-the-issues/2018/07/13/facial-recognition-technology-the-need-for-public-regulation-and-corporate-responsibility/",
+          "context": "Rejecting 'move fast and break things' for high-risk technology. The page shows no byline; Smith's authorship is confirmed by Fortune and other coverage.",
+          "confidence": "verified"
+        },
+        {
+          "id": "smith-bear-a-responsibility",
+          "text": "when your technology changes the world, you bear a responsibility to help address the world you have helped create.",
+          "source": "Microsoft, 'Tools and Weapons' book page (describing Smith's core belief); reviews attribute it to the book 'Tools and Weapons' (2019)",
+          "date": "2019",
+          "url": "https://news.microsoft.com/on-the-issues/tools-and-weapons/",
+          "context": "The central idea of his book. Read on Microsoft's page as a description of his belief, not as a direct quote; the book page number was not verified.",
+          "confidence": "likely"
+        }
+      ]
+    }
+  }
+}

@@ -190,9 +190,10 @@ class Board(unittest.TestCase):
         self.decision()
         with open(os.path.join(self.d, "board", "meeting.html"), encoding="utf-8") as fh:
             page = fh.read()
-        for part in ("Opening", "The room", "Agenda", "Product and user flows", "Item outcome",
-                     "Questions from the board", "The vote", "The decision", "Actions", "Show all"):
+        for part in ("Opening", "At the table", "Agenda", "Product and user flows", "The board asks the team",
+                     "The vote", "The decision", "Actions", "Full transcript", "Pause"):
             self.assertIn(part, page)
+        self.assertIn('class="outcome', page)
         self.assertNotIn("<script>x</script>", page)
         self.assertIn("&lt;script&gt;x&lt;/script&gt;", page)
         self.assertTrue(all(ord(c) < 128 for c in page))
@@ -234,6 +235,48 @@ class Board(unittest.TestCase):
             self.assertTrue(all(ord(c) < 128 for c in svg))
         colours = {board.AVATAR[s][1] for s in self.seats}
         self.assertEqual(len(colours), len(self.seats))  # every seat has its own colour
+
+    def test_tally_prints_the_meeting(self):
+        run("--dir", self.d, "brief")
+        self.write_all("go", cfo=answer("cfo", "go", questions=["What is payback?"]))
+        rc, out = run("--dir", self.d, "tally")
+        for part in ("BOARD MEETING: Shop", "ITEM 1 of", "THE VOTE", "DECISION: GO"):
+            self.assertIn(part, out)
+        self.assertTrue(os.path.exists(os.path.join(self.d, "board", "transcript.txt")))
+        rc, quiet = run("--dir", self.d, "tally", "--quiet")
+        self.assertNotIn("BOARD MEETING", quiet)
+        rc, played = run("--dir", self.d, "play", "--speed", "0")
+        self.assertIn("DECISION: GO", played)
+
+    def test_persona_quotes_are_validated_and_shown(self):
+        personas = {"cfo": {"name": "Test Person", "known_for": "testing", "principles": [], "board_style": [],
+                            "quotes": [{"id": "tp-cost", "text": "Every dollar has to earn its place.",
+                                        "source": "Test Talk", "date": "2020", "url": "https://example.test/t"}]}}
+        orig = board.load_personas
+        board.load_personas = lambda: personas
+        try:
+            run("--dir", self.d, "brief")
+            with open(os.path.join(self.d, "board", "briefs", "cfo.md"), encoding="utf-8") as fh:
+                brief = fh.read()
+            self.assertIn("THE LENS YOU APPLY: TEST PERSON", brief)
+            self.assertIn("[tp-cost]", brief)
+            bad = answer("cfo", "go", risks=[{"risk": "x", "severity": "low", "evidence": [], "quote": "made-up"}])
+            self.write_all("go", cfo=bad)
+            rc, out = run("--dir", self.d, "check")
+            self.assertEqual(rc, 1)
+            self.assertIn("not one of this seat's researched quotes", out)
+            good = answer("cfo", "go", risks=[{"risk": "spend discipline", "severity": "low", "evidence": [],
+                                               "quote": "tp-cost"}])
+            good["quotes_used"] = [{"id": "tp-cost", "why": "Cost matters here."}]
+            self.write_all("go", cfo=good)
+            rc, out = run("--dir", self.d, "tally")
+            self.assertIn('quoting Test Person: "Every dollar has to earn its place."', out)
+            with open(os.path.join(self.d, "board", "meeting.html"), encoding="utf-8") as fh:
+                page = fh.read()
+            self.assertIn("Every dollar has to earn its place.", page)
+            self.assertIn("https://example.test/t", page)
+        finally:
+            board.load_personas = orig
 
     def test_seat_subset(self):
         rc, out = run("--dir", self.d, "brief", "--seats", "ceo,cto,cfo")

@@ -15,7 +15,7 @@ compatibility, visual regression, translations, transactional email, load, test
 strength, SEO and AI-search readiness, LLM-feature safety, launch readiness, and
 the unit economics behind the product. When the testing is done, a board of nine
 directors (CEO, CTO, CISO, CFO, CMO, Sales, COO, CPO and Legal) hears the evidence
-and votes on the launch, in an interactive meeting you can replay.
+and votes on the launch, in a meeting that runs by itself.
 
 ## Install
 
@@ -62,9 +62,9 @@ planted problems. See `examples/README.md`.
 
 | command | job | what it does |
 | --- | --- | --- |
-| `/proof-board` | Board of directors | Presents the evidence to nine directors (CEO, CTO, CISO, CFO, CMO, Sales, COO, CPO, Legal) who vote; computes Go, Go with conditions or Hold and writes an interactive meeting page. |
-| `/proof-full-check` | Full check | Works out every skill that applies to the target, requires all of them, and walks through them in order to a verdict. |
-| `/proof-full-check-no-seo` | Full check, no SEO | The same, without SEO and AI-search checks. For internal tools, stealth builds and private betas. |
+| `/proof-board` | Board of directors | Nine directors, each applying the researched thinking of one person (Jobs, Vogels, Katz, Porat, Ogilvy, Patterson, Cook, Fadell, Smith), hear the evidence and vote. The meeting runs by itself in the chat and as a page; Go, Go with conditions or Hold is computed. |
+| `/proof-full-check` | Full check | Every skill that applies to the target, including SEO and AI search, run in order to a verdict. |
+| `/proof-full-check-no-seo` | Full check, no SEO | The same, minus SEO and AI search, which then never hold the launch. For internal tools, stealth builds, private betas. |
 | `/proof-plan` | Planner | Records what is under test, whether you are authorised to test it, and which skills the verdict waits for. |
 | `/proof-report` | Verdict | Computes Ship, Not yet or Incomplete. Writes Markdown, HTML and SARIF reports, and compares runs. |
 | `/proof-core` | Ledger | The shared evidence ledger, its schema and rules, and a validator. |
@@ -109,62 +109,117 @@ plan -> full-check -> report -> board -> audit-trail
 ```
 
 Each skill writes into a `proof/` folder in your project: findings, coverage (what
-was looked at), scores, and the evidence files behind them.
+was looked at), scores, and the evidence files behind them. Every skill also runs on
+its own, and a skill you do not require never counts against the verdict.
 
-An example: an online shop, running locally, with a checkout.
+## It runs by itself
+
+You do not click through anything. Say what you want (for example "run a full check
+and present it to the board") and Claude runs the skills, convenes the board, and
+shows you the meeting as it happens:
+
+- **In the chat or terminal**, the meeting appears step by step: the opening, each
+  audit area with what the team showed, what each director said and the quote they
+  based it on, the outcome of that item, then the vote, the decision and the actions.
+  `board.py tally` prints the whole meeting; `board.py play` paces it in a terminal.
+- **In the browser**, `proof/board/meeting.html` plays the same meeting on its own,
+  item by item, and stops on the actions. It waits while the tab is hidden and
+  carries on when you come back. Pause and Full transcript are there if you want
+  them; nothing needs a click. With reduced motion turned on, it opens as a full
+  transcript instead.
+
+The only time Proof stops to ask is at `/proof-plan`, to confirm you own the target or
+have permission to test it.
+
+## Full check, or full check without SEO
+
+| | `/proof-full-check` | `/proof-full-check-no-seo` |
+| --- | --- | --- |
+| Use it for | a product people should be able to find: a public site, an app with a landing page, anything you will market | something not meant to be found yet: an internal tool, a build in stealth, a private beta, an API with no public pages |
+| Runs | every skill that fits the target's kind (web, API, mobile or repo) | the same set |
+| Leaves out | nothing | `/proof-seo` (search engines) and `/proof-geo` (AI assistants and AI search) |
+| Effect on the verdict | SEO and GEO scores count; an SEO score over budget makes the verdict Not yet | SEO and GEO are not required, so they can never hold the launch |
+| Later | | run `/proof-seo` and `/proof-geo` on their own when you go public, or re-plan with `/proof-full-check` |
+
+Leaving SEO out is a decision about scope, not a pass: the report and the board say
+the area was not tested.
+
+An example run: an online shop, running locally, with a checkout.
 
 1. **`/proof-plan`** asks for the name, kind and URL, and whether you own the app or
-   have written permission to test it. It records the answer in `target.json`.
+   have written permission to test it.
 2. **`/proof-full-check`** picks the skills for a web app and requires them all.
 3. **`/proof-web-e2e`** drives sign-in, add to cart and checkout. Checkout submits
    twice on a fast double click: that becomes a high finding, verified by its
    screenshot.
-4. The remaining skills run in turn. `fullcheck.py next` names the next one;
-   `status` shows what is done.
-5. **`/proof-report`** computes the verdict. With the double-submit bug open it says
-   Not yet, and lists the finding with its evidence. Fix it, re-run the flow, and
-   it says Ship. `rundiff.py compare` shows exactly what changed between the runs.
-6. **`/proof-board`** presents the evidence to the board. The CISO's veto fires on
-   any verified high security finding, the CFO's on a sale that loses money, and so
-   on; the rest is decided by vote. The meeting page shows the presentation, each
-   director's statement with their risks linked to the evidence, the vote, the
-   decision and an action list with owners.
-7. **`/proof-audit-trail`** packs the run with a hash for every file, so a reviewer
-   can confirm nothing changed.
-
-Every skill also runs on its own. A skill you do not require never counts against
-the verdict.
+4. The remaining skills run in turn.
+5. **`/proof-report`** computes the verdict: Not yet, with the double-submit bug
+   listed. Fix it, re-run the flow, and it says Ship. `rundiff.py compare` shows what
+   changed between the runs.
+6. **`/proof-board`** holds the meeting described below.
+7. **`/proof-audit-trail`** packs the run with a hash for every file.
 
 ## The board meeting
 
 `/proof-board` turns the evidence into a presentation and gives it to nine
-directors, each a sub-agent with its own role:
+directors. Each is a sub-agent that applies the documented thinking of one person,
+researched from their own talks, interviews, books and letters:
 
-| seat | judges | veto |
-| --- | --- | --- |
-| CEO | the overall call and the trade-offs | none (chairs) |
-| CTO | does it work and keep working | core flows, API, load |
-| CISO | security and customer data | security, secrets, dependencies, infra, AI |
-| CFO | unit economics, cost of fixing versus delaying | unit economics |
-| CMO | SEO, AI search, accessibility, email | none |
-| Sales | can it be sold: demo, buyer security questions, pricing | none |
-| COO | launch readiness, load, alerts, rollback | launch-blocking readiness items |
-| CPO | the experience across devices and languages | none |
-| Legal | privacy, accessibility, policies, AI | privacy |
+| seat | lens | judges | veto |
+| --- | --- | --- | --- |
+| CEO | Steve Jobs | the overall call: focus, quality, saying no | none (chairs) |
+| CTO | Werner Vogels | does it work and keep working | core flows, API, load |
+| CISO | Steve Katz | security and customer data | security, secrets, dependencies, infra, AI |
+| CFO | Ruth Porat | unit economics, cost of fixing versus delaying | unit economics |
+| CMO | David Ogilvy | claims, research, how the market meets it | none |
+| Sales | John H. Patterson | can it be demonstrated and sold | none |
+| COO | Tim Cook | readiness, operations, privacy posture | launch-blocking readiness items |
+| CPO | Tony Fadell | the product experience | none |
+| Legal | Brad Smith | privacy, trust, regulation | privacy |
 
-Every high-severity risk a director raises must cite a finding or score from the
-ledger, and a director cannot cite one that does not exist. Vetoes come from the
-evidence itself, not from a director's mood: a verified high security finding holds
-the launch whatever the votes say.
+How a director speaks, taken from the demo meeting:
 
-The result is `proof/board/meeting.html`, which runs the meeting step by step:
-the opening presentation, then one agenda item per audit area (security, privacy,
-infrastructure, user flows, reliability, reach, AI, code health, finance, launch
-readiness), each with the team's slide, the directors who speak to it, and a
-computed outcome (Blocker, Concerns, Clear or Not covered); then the board's
-questions with the team's answers, the vote, the decision, and the action list
-grouped by owner, which you can tick off. Next, Previous and the arrow keys move
-through it; Show all puts it on one page.
+```
+CISO (Steve Katz lens):
+  - HIGH: A known-vulnerable dependency (larkspur-templates 1.4.1) ships in
+    production. An attacker who knows the advisory can use it against the
+    storefront and the customer data behind it.
+    evidence: proof-sec-deps/dep-larkspur-templates-demo-2026-0001
+    quoting Steve Katz: "But really, the biggest threat is the ever-increasing
+      expertise of the hackers." (SecurityWeek, 'CISO Conversations: Steve Katz,
+      the World's First CISO', 2021-12-01)
+CTO (Werner Vogels lens):
+  - HIGH: larkspur-templates 1.4.1 has a known vulnerability. A flaw in a shared
+    dependency affects every request path that uses it.
+    quoting Werner Vogels: "We've developed the fundamental skill of managing the
+      "blast radius" of a failure occurrence such that the overall health of the
+      system can be maintained." (All Things Distributed, '10 Lessons from 10 Years
+      of Amazon Web Services', 2016-03-11)
+```
+
+Sixty verified quotes back the nine lenses, gathered from the people's own blogs,
+books, talks, earnings calls, testimony and interviews. Quotes the research could
+not confirm word for word are kept in the file marked "likely" and are never given
+to a director; well-known misattributions (for example "Real artists ship" for Jobs,
+or "If it doesn't sell, it isn't creative" for Ogilvy) were rejected.
+
+The rules that keep this honest:
+
+- Directors quote only the verbatim, sourced quotes in
+  `skills/proof-board/personas.json`. `check` rejects any quote id that is not in
+  that seat's list, and the meeting page links every quote to its source.
+- A director applies a person's thinking; it never writes as that person or claims
+  they would endorse anything.
+- Every high-severity point must cite a finding or score from the ledger; invented
+  evidence is rejected.
+- Vetoes come from the evidence, not from a director's view: a verified high security
+  finding holds the launch whatever the votes say.
+
+The meeting walks the audits in board order (user flows, reliability, security,
+infrastructure, privacy and legal, reach, AI, code health, finance, launch
+readiness). Each item shows the team's slide, the directors who speak to it, and a
+computed outcome: Blocker, Concerns, Clear or Not covered. Then questions and
+answers, the vote, the decision, and an action list grouped by owner.
 `examples/board-meeting.html` is a real meeting held on the demo shop.
 
 ## In CI
@@ -251,7 +306,7 @@ inputs; confirm costs with real quotes and the structure with an accountant.
 ```
 action.yml                      the GitHub Action
 examples/                       the planted-bug demo shop, run_demo.py, a board meeting, a workflow to copy
-skills/proof-board/             SKILL.md, board.py, seats.md
+skills/proof-board/             SKILL.md, board.py, seats.md, personas.json
 skills/proof-full-check/        SKILL.md, fullcheck.py
 skills/proof-full-check-no-seo/ SKILL.md
 skills/proof-plan/              SKILL.md, target.py
@@ -290,6 +345,38 @@ tests/                          the tests for every tool, and the end-to-end dem
 ```
 
 Your own files live in `proof/` in your project. The skills read each other's.
+
+## Release checklist: the meeting page
+
+`meeting.html` is a single local file that the board writes into `proof/board/`. It
+is a report, not a website: it is not deployed or meant to be indexed. The checklist
+below says what was checked and what does not apply.
+
+Build and handoff
+
+- [x] DONE - Run commands are documented (`board.py brief`, `check`, `tally`, `play`); the board's tests pass (`tests/test_board.py`).
+- [x] DONE - No dependencies added: standard-library Python writes the page; the page is one HTML file with inline CSS and JavaScript, no fonts or libraries fetched.
+- [x] DONE - Assets: the director avatars are inline SVG drawn for this project; no third-party images. Quotes are attributed with their source and link.
+- [x] DONE - Autoplay, the hidden-tab wait and resume, and the action checklist were checked in a browser on the demo meeting.
+- [ ] PENDING - The reduced-motion path (opens as a full transcript) is implemented but was not tested with the setting turned on.
+- [x] DONE - Layout checked at desktop width and a narrow phone-like width (the agenda rail collapses to a progress bar).
+- [ ] PENDING - Keyboard and screen-reader pass: buttons are native, focus is visible and the status line is announced politely, but no full assistive-technology test has been run.
+- [ ] PENDING - No measured performance figures; the page runs no animation loop and only fades text in, but nothing was profiled on low-end devices.
+
+SEO and search readiness
+
+- N/A - Indexing, sitemap, canonical URLs, Open Graph and structured data: the page is a local report and carries `noindex`; it is not published.
+- [x] DONE - Semantic structure: one `h1`, a heading per step, `nav` for the agenda and `main` for the meeting.
+
+Google Search Console
+
+- N/A - The page is never deployed to a domain, so there is nothing to verify or submit.
+
+Privacy, cookies, consent and legal
+
+- [x] DONE - The page sends nothing anywhere: no analytics, no trackers, no requests. It stores only the action checklist's ticks in the browser's local storage, on that machine.
+- N/A - Cookie banner and consent: no cookies and no third-party services.
+- [ ] PENDING - The directors quote real people with attribution. The quotes are short, attributed and linked; whether your own use of a generated meeting is fair is your call, and the page states the directors are simulated and do not speak for anyone.
 
 ## Credit
 

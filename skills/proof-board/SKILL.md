@@ -1,60 +1,67 @@
 ---
 name: proof-board
 description: >-
-  Presents the project to a board of directors and gets a launch decision. Nine
-  directors (CEO, CTO, CISO, CFO, CMO, Head of Sales, COO, CPO, General Counsel)
-  are sub-agents that each hear the same presentation built from the Proof
-  evidence, judge it through their own role, vote Go, Go with conditions or Hold,
-  and back every serious risk with a finding or score from the ledger. The
-  decision is computed from the evidence and the votes, and the meeting is written
-  as an interactive page you can replay director by director. Use when the user
-  says "present this to the board", "board of directors", "what would the execs
-  say", "board meeting", "should we launch", "get sign-off", or "pitch it to the
-  CTO, CFO and sales".
+  Presents the project to a board of directors and gets a launch decision, with
+  nothing for the user to do. Nine directors (CEO, CTO, CISO, CFO, CMO, Head of
+  Sales, COO, CPO, General Counsel) are sub-agents; each applies the researched,
+  sourced thinking of one person (Steve Jobs, Werner Vogels, Steve Katz, Ruth
+  Porat, David Ogilvy, John H. Patterson, Tim Cook, Tony Fadell, Brad Smith),
+  quotes them word for word with sources, and backs every serious risk with a
+  finding or score from the ledger. The meeting runs by itself, item by item
+  through the audits, in the chat and as a page that plays on its own. Use when
+  the user says "present this to the board", "board of directors", "what would
+  the execs say", "board meeting", "should we launch", or "get sign-off".
 argument-hint: "[--seats ceo,cto,cfo]"
 ---
 
 # proof-board
 
 The testing skills say what is true about the product. The board says what to do
-about it. The team presents; nine directors, each a sub-agent with a different job,
-question it through their own lens and vote. Their decision rests on the same
-ledger as everything else, so a director cannot wave away a verified critical bug,
-and a director cannot invent one.
+about it. The team presents, nine directors question it through their own role and
+vote, and the decision rests on the same ledger as everything else: a director
+cannot wave away a verified critical bug, and cannot invent one.
+
+**The user does not do anything.** Run every step below yourself, then show the
+meeting. It plays out in the chat and the page plays itself.
 
 What the user typed after `/proof-board`: `$ARGUMENTS`
 
 ## The tool
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/board.py" seats
-python3 "${CLAUDE_SKILL_DIR}/board.py" brief
-python3 "${CLAUDE_SKILL_DIR}/board.py" check
-python3 "${CLAUDE_SKILL_DIR}/board.py" answer cto 1 "Load was tested at 50 users; 200 is planned for next week"
-python3 "${CLAUDE_SKILL_DIR}/board.py" tally
+python3 "${CLAUDE_SKILL_DIR}/board.py" brief      # the presentation and one brief per director
+python3 "${CLAUDE_SKILL_DIR}/board.py" check      # validate the directors' answers
+python3 "${CLAUDE_SKILL_DIR}/board.py" tally      # the decision, printed as the full meeting
+python3 "${CLAUDE_SKILL_DIR}/board.py" play       # the same meeting, paced, in a terminal
 ```
 
-The seats, what each one reads and which ones hold a veto are in `seats.md` in this
-folder.
+The seats, what each reads and which hold a veto are in `seats.md`. The researched
+lenses (facts, principles, behaviour and verbatim quotes with sources) are in
+`personas.json`.
 
 ## The board
 
-| seat | judges | veto |
-| --- | --- | --- |
-| CEO | the overall call and the trade-offs | none (chairs) |
-| CTO | does it work and keep working: flows, API, load, tests, infra | core flows, API, load, mobile flows |
-| CISO | security and customer data | security, secrets, dependencies, infra, AI |
-| CFO | the money: unit economics, cost of fixing versus delaying | unit economics |
-| CMO | how the market meets it: SEO, AI search, accessibility, email | none |
-| Sales | can it be sold: demo-ability, buyer security questions, pricing | none |
-| COO | running it: launch readiness, load, email, alerts, rollback | launch-blocking readiness items |
-| CPO | the experience: flows, exploratory testing, accessibility, visual | none |
-| Legal | exposure: privacy, accessibility, policies, AI | privacy |
+| seat | lens | judges | veto |
+| --- | --- | --- | --- |
+| CEO | Steve Jobs | the overall call: focus, quality, saying no | none (chairs) |
+| CTO | Werner Vogels | does it work and keep working | core flows, API, load, mobile flows |
+| CISO | Steve Katz | security and customer data | security, secrets, dependencies, infra, AI |
+| CFO | Ruth Porat | unit economics, cost of fixing versus delaying | unit economics |
+| CMO | David Ogilvy | how the market meets it: claims, research, reach | none |
+| Sales | John H. Patterson | can it be demonstrated and sold | none |
+| COO | Tim Cook | running it: readiness, operations, privacy posture | launch-blocking readiness items |
+| CPO | Tony Fadell | the product experience | none |
+| Legal | Brad Smith | exposure: privacy, trust, regulation | privacy |
 
-## Step 1: have evidence first
+Each director applies that person's documented principles and quotes only the
+verbatim quotes in `personas.json`, every one with its source and date. A director
+never writes as the person, never alters or extends a quote, and `check` rejects
+any quote id that is not in that seat's researched list.
 
-The board judges the ledger, so run the testing skills (or `/proof-full-check`) and
-`/proof-report` first. With no evidence the board can only hold.
+## Step 1: evidence first
+
+The board judges the ledger, so the testing skills (or `/proof-full-check`) and
+`/proof-report` come first. With no evidence the board can only hold.
 
 ## Step 2: the presentation
 
@@ -62,104 +69,81 @@ The board judges the ledger, so run the testing skills (or `/proof-full-check`) 
 python3 "${CLAUDE_SKILL_DIR}/board.py" brief
 ```
 
-This turns the ledger into `proof/board/presentation.md`, the pitch the board hears:
-the product, the computed verdict, what was tested and what it found, every
-verified finding and score with a reference in square brackets, and the ask. It
-writes one brief per director with their role and the exact answer format, and
-lists them. Use `--seats ceo,cto,cfo,sales` for a smaller board. Running `brief`
-again clears the previous meeting's answers, so the board always judges the current
-evidence.
+Writes `proof/board/presentation.md` (the product, the computed verdict, every
+verified finding and score with a reference in square brackets, and the ask) and one
+brief per director: their role, their lens with its quotes, and the answer format.
+`--seats ceo,cto,cfo,sales` convenes a smaller board. A new brief clears the previous
+meeting's answers, so the board always judges the current evidence.
 
 ## Step 3: convene the board
 
-Send ONE message with one Agent tool call per director brief (all nine in parallel):
+Send ONE message with one Agent tool call per director brief, all in parallel:
 
 - `subagent_type`: `general-purpose`
 - `description`: `board <seat>`
 - `prompt`: `Read <brief path> and follow it exactly. It is your whole brief.`
 
-Each director writes `proof/board/answers/<seat>.json`. Then:
+Then `board.py check`. It rejects a high-severity risk that cites nothing, a
+reference not in the evidence, and a quote id outside the seat's research. Send the
+director its problems and have it fix its own file. Never write a director's answer.
+
+## Step 4: answer the board's questions
+
+Answer each question from the evidence, or say plainly that the evidence does not
+cover it:
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/board.py" check
+python3 "${CLAUDE_SKILL_DIR}/board.py" answer cfo 1 "Payback is month 8 at plan [proof-finance/score:year1_operating_profit]"
 ```
 
-`check` refuses an answer whose high-severity risk cites nothing, or that cites a
-reference not in the evidence: a director cannot make up a finding. Send the
-director its problems and ask it to fix the file, or file a corrected answer with
-`board.py save <seat>` from stdin. Never write a director's answer yourself.
-
-## Step 4: questions from the board
-
-Directors may ask the team questions. Answer each one from the evidence (or say
-plainly that the evidence does not cover it):
-
-```bash
-python3 "${CLAUDE_SKILL_DIR}/board.py" answer cfo 1 "Payback is month 8 at the planned volume [proof-finance/score:year1_operating_profit]"
-```
-
-## Step 5: the decision and the meeting
+## Step 5: the meeting runs itself
 
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/board.py" tally
 ```
 
+`tally` computes the decision and prints the whole meeting. **Show it in the chat
+as it comes, step by step, without waiting for the user**:
+
+1. **Opening:** the verdict going in, who is at the table, the agenda.
+2. **Each agenda item** (one per audit area: user flows, reliability, security,
+   infrastructure, privacy and legal, reach, AI, code health, finance, launch
+   readiness): what the team showed; each director who spoke, with their point, the
+   evidence, and the quote they rested it on ("Katz's view: ... He said: '...'
+   (source, year)"); and the computed outcome: Blocker, Concerns, Clear or Not
+   covered.
+3. **Other points, questions and answers, the vote, the decision, the top actions.**
+
 The decision is computed:
 
-- **Hold** when the Proof evidence is incomplete, when the ledger itself triggers a
-  veto (a verified high or critical finding in a vetoing seat's area, a sale that
-  loses money, a launch-blocking readiness item not done), when fewer than half the
+- **Hold** when the evidence is incomplete, when the ledger triggers a veto (a
+  verified high or critical finding in a vetoing seat's area, a sale that loses
+  money, a launch-blocking readiness item not done), when fewer than half the
   directors answered, or when a majority votes to hold.
-- **Go with conditions** when nothing blocks but the Proof verdict is Not yet, or
-  any director voted for conditions or raised them.
-- **Go** when the Proof verdict is Ship and every director who answered voted go.
+- **Go with conditions** when nothing blocks but the Proof verdict is Not yet, or a
+  director voted for or raised conditions.
+- **Go** when the verdict is Ship and every director who answered voted go.
 
-It writes `proof/board/minutes.md`, `proof/board/decision.json`, and
-`proof/board/meeting.html`, an interactive page that runs the meeting step by step,
-the way a board takes it:
-
-1. **Opening.** The team presents: the verdict, finding counts, scores, coverage,
-   the nine directors in the room, and the agenda.
-2. **One agenda item per audit area**, in board order: product and user flows,
-   reliability and performance, security, infrastructure, privacy and legal,
-   accessibility and reach, AI features, code health, finance, launch readiness.
-   Only areas with evidence, or that the target requires, are on the agenda; the
-   rest are listed as not tested. Each item has three parts:
-   - the team presents that area: what was run, its verified findings, its scores
-     against budget, the checks not yet run;
-   - the board discusses: each director whose risks cite evidence from that area
-     speaks, with every risk linked to its evidence;
-   - the item outcome, computed: **Blocker** (a verified high or critical finding,
-     or a veto), **Concerns** (a medium finding, a score over budget, or a required
-     check not run), **Clear**, or **Not covered** (required but not run).
-3. **Other concerns**: judgement calls that are not tied to one audit.
-4. **Questions from the board**, with the team's answers.
-5. **The vote**: each director's verdict, revealed one after another, and the tally.
-6. **The decision**, with every reason, and where each audit landed.
-7. **Actions**, grouped by owner, as a checklist you can tick off (remembered in
-   your browser), then the evidence appendix every reference links to.
-
-Move with Next and Previous, the arrow keys or the step list; each step has its
-own link (`#step-3`). "Show all" puts the whole meeting on one page for reading or
-printing.
-
-Open the page for the user (the built-in browser, or send the file), and run the
-same meeting in chat, item by item: the opening in two lines, then for each agenda
-item what the team showed, what each director said, and the outcome; then the
-questions, the vote, the decision and the top actions. Pause after each agenda item
-if the user wants to discuss it.
+It also writes `proof/board/meeting.html`. Open it for the user (built-in browser, or
+send the file): it plays the same meeting on its own, step by step, with a timeline
+of the agenda, each item's outcome appearing as it is reached, the directors'
+quotes with links to their sources, the vote, the decision and an action checklist.
+It pauses while the tab is hidden and resumes when it is back. Pause and Full
+transcript are there for anyone who wants them; nothing needs a click. With reduced
+motion set, it shows the full transcript at once. `play` paces the same meeting in a
+terminal.
 
 ## Honest limits
 
-The directors are simulated: nine sub-agents reading the same presentation, so they
-share one model's blind spots, and their votes are advice. What makes the decision
-trustworthy is that it cannot contradict the evidence: vetoes come from the ledger,
-not from the directors' mood. A board Go is not market validation, legal sign-off or
-a financial forecast; it says the evidence and the directors' judgement do not
-object to launching.
+The directors are sub-agents applying documented thinking, not the people: nine
+readings by one model, so they share its blind spots, and their votes are advice. The
+quotes are verbatim and sourced, but a quote applied to a new product is still an
+interpretation. What makes the decision trustworthy is that it cannot contradict
+the evidence: vetoes come from the ledger, not from a director's view. A board Go
+is not market validation, legal sign-off or a forecast.
 
 ## Output / next
 
 `proof/board/presentation.md`, `briefs/`, `answers/`, `qa.json`, `minutes.md`,
-`decision.json` and `meeting.html`. Work through the actions, re-run the skills
-they touch, and convene the board again.
+`transcript.txt`, `decision.json` and `meeting.html`. Work through the actions,
+re-run the skills they touch, and convene the board again.
