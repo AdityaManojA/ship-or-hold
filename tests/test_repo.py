@@ -120,8 +120,7 @@ class Repo(unittest.TestCase):
                     self.assertIn(top, allowed, "%s/%s imports %r (not stdlib)" % (d, name, top))
 
     def test_no_em_dash_in_shipped_prose(self):
-        # Our shipped skills and tests use plain hyphens. The top-level planning
-        # docs (PLAN.md etc.) are not shipped with the skills and are exempt.
+        # Our shipped skills and tests use plain hyphens.
         # EM is built at runtime so this file does not contain the character it bans.
         EM = chr(0x2014)
         for path in text_files(SHIPPED):
