@@ -510,6 +510,12 @@ AREAS = [
     ("launch", "Launch readiness and operations", ["proof-release", "proof-email"]),
 ]
 SKILL_AREA = {sk: aid for aid, _, sks in AREAS for sk in sks}
+# One word per step for the meeting page's progress bar; the full title is the tooltip.
+SHORT = {"flows": "Flows", "reliability": "Performance", "security": "Security", "infra": "Infra",
+         "privacy": "Privacy", "reach": "Reach", "ai": "AI", "quality": "Code", "finance": "Finance",
+         "launch": "Launch"}
+SHORT_BY_TITLE = dict((title, SHORT[aid]) for aid, title, _ in AREAS)
+SHORT_BY_TITLE.update({"Other points": "Other", "The vote": "Vote"})
 BLOCKER, CONCERNS, CLEAR, NOT_COVERED = "Blocker", "Concerns", "Clear", "Not covered"
 OUTCOME_CLASS = {BLOCKER: "hold", CONCERNS: "go_with_conditions", CLEAR: "go", NOT_COVERED: "none"}
 
@@ -777,8 +783,10 @@ a{color:inherit}
 @keyframes fill{from{width:0}to{width:100%}}
 .segments .lab{display:block;font:500 11px/1.3 var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
   margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.segments li.now .lab{color:var(--ink)}
-@media (max-width:760px){.segments .lab{display:none}.segments li.now .lab{display:block;position:absolute;left:clamp(16px,4vw,48px);right:0}
+.segments li.done .lab{color:var(--soft)}
+.segments li.now .lab{color:var(--accent);font-weight:700}
+.segments button:hover .lab{color:var(--ink)}
+@media (max-width:900px){.segments .lab{display:none}.segments li.now .lab{display:block;position:absolute;left:clamp(16px,4vw,48px);right:0}
   .segments{position:relative;padding-bottom:18px}}
 main{max-width:860px;margin:0 auto;padding:12px clamp(16px,4vw,48px) 80px}
 .step{display:none}.step.on{display:block}
@@ -1233,8 +1241,9 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
     S.append('<button class="replay" id="replay" type="button">Watch again</button>')
     steps.append(("Actions", 8000, "".join(S)))
 
-    segs = "".join('<li><button type="button" aria-label="Go to %s"><span class="bar"><i></i></span><span class="lab">%s</span></button></li>' % (
-        e(label), e(label)) for label, _, _ in steps)
+    segs = "".join('<li><button type="button" aria-label="Go to %s" title="%s"><span class="bar"><i></i></span>'
+                   '<span class="lab">%s</span></button></li>' % (e(label), e(label), e(SHORT_BY_TITLE.get(label, label)))
+                   for label, _, _ in steps)
     body = "".join('<section class="step" data-dur="%d" aria-label="%s">%s</section>' % (dur, e(label), html_)
                    for label, dur, html_ in steps)
     report_link = '<p class="fine"><a href="../report.html">Open the full Proof report</a></p>' if r.get("report_html") else ""
