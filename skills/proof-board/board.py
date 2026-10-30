@@ -483,7 +483,8 @@ h1{font-size:26px;margin:0}h2{font-size:18px;margin:36px 0 12px}h3{margin:0;font
 .room{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
 .seat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;text-align:left;color:inherit;font:inherit}
 .seat:hover,.seat:focus{border-color:var(--accent);outline:none}
-.av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;letter-spacing:.3px;color:#fff;background:var(--accent);margin-bottom:8px;flex:none}
+.av{display:inline-flex;align-items:center;justify-content:center;border-radius:16px;background:rgba(127,127,127,.08);padding:4px;margin-bottom:8px;flex:none}
+.av svg{display:block}
 .statement{display:block}.hidden{display:none !important}
 .statement.reveal{animation:fade .5s ease}@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .risk{border-left:3px solid var(--line);padding:2px 0 2px 10px;margin:6px 0}
@@ -530,10 +531,96 @@ MEETING_JS = """
 """
 
 
-def _initials(seat):
-    """Avatar label: the seat's short name when it fits (CEO, CISO), else three letters (SAL, LEG)."""
-    short = seat["short"]
-    return short.upper() if len(short) <= 4 and short.isupper() else short[:3].upper()
+# Each seat has its own gradient (light top, deeper bottom), clothing colour, and a
+# hat and outfit, so the directors are told apart at a glance.
+AVATAR = {
+    "ceo":   ("#e9d5ff", "#8b5cf6", "#3b2a6b"),
+    "cto":   ("#b4f1ff", "#5b8cff", "#1f3b73"),
+    "ciso":  ("#d9e2f2", "#64748b", "#1e293b"),
+    "cfo":   ("#c7f9d4", "#2fa36b", "#14532d"),
+    "cmo":   ("#ffd1ea", "#e24a9b", "#7a1f52"),
+    "sales": ("#ffe0c7", "#f2703a", "#7c2d12"),
+    "coo":   ("#fff3b0", "#eab308", "#713f12"),
+    "cpo":   ("#c2f5ee", "#14b8a6", "#134e4a"),
+    "legal": ("#e5e7eb", "#6b7280", "#111827"),
+}
+_HEAD = '<circle cx="50" cy="35" r="16" fill="url(#h-{id})"/>'
+_BODY = '<path d="M15 96 C15 67 30 57 50 57 C70 57 85 67 85 96 Z" fill="url(#b-{id})"/>'
+
+_BEHIND = {  # drawn before the head
+    "cto": '<path d="M30 42 C30 17 70 17 70 42 L70 54 C63 60 37 60 30 54 Z" fill="{d}" opacity=".85"/>',
+}
+_OUTFIT = {  # drawn over the body
+    "ceo": ('<path d="M33 60 L50 96 L67 60 C62 58 56 57 50 57 C44 57 38 58 33 60 Z" fill="{d}"/>'
+            '<path d="M44 57 L50 70 L56 57 Z" fill="#ffffff"/>'
+            '<path d="M48.5 60 L51.5 60 L53 79 L50 83 L47 79 Z" fill="#c0262d"/>'),
+    "cto": ('<path d="M44 58 L45 70 M56 58 L55 70" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>'
+            '<rect x="38" y="76" width="24" height="9" rx="3" fill="{d}" opacity=".55"/>'),
+    "ciso": ('<path d="M50 66 L60 70 L60 78 C60 84 55 88 50 90 C45 88 40 84 40 78 L40 70 Z" fill="{d}"/>'
+             '<path d="M45.5 78 L49 81.5 L55 74.5" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round"/>'),
+    "cfo": ('<path d="M33 60 L50 96 L67 60 C62 58 56 57 50 57 C44 57 38 58 33 60 Z" fill="{d}"/>'
+            '<path d="M44 57 L50 68 L56 57 Z" fill="#ffffff"/>'
+            '<path d="M42 59 L50 63 L42 67 Z M58 59 L50 63 L58 67 Z" fill="#facc15"/>'
+            '<circle cx="50" cy="63" r="1.8" fill="#ca8a04"/>'),
+    "cmo": ('<path d="M34 59 C42 64 58 64 66 59 L66 65 C58 70 42 70 34 65 Z" fill="{d}"/>'
+            '<path d="M58 64 L62 64 L64 84 L58 86 Z" fill="{d}"/>'),
+    "sales": ('<path d="M42 57 L50 66 L39 66 Z M58 57 L50 66 L61 66 Z" fill="#ffffff"/>'
+              '<circle cx="50" cy="72" r="1.4" fill="{d}"/><circle cx="50" cy="78" r="1.4" fill="{d}"/>'),
+    "coo": ('<path d="M32 62 L42 59 L44 96 L33 96 Z M68 62 L58 59 L56 96 L67 96 Z" fill="#f97316"/>'
+            '<rect x="33" y="76" width="11" height="3.5" fill="#e5e7eb"/><rect x="56" y="76" width="11" height="3.5" fill="#e5e7eb"/>'),
+    "cpo": '<rect x="39" y="51" width="22" height="11" rx="5" fill="{d}"/>',
+    "legal": ('<path d="M33 60 L50 96 L67 60 C62 58 56 57 50 57 C44 57 38 58 33 60 Z" fill="{d}"/>'
+              '<rect x="45.5" y="57" width="4" height="13" rx="1" fill="#ffffff"/>'
+              '<rect x="50.5" y="57" width="4" height="13" rx="1" fill="#ffffff"/>'),
+}
+_HAT = {  # drawn over the head
+    "ceo": ('<rect x="29" y="19" width="42" height="5" rx="2.5" fill="{d}"/>'
+            '<rect x="36" y="2" width="28" height="19" rx="2" fill="{d}"/>'
+            '<rect x="36" y="15" width="28" height="3.5" fill="#fbbf24"/>'),
+    "cto": ('<circle cx="43" cy="36" r="4.6" fill="none" stroke="{d}" stroke-width="1.8"/>'
+            '<circle cx="57" cy="36" r="4.6" fill="none" stroke="{d}" stroke-width="1.8"/>'
+            '<path d="M47.6 36 L52.4 36" stroke="{d}" stroke-width="1.8"/>'),
+    "ciso": ('<path d="M33 31 C33 14 67 14 67 31 Z" fill="{d}"/>'
+             '<path d="M62 29 C70 29 77 31 78 33 L62 33 Z" fill="{d}"/>'
+             '<circle cx="50" cy="23" r="2.4" fill="#93c5fd"/>'),
+    "cfo": ('<path d="M35 27 C35 9 65 9 65 27 Z" fill="{d}"/>'
+            '<ellipse cx="50" cy="27" rx="21" ry="3.6" fill="{d}"/>'
+            '<rect x="35.5" y="21" width="29" height="3" fill="#4ade80" opacity=".8"/>'),
+    "cmo": ('<ellipse cx="46" cy="22" rx="21" ry="7.5" fill="{d}" transform="rotate(-12 46 22)"/>'
+            '<circle cx="45" cy="14" r="2.2" fill="{d}"/>'),
+    "sales": ('<path d="M34 29 C34 12 66 12 66 29 Z" fill="{d}"/>'
+              '<path d="M35 28 C27 28 19 30 18 32 C24 33 31 32 37 31 Z" fill="{d}"/>'
+              '<circle cx="50" cy="14" r="1.6" fill="#fdba74"/>'),
+    "coo": ('<path d="M32 29 C32 11 68 11 68 29 Z" fill="#facc15" stroke="{d}" stroke-width="1"/>'
+            '<rect x="27" y="27" width="46" height="5" rx="2.5" fill="#facc15" stroke="{d}" stroke-width="1"/>'
+            '<path d="M50 12 L50 27" stroke="{d}" stroke-width="1.6"/>'),
+    "cpo": ('<path d="M34 29 C34 9 66 9 66 29 Z" fill="{d}"/>'
+            '<rect x="33" y="24" width="34" height="7" rx="3.5" fill="{d}" stroke="#ffffff" stroke-opacity=".35"/>'
+            '<circle cx="50" cy="8" r="4" fill="{d}"/>'),
+    "legal": ('<rect x="39" y="15" width="22" height="9" rx="1.5" fill="{d}"/>'
+              '<path d="M50 5 L77 14 L50 23 L23 14 Z" fill="{d}"/>'
+              '<path d="M50 14 L68 18 L68 30" stroke="#fbbf24" stroke-width="1.4" fill="none"/>'
+              '<circle cx="68" cy="31" r="1.8" fill="#fbbf24"/>'),
+}
+
+
+def avatar_svg(seat_id, size=56, suffix=""):
+    """A person silhouette in the seat's colours, with its own hat and clothing."""
+    light, deep, dark = AVATAR.get(seat_id, ("#dbeafe", "#60a5fa", "#1e3a8a"))
+    sid = (re.sub(r"[^a-z0-9]", "", seat_id) or "x") + suffix
+    parts = ['<svg class="pfp" width="%d" height="%d" viewBox="0 0 100 100" role="img" aria-label="%s">' % (
+        size, size, e(seat_id)),
+        '<defs><linearGradient id="h-%s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%s"/>'
+        '<stop offset="1" stop-color="%s"/></linearGradient>' % (sid, light, deep),
+        '<linearGradient id="b-%s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="%s"/>'
+        '<stop offset="1" stop-color="%s"/></linearGradient></defs>' % (sid, deep, deep)]
+    parts.append(_BEHIND.get(seat_id, "").format(d=dark))
+    parts.append(_BODY.format(id=sid))
+    parts.append(_OUTFIT.get(seat_id, "").format(d=dark))
+    parts.append(_HEAD.format(id=sid))
+    parts.append(_HAT.get(seat_id, "").format(d=dark))
+    parts.append("</svg>")
+    return "".join(parts)
 
 
 def _ref_link(ref):
@@ -591,7 +678,7 @@ def meeting_html(r, seats, answers, dec, qa, fp):
         vote = a["vote"] if a else "none"
         L.append('<button class="seat" data-seat="%s"><div class="av">%s</div><h3>%s</h3><div class="muted">%s</div>'
                  '<div style="margin-top:6px"><span class="badge %s">%s</span></div></button>' % (
-                     e(seat["id"]), e(_initials(seat)),
+                     e(seat["id"]), avatar_svg(seat["id"], 84, "r"),
                      e(seat["short"]), e(seat["title"]), vote, e(VOTE_LABEL.get(vote, "Did not answer"))))
     L.append("</div>")
 
@@ -611,7 +698,7 @@ def meeting_html(r, seats, answers, dec, qa, fp):
         L.append('<div class="card statement" id="st-%s" data-vote="%s">' % (e(seat["id"]), vote))
         L.append('<div style="display:flex;gap:12px;align-items:center"><div class="av">%s</div><div><h3>%s</h3>'
                  '<div class="muted">%s</div></div><div style="margin-left:auto"><span class="badge %s">%s</span></div></div>' % (
-                     e(_initials(seat)), e(seat["title"]),
+                     avatar_svg(seat["id"], 56, "s"), e(seat["title"]),
                      e(", ".join(seat["veto"]) and "Holds a veto over: " + ", ".join(seat["veto"]) or "No veto"),
                      vote, e(VOTE_LABEL.get(vote, "Did not answer"))))
         if not a:

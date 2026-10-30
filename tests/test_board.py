@@ -196,6 +196,16 @@ class Board(unittest.TestCase):
         self.assertIn("&lt;script&gt;x&lt;/script&gt;", page)
         self.assertTrue(all(ord(c) < 128 for c in page))
 
+    def test_avatars_distinct(self):
+        svgs = {s: board.avatar_svg(s, 56, "t") for s in self.seats}
+        self.assertEqual(len(set(svgs.values())), len(self.seats))  # every seat looks different
+        for s, svg in svgs.items():
+            self.assertTrue(svg.startswith("<svg"))
+            self.assertIn('id="h-%st"' % s, svg)  # unique gradient ids per suffix
+            self.assertTrue(all(ord(c) < 128 for c in svg))
+        colours = {board.AVATAR[s][1] for s in self.seats}
+        self.assertEqual(len(colours), len(self.seats))  # every seat has its own colour
+
     def test_seat_subset(self):
         rc, out = run("--dir", self.d, "brief", "--seats", "ceo,cto,cfo")
         self.assertEqual(rc, 0)
