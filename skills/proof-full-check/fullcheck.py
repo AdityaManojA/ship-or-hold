@@ -46,6 +46,7 @@ ORDER = [
     ("proof-mutation", "test-suite strength"),
     ("proof-explore", "exploratory persona swarm"),
     ("proof-restraint", "dead code and bloat"),
+    ("proof-slop", "generated-looking copy, UI and code"),
     ("proof-mobile-e2e", "mobile user flows"),
     ("proof-mobile-audit", "mobile build audit"),
     ("proof-ai", "LLM feature safety"),
@@ -58,7 +59,7 @@ SEO = {"proof-seo", "proof-geo"}
 MOBILE = {"proof-mobile-e2e", "proof-mobile-audit"}
 WEB_ONLY = {"proof-web-e2e", "proof-web-perf", "proof-a11y", "proof-seo", "proof-geo", "proof-privacy",
             "proof-compat", "proof-visual"}
-REPO = {"proof-sec-secrets", "proof-sec-deps", "proof-infra", "proof-mutation", "proof-restraint"}
+REPO = {"proof-sec-secrets", "proof-sec-deps", "proof-infra", "proof-mutation", "proof-restraint", "proof-slop"}
 BY_KIND = {
     "web": lambda s: s not in MOBILE,
     "api": lambda s: s not in MOBILE and s not in WEB_ONLY,

@@ -6,7 +6,7 @@ description: >-
   the verdict waits for every one, then walks through them in order: user flows,
   API, security, secrets, dependencies, infra, privacy, performance,
   accessibility, browser compatibility, visual regression, translations, emails,
-  load, test strength, exploratory testing, bloat, mobile, AI safety, SEO,
+  load, test strength, exploratory testing, bloat, slop, mobile, AI safety, SEO,
   AI-search citability, unit economics and launch readiness, ending with the
   computed verdict. Use when the
   user says "full check", "test everything", "run all the tests", "complete
@@ -52,7 +52,7 @@ python3 "${CLAUDE_SKILL_DIR}/fullcheck.py" plan --skip proof-finance
 
 It picks the skills that fit the target's kind (a web app gets the web skills, an
 API gets the API and security skills, a repo gets secrets, dependencies, test
-strength and bloat), writes them into `target.json` as required, and prints the run
+strength, bloat and slop), writes them into `target.json` as required, and prints the run
 order. The AI safety skill is only included with `--has-llm`; leave out anything
 that does not apply with `--skip`.
 

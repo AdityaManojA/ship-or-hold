@@ -505,7 +505,7 @@ AREAS = [
     ("privacy", "Privacy and legal", ["proof-privacy"]),
     ("reach", "Accessibility, languages and reach", ["proof-a11y", "proof-i18n", "proof-seo", "proof-geo"]),
     ("ai", "AI features", ["proof-ai"]),
-    ("quality", "Code health and test strength", ["proof-mutation", "proof-restraint"]),
+    ("quality", "Code health and test strength", ["proof-mutation", "proof-restraint", "proof-slop"]),
     ("finance", "Finance", ["proof-finance"]),
     ("launch", "Launch readiness and operations", ["proof-release", "proof-email"]),
 ]

@@ -4,7 +4,7 @@ description: >-
   Runs the whole Proof pack as one full check, but without the SEO and AI-search
   (GEO) skills. Every other applicable skill is required: user flows, API,
   security, secrets, dependencies, performance, accessibility, load, test strength,
-  exploratory testing, bloat, mobile, AI safety and unit economics, ending with the
+  exploratory testing, bloat, slop, mobile, AI safety and unit economics, ending with the
   computed verdict. For products that do not need to be found yet: internal tools,
   builds in stealth, private betas. Use when the user says "full check without
   SEO", "test everything except SEO", "we are in stealth", "internal tool, full

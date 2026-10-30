@@ -20,7 +20,7 @@ FORBIDDEN = [
     "mirofish", "betta fish", "bettafish", "founder-board", "founder-cfo", "founder-skill",
     "founder-consumer", "ponytail", "cloudflare", "trail of bits", "trailofbits",
     "replica-skill", "arena-skill", "claude-seo", "geo-seo-claude", "seomachine",
-    "lighthouse-ci", "schincariol", "opusjake",
+    "lighthouse-ci", "schincariol", "opusjake", "antislop", "anti-slop", "miqdadbadjuber",
 ]
 
 

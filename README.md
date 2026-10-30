@@ -1,6 +1,6 @@
 # Proof
 
-Thirty-five Claude skills that test a product before you ship it, then present it to a board of directors. Free, MIT, no
+Thirty-six Claude skills that test a product before you ship it, then present it to a board of directors. Free, MIT, no
 signup, no API key, nothing to connect.
 
 Most testing tools let the model say something passed. Proof does not. Every skill
@@ -58,7 +58,7 @@ This starts a small demo shop with problems planted on purpose, runs Proof again
 it, and writes the verdict, an HTML report and a SARIF file. It catches all nine
 planted problems. See `examples/README.md`.
 
-## The thirty-five
+## The thirty-six
 
 | command | job | what it does |
 | --- | --- | --- |
@@ -91,6 +91,7 @@ planted problems. See `examples/README.md`.
 | `/proof-load` | Load | Writes a load plan and scores the result (p95, p99, errors, throughput) against a budget. |
 | `/proof-explore` | Exploratory | Sends a persona swarm through the product and turns what they hit into findings to reproduce. |
 | `/proof-restraint` | Restraint | Finds dead code, unused dependencies and oversized files: what to delete. |
+| `/proof-slop` | Slop check | Finds copy, styling and code that read as machine-made: hype words, invented-looking numbers, stock gradients, banner comments, swallowed errors. |
 | `/proof-seo` | SEO | Audits on-page and technical SEO with a computed score. |
 | `/proof-geo` | AI search | Scores how readable and citable each page is to AI assistants, and which AI crawlers robots.txt allows. |
 | `/proof-ai` | LLM safety | Tests your own LLM feature across the OWASP LLM Top 10 categories. Imports promptfoo and garak results. |
@@ -171,7 +172,7 @@ researched from their own talks, interviews, books and letters:
 | seat | lens | judges | veto |
 | --- | --- | --- | --- |
 | CEO | Steve Jobs | the overall call: focus, quality, saying no | none (chairs) |
-| CTO | Werner Vogels | does it work and keep working | core flows, API, load |
+| CTO | Werner Vogels | does it work and keep working, and does it read as made by people | core flows, API, load |
 | CISO | Steve Katz | security and customer data | security, secrets, dependencies, infra, AI |
 | CFO | Ruth Porat | unit economics, cost of fixing versus delaying | unit economics |
 | CMO | David Ogilvy | claims, research, how the market meets it | none |
@@ -339,6 +340,7 @@ skills/proof-mutation/          SKILL.md, mutate.py
 skills/proof-load/              SKILL.md, loadplan.py
 skills/proof-explore/           SKILL.md, explore.py
 skills/proof-restraint/         SKILL.md, bloat.py
+skills/proof-slop/              SKILL.md, slop.py
 skills/proof-seo/               SKILL.md, seo_score.py, page.example.html
 skills/proof-geo/               SKILL.md, geo_score.py, scoring.md, llms.example.txt
 skills/proof-ai/                SKILL.md, redteam.py, eval_import.py

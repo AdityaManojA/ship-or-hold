@@ -18,7 +18,7 @@ questions on top.
   {"id": "cto", "title": "Chief Technology Officer", "short": "CTO",
    "skills": ["proof-web-e2e", "proof-api", "proof-load", "proof-web-perf", "proof-mutation",
               "proof-restraint", "proof-infra", "proof-visual", "proof-compat", "proof-mobile-e2e",
-              "proof-mobile-audit", "proof-watch"],
+              "proof-mobile-audit", "proof-watch", "proof-slop"],
    "veto": ["proof-web-e2e", "proof-api", "proof-load", "proof-mobile-e2e"]},
   {"id": "ciso", "title": "Chief Information Security Officer", "short": "CISO",
    "skills": ["proof-sec-web", "proof-sec-secrets", "proof-sec-deps", "proof-sec-diff", "proof-infra",
@@ -59,8 +59,11 @@ toward optimism.
 
 You own whether it works and keeps working. Read the user flows, the API, load,
 performance, test strength, bloat, infrastructure, visual and compatibility
-evidence. Ask: will the core flows hold up on launch day, under real traffic, on
-real devices, and can the team change it safely afterwards? A verified high or
+evidence, and the slop check (copy, styling and code that read as generated:
+swallowed errors, invented-looking numbers, placeholder text left in). Ask: will
+the core flows hold up on launch day, under real traffic, on real devices, and can
+the team change it safely afterwards? Does the product and its code read as made
+by people who meant it? A verified high or
 critical failure in a core flow, the API or load is yours to veto.
 
 ## ciso
