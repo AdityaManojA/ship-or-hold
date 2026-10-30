@@ -136,7 +136,8 @@ In an app with a built-in browser pane you can show it there too: it plays the s
 of the agenda, each item's outcome appearing as it is reached, the directors'
 quotes with links to their sources, the vote, the decision and an action checklist.
 Each step shows short points and the quotes; the full text is in a dropdown, and
-opening one holds the meeting on that step. Nothing needs a click. `play` paces the
+opening one holds the meeting on that step. Scrolling down to read pauses it
+until the reader presses Continue. Nothing needs a click. `play` paces the
 same meeting in a terminal.
 
 ## Honest limits

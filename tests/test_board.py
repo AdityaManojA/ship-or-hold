@@ -196,7 +196,7 @@ class Board(unittest.TestCase):
         with open(os.path.join(self.d, "board", "meeting.html"), encoding="utf-8") as fh:
             page = fh.read()
         for part in ("Opening", "At the table", "Rules of the meeting", "Product and user flows", "The board asks",
-                     "The vote", "The decision", "Actions", "Full points", "<details", "Watch again",
+                     "The vote", "The decision", "Actions", "Full points", "<details", "Watch again", 'id="go-on"', "Paused while you read",
                      'class="flip"', "Cleared to launch.", 'class="tick"'):
             self.assertIn(part, page)
         for gone in ("Pause", "Live view", "Full transcript"):

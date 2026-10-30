@@ -196,6 +196,7 @@ shows you the meeting as it happens:
   (a shaking HOLD! "Do not proceed.", or a GO with a drawn tick). Each step shows the short version and
   any quote that decided a call; the full points sit behind a click. Opening one holds the meeting on
   that step until it is closed, and the progress bar at the top jumps to any step.
+  Scrolling down to read pauses it on that step; press Continue to move on.
   Nothing needs a click. In CI, or on a machine with no screen, it is not opened;
   open the file yourself (double-click it, or `start`, `open` or `xdg-open` it).
 

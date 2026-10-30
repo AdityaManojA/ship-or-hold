@@ -777,6 +777,10 @@ a{color:inherit}
 .top{position:sticky;top:0;z-index:3;background:var(--canvas);padding:18px clamp(16px,4vw,48px) 10px}
 .brand{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
 .brand h1{font:600 22px/1.2 var(--display);letter-spacing:.01em;margin:0}
+.go-on{font:600 12px var(--display);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--accent);
+  border:0;border-radius:999px;padding:7px 14px;cursor:pointer;margin-left:auto}
+.go-on[hidden]{display:none}
+body.held .segments li.now .bar i{animation-play-state:paused}
 .brand .meta{font:500 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .segments{display:flex;gap:4px;margin-top:14px;list-style:none;padding:0}
 .segments li{flex:1;min-width:0}
@@ -939,7 +943,8 @@ MEETING_JS = """
   var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
   var segs = Array.prototype.slice.call(document.querySelectorAll('.segments li'));
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var cur = -1, timer = null, reading = false;
+  var cur = -1, timer = null, reading = false, held = false, auto = false;
+  var goOn = document.getElementById('go-on');
   function show(i){
     cur = i;
     steps.forEach(function(s, k){ s.classList.toggle('on', k === i); });
@@ -950,24 +955,43 @@ MEETING_JS = """
     var parts = Array.prototype.slice.call(steps[i].querySelectorAll('.reveal'));
     if (reduce || document.hidden) { parts.forEach(function(p){ p.classList.add('in'); }); }
     else { parts.forEach(function(p, k){ p.classList.remove('in'); setTimeout(function(){ p.classList.add('in'); }, 150 + k * 260); }); }
+    auto = true;
     try { window.scrollTo(0, 0); } catch (e) {}
+    setTimeout(function(){ auto = false; }, 150);
     return dur;
   }
   function next(){
     clearTimeout(timer);
-    if (reading || cur >= steps.length - 1) return;
+    if (reading || held || cur >= steps.length - 1) return;
     var dur = show(cur + 1);
     if (cur < steps.length - 1) timer = setTimeout(next, dur);
   }
+  // Scrolling, swiping or a scroll key means someone is reading: hold this step until they press Continue.
+  function hold(){
+    if (held || cur >= steps.length - 1) return;
+    held = true; clearTimeout(timer); document.body.classList.add('held');
+    if (goOn) goOn.hidden = false;
+  }
+  function release(){
+    held = false; document.body.classList.remove('held');
+    if (goOn) goOn.hidden = true;
+  }
+  window.addEventListener('wheel', function(ev){ if (ev.deltaY > 0) hold(); }, {passive: true});
+  window.addEventListener('touchmove', hold, {passive: true});
+  window.addEventListener('keydown', function(ev){
+    if (['ArrowDown', 'PageDown', 'End', ' ', 'Spacebar'].indexOf(ev.key) >= 0) hold(); });
+  window.addEventListener('scroll', function(){ if (!auto && window.scrollY > 30) hold(); }, {passive: true});
+  if (goOn) goOn.addEventListener('click', function(){ release(); reading = false; next(); });
   segs.forEach(function(li, k){ li.querySelector('button').addEventListener('click', function(){
-    clearTimeout(timer); reading = false; cur = k - 1; next(); }); });
+    clearTimeout(timer); reading = false;
+    if (held) { show(k); } else { cur = k - 1; next(); } }); });
   // Opening a dropdown holds the meeting on that step until every dropdown on it is closed again.
   document.querySelectorAll('details').forEach(function(d){ d.addEventListener('toggle', function(){
     var open = steps[cur] && steps[cur].querySelector('details[open]');
     if (open) { reading = true; clearTimeout(timer); }
-    else if (reading) { reading = false; timer = setTimeout(next, 2500); } }); });
+    else if (reading) { reading = false; if (!held) timer = setTimeout(next, 2500); } }); });
   var replay = document.getElementById('replay');
-  if (replay) replay.addEventListener('click', function(){ clearTimeout(timer); reading = false; cur = -1; next(); });
+  if (replay) replay.addEventListener('click', function(){ clearTimeout(timer); reading = false; release(); cur = -1; next(); });
   var key = 'proof-board-actions-' + document.body.getAttribute('data-fp');
   var saved = {}; try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { saved = {}; }
   document.querySelectorAll('.actions input').forEach(function(cb){ var id = cb.getAttribute('data-id');
@@ -1258,7 +1282,8 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
         '<meta name="robots" content="noindex">',
         "<title>%s: board meeting</title><style>%s</style></head>" % (e(name), MEETING_CSS),
         '<body data-fp="%s">' % e(fp),
-        '<header class="top"><div class="brand"><h1>%s</h1><span class="meta">Board meeting &middot; %s</span></div>'
+        '<header class="top"><div class="brand"><h1>%s</h1><span class="meta">Board meeting &middot; %s</span>'
+        '<button type="button" id="go-on" class="go-on" hidden>Paused while you read &middot; Continue &rsaquo;</button></div>'
         '<ol class="segments" aria-label="Meeting progress">%s</ol></header>' % (e(name), e(ledger.now()[:10]), segs),
         "<main>%s</main>" % body,
         report_link,
