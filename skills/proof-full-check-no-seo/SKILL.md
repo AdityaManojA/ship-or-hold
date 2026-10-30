@@ -65,7 +65,8 @@ high or critical findings as they appear.
 ## Step 4: the verdict
 
 When `next` says everything is done, run `/proof-report` for the computed verdict,
-then `/proof-audit-trail` to pack the run.
+`/proof-board` to present it to the board of directors, then `/proof-audit-trail`
+to pack the run.
 
 ## When you go public
 

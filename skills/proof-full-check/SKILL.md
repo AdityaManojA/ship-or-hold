@@ -73,7 +73,10 @@ skill itself, so it stops holding the verdict at Incomplete.
 ## Step 4: the verdict
 
 When `next` says everything is done, run `/proof-report`. It computes Ship, Not yet
-or Incomplete from all the evidence. Then `/proof-audit-trail` packs the run with a
+or Incomplete from all the evidence. Then present it to the board with
+`/proof-board`: nine directors (CEO, CTO, CISO, CFO, CMO, Sales, COO, CPO, Legal)
+judge the evidence and the board's Go / Go with conditions / Hold decision comes out
+as an interactive meeting page. Finally `/proof-audit-trail` packs the run with a
 hash for every file.
 
 ## Honest limits

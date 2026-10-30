@@ -1,6 +1,6 @@
 # Proof
 
-Thirty-four Claude skills that test a product before you ship it. Free, MIT, no
+Thirty-five Claude skills that test a product before you ship it, then present it to a board of directors. Free, MIT, no
 signup, no API key, nothing to connect.
 
 Most testing tools let the model say something passed. Proof does not. Every skill
@@ -13,7 +13,9 @@ It covers web and mobile testing, API contracts, security, secrets, dependencies
 and infrastructure config, privacy, performance, accessibility, browser
 compatibility, visual regression, translations, transactional email, load, test
 strength, SEO and AI-search readiness, LLM-feature safety, launch readiness, and
-the unit economics behind the product.
+the unit economics behind the product. When the testing is done, a board of nine
+directors (CEO, CTO, CISO, CFO, CMO, Sales, COO, CPO and Legal) hears the evidence
+and votes on the launch, in an interactive meeting you can replay.
 
 ## Install
 
@@ -56,10 +58,11 @@ This starts a small demo shop with problems planted on purpose, runs Proof again
 it, and writes the verdict, an HTML report and a SARIF file. It catches all nine
 planted problems. See `examples/README.md`.
 
-## The thirty-four
+## The thirty-five
 
 | command | job | what it does |
 | --- | --- | --- |
+| `/proof-board` | Board of directors | Presents the evidence to nine directors (CEO, CTO, CISO, CFO, CMO, Sales, COO, CPO, Legal) who vote; computes Go, Go with conditions or Hold and writes an interactive meeting page. |
 | `/proof-full-check` | Full check | Works out every skill that applies to the target, requires all of them, and walks through them in order to a verdict. |
 | `/proof-full-check-no-seo` | Full check, no SEO | The same, without SEO and AI-search checks. For internal tools, stealth builds and private betas. |
 | `/proof-plan` | Planner | Records what is under test, whether you are authorised to test it, and which skills the verdict waits for. |
@@ -101,8 +104,8 @@ Start with `/proof-plan`. It writes `proof/target.json`, which every other skill
 reads. Then either pick the skills you need or run a full check:
 
 ```
-plan -> the skills you choose -> report -> audit-trail
-plan -> full-check -> report -> audit-trail
+plan -> the skills you choose -> report -> board -> audit-trail
+plan -> full-check -> report -> board -> audit-trail
 ```
 
 Each skill writes into a `proof/` folder in your project: findings, coverage (what
@@ -121,11 +124,44 @@ An example: an online shop, running locally, with a checkout.
 5. **`/proof-report`** computes the verdict. With the double-submit bug open it says
    Not yet, and lists the finding with its evidence. Fix it, re-run the flow, and
    it says Ship. `rundiff.py compare` shows exactly what changed between the runs.
-6. **`/proof-audit-trail`** packs the run with a hash for every file, so a reviewer
+6. **`/proof-board`** presents the evidence to the board. The CISO's veto fires on
+   any verified high security finding, the CFO's on a sale that loses money, and so
+   on; the rest is decided by vote. The meeting page shows the presentation, each
+   director's statement with their risks linked to the evidence, the vote, the
+   decision and an action list with owners.
+7. **`/proof-audit-trail`** packs the run with a hash for every file, so a reviewer
    can confirm nothing changed.
 
 Every skill also runs on its own. A skill you do not require never counts against
 the verdict.
+
+## The board meeting
+
+`/proof-board` turns the evidence into a presentation and gives it to nine
+directors, each a sub-agent with its own role:
+
+| seat | judges | veto |
+| --- | --- | --- |
+| CEO | the overall call and the trade-offs | none (chairs) |
+| CTO | does it work and keep working | core flows, API, load |
+| CISO | security and customer data | security, secrets, dependencies, infra, AI |
+| CFO | unit economics, cost of fixing versus delaying | unit economics |
+| CMO | SEO, AI search, accessibility, email | none |
+| Sales | can it be sold: demo, buyer security questions, pricing | none |
+| COO | launch readiness, load, alerts, rollback | launch-blocking readiness items |
+| CPO | the experience across devices and languages | none |
+| Legal | privacy, accessibility, policies, AI | privacy |
+
+Every high-severity risk a director raises must cite a finding or score from the
+ledger, and a director cannot cite one that does not exist. Vetoes come from the
+evidence itself, not from a director's mood: a verified high security finding holds
+the launch whatever the votes say.
+
+The result is `proof/board/meeting.html`: the presentation, the room with each
+director's vote, the meeting (replay it one director at a time, or filter by vote),
+the board's questions with the team's answers, the vote, the computed decision with
+every reason, and the action list grouped by owner, which you can tick off.
+`examples/board-meeting.html` is a real meeting held on the demo shop.
 
 ## In CI
 
@@ -210,7 +246,8 @@ inputs; confirm costs with real quotes and the structure with an accountant.
 
 ```
 action.yml                      the GitHub Action
-examples/                       the planted-bug demo shop, run_demo.py, a workflow to copy
+examples/                       the planted-bug demo shop, run_demo.py, a board meeting, a workflow to copy
+skills/proof-board/             SKILL.md, board.py, seats.md
 skills/proof-full-check/        SKILL.md, fullcheck.py
 skills/proof-full-check-no-seo/ SKILL.md
 skills/proof-plan/              SKILL.md, target.py

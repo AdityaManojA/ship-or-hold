@@ -32,6 +32,15 @@ against a real running app on every push.
 The secret and the advisory are fake: the secret is not a credential for any
 service, and the advisory exists only in `demo-shop/advisories.json`.
 
+## The board meeting
+
+`board-meeting.html` is a real board meeting held on the demo shop's evidence: nine
+director sub-agents (CEO, CTO, CISO, CFO, CMO, Sales, COO, CPO, Legal) heard the
+presentation and voted. Open it in a browser and press "Replay the meeting". The
+board held the launch: the CISO's and Legal's vetoes fired from verified high
+findings, and every director voted Hold. To hold your own, run `/proof-board`
+after the testing skills.
+
 ## GitHub Action
 
 `github-workflow.yml` is a workflow to copy into your own repo as

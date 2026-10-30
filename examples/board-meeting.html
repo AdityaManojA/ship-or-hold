@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Larkspur Goods (demo) - Board meeting</title><style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1d2330;--muted:#5d6675;--line:#dfe3ea;--go:#1a7f37;--cond:#9a6700;--hold:#cf222e;--accent:#3355cc}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1117;--card:#161b22;--ink:#e6edf3;--muted:#8d96a0;--line:#30363d;--accent:#7c9cff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,Segoe UI,Helvetica,Arial,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:26px;margin:0}h2{font-size:18px;margin:36px 0 12px}h3{margin:0;font-size:16px}
+.muted{color:var(--muted)}.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:12px 0}
+.badge{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;color:#fff}
+.go{background:var(--go)}.go_with_conditions{background:var(--cond)}.hold{background:var(--hold)}.none{background:#6e7781}
+.decision{border-radius:12px;padding:20px;color:#fff;margin:16px 0}
+.decision .big{font-size:28px;font-weight:700}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.kpi .n{font-size:24px;font-weight:700}
+.room{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.seat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;text-align:left;color:inherit;font:inherit}
+.seat:hover,.seat:focus{border-color:var(--accent);outline:none}
+.av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;letter-spacing:.3px;color:#fff;background:var(--accent);margin-bottom:8px;flex:none}
+.statement{display:block}.hidden{display:none !important}
+.statement.reveal{animation:fade .5s ease}@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.risk{border-left:3px solid var(--line);padding:2px 0 2px 10px;margin:6px 0}
+.risk.high{border-color:var(--hold)}.risk.medium{border-color:var(--cond)}.risk.low{border-color:#6e7781}
+code{background:rgba(127,127,127,.15);padding:1px 5px;border-radius:4px;font-size:12px}
+a.ref{text-decoration:none}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+button.ctl{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
+button.ctl.on{border-color:var(--accent);color:var(--accent)}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line)}
+.bar span{display:block;height:100%}
+.actions label{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
+.actions label.done span{text-decoration:line-through;color:var(--muted)}
+.qa{margin:6px 0 6px 0;padding:8px 10px;border-radius:8px;background:rgba(127,127,127,.08)}
+details summary{cursor:pointer}
+</style></head>
+<body data-fp="9793d4a8adec65d6"><div class="wrap">
+<div class="muted">Board meeting &middot; 2026-10-30</div>
+<h1>Larkspur Goods (demo)</h1>
+<p class="muted">The team presented the product and its Proof evidence to the board. Each director judged it through their own role.</p>
+<h2>1. The presentation</h2>
+<div class="card"><div>Proof verdict <span class="badge go_with_conditions">Not yet</span></div>
+<p class="muted">Kind: web &middot; Where: http://127.0.0.1:56523 &middot; Bar for done: no high findings</p>
+</div>
+<div class="kpis">
+<div class="kpi"><div class="muted">Critical findings</div><div class="n">0</div></div>
+<div class="kpi"><div class="muted">High findings</div><div class="n">5</div></div>
+<div class="kpi"><div class="muted">Medium findings</div><div class="n">6</div></div>
+<div class="kpi"><div class="muted">Low findings</div><div class="n">2</div></div>
+<div class="kpi"><div class="muted">Scores in budget</div><div class="n">0/2</div></div>
+<div class="kpi"><div class="muted">Checks covered</div><div class="n">21/32</div></div>
+</div>
+<details class="card"><summary>What was tested (6 skills)</summary><p><code>proof-infra</code>, <code>proof-privacy</code>, <code>proof-sec-deps</code>, <code>proof-sec-secrets</code>, <code>proof-sec-web</code>, <code>proof-seo</code></p></details>
+<h2>2. The room</h2>
+<div class="room">
+<button class="seat" data-seat="ceo"><div class="av">CEO</div><h3>CEO</h3><div class="muted">Chief Executive Officer</div><div style="margin-top:6px"><span class="badge hold">Hold</span></div></button>
+<button class="seat" data-seat="cto"><div class="av">CTO</div><h3>CTO</h3><div class="muted">Chief Technology Officer</div><div style="margin-top:6px"><span class="badge hold">Hold</span></div></button>
+<button class="seat" data-seat="ciso"><div class="av">CISO</div><h3>CISO</h3><div class="muted">Chief Information Security Officer</div><div style="margin-top:6px"><span class="badge hold">Hold</span></div></button>
+<button class="seat" data-seat="cfo"><div class="av">CFO</div><h3>CFO</h3><div class="muted">Chief Financial Officer</div><div style="margin-top:6px"><span class="badge hold">Hold</span></div></button>
+<button class="seat" data-seat="cmo"><div class="av">CMO</div><h3>CMO</h3><div class="muted">Chief Marketing Officer</div><div style="margin-top:6px"><span class="badge hold">Hold</span></div></button>
+<button class="seat" data-seat="sales"><div class="av">SAL</div><h3>Sales</h3><div class="muted">Head of Sales</div><div style="margin-top:6px"><span class="badge hold">Hold</span></div></button>
+<button class="seat" data-seat="coo"><div class="av">COO</div><h3>COO</h3><div class="muted">Chief Operating Officer</div><div style="margin-top:6px"><span class="badge hold">Hold</span></div></button>
+<button class="seat" data-seat="cpo"><div class="av">CPO</div><h3>CPO</h3><div class="muted">Chief Product Officer</div><div style="margin-top:6px"><span class="badge hold">Hold</span></div></button>
+<button class="seat" data-seat="legal"><div class="av">LEG</div><h3>Legal</h3><div class="muted">General Counsel</div><div style="margin-top:6px"><span class="badge hold">Hold</span></div></button>
+</div>
+<h2 id="meeting">3. The meeting</h2>
+<div class="controls"><button class="ctl" id="replay">Replay the meeting</button><button class="ctl" id="next" disabled>All directors have spoken</button><button class="ctl" id="showall">Show everyone</button><span class="muted" style="align-self:center">Filter:</span><button class="ctl on" data-filter="all">All</button><button class="ctl" data-filter="go">Go</button><button class="ctl" data-filter="go_with_conditions">Conditions</button><button class="ctl" data-filter="hold">Hold</button></div>
+<div class="card statement" id="st-ceo" data-vote="hold">
+<div style="display:flex;gap:12px;align-items:center"><div class="av">CEO</div><div><h3>Chief Executive Officer</h3><div class="muted">No veto</div></div><div style="margin-left:auto"><span class="badge hold">Hold</span></div></div>
+<p>&ldquo;The team set its own bar at no high findings, and the evidence shows five verified highs, so this does not ship yet. The problems are concrete and fixable: a secret in code, a vulnerable dependency, and a privacy setup that loads trackers before consent. I want to see those closed and re-verified, then I would expect to approve quickly.&rdquo;</p>
+<div class="muted">Confidence 90%</div>
+<div class="risk high"><strong>High risk:</strong> A secret-looking credential is committed in config.py and may already be in git history, exposing access if it is real.<div><a class="ref" href="#ev-proof-sec-secrets-secret-generic-assignment-config-py-4"><code>proof-sec-secrets/secret-generic-assignment-config-py-4</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> A known-vulnerable dependency (larkspur-templates 1.4.1) ships in the product.<div><a class="ref" href="#ev-proof-sec-deps-dep-larkspur-templates-demo-2026-0001"><code>proof-sec-deps/dep-larkspur-templates-demo-2026-0001</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> Trackers are present with no consent banner, creating regulatory exposure for every visitor.<div><a class="ref" href="#ev-proof-privacy-privacy-consent-banner-trackers-are-present-but-no-consent-b"><code>proof-privacy/privacy-consent-banner-trackers-are-present-but-no-consent-b</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> Google Tag Manager loads before any consent is given, which is a direct consent violation on first visit.<div><a class="ref" href="#ev-proof-privacy-privacy-trackers-before-consent-1-tracker-s-load-before-cons"><code>proof-privacy/privacy-trackers-before-consent-1-tracker-s-load-before-cons</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> The signup form posts personal data over plain HTTP, exposing user data in transit.<div><a class="ref" href="#ev-proof-privacy-privacy-insecure-forms-form-to-http-localhost-signup-posts-o"><code>proof-privacy/privacy-insecure-forms-form-to-http-localhost-signup-posts-o</code></a></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> Missing security headers and weak session cookie flags leave the site open to common web attacks.<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> SEO score of 50 against a budget of 80 means weak discoverability at launch (missing meta description, images without alt).<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> Container runs as root and the base image is unpinned, weakening deployment hygiene.<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> No privacy policy link and non-essential _ga cookie set on first visit compound the consent gap.<div><span class="muted">judgement call</span></div></div>
+<div class="muted">Condition: Rotate the credential in config.py, remove it from code and git history, and load it from an environment variable or secret manager. (owner CISO, before launch)</div>
+<div class="muted">Condition: Upgrade larkspur-templates to 1.4.3 or later and re-run the dependency audit. (owner CTO, before launch)</div>
+<div class="muted">Condition: Add a consent banner with a real reject option and gate googletagmanager.com and analytics cookies behind opt-in. (owner LEGAL, before launch)</div>
+<div class="muted">Condition: Serve the signup form over HTTPS and link a privacy policy from every page. (owner LEGAL, before launch)</div>
+<div class="muted">Condition: Re-run the full Proof suite and confirm zero high findings before the launch decision is revisited. (owner CTO, before launch)</div>
+<div class="muted">Condition: Add security headers and cookie flags, run the container as non-root with a pinned base image, and lift the SEO score to 80 or higher. (owner CTO, within 30 days)</div>
+<div class="qa"><strong>Q:</strong> Is the credential in config.py a live secret, and has it been used or exposed anywhere outside this repository?<br><strong>A:</strong> It is a planted demo value, not a live credential; it exists only in this repository&#x27;s example.</div>
+<div class="qa"><strong>Q:</strong> What is the realistic date to clear all five highs and re-run verification?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+</div>
+<div class="card statement" id="st-cto" data-vote="hold">
+<div style="display:flex;gap:12px;align-items:center"><div class="av">CTO</div><div><h3>Chief Technology Officer</h3><div class="muted">Holds a veto over: proof-web-e2e, proof-api, proof-load, proof-mobile-e2e</div></div><div style="margin-left:auto"><span class="badge hold">Hold</span></div></div>
+<p>&ldquo;None of my veto areas shows a finding, but that is because none of them show any evidence at all: there is no e2e, API, load or mobile result in this pack, so I cannot say the core flows hold on launch day. On top of that the team&#x27;s own bar of no high findings is missed five times, including a vulnerable dependency and a secret-looking value in config.py that sit in my codebase. I hold until the core flows are proven and the engineering-side highs are fixed.&rdquo;</p>
+<div class="muted">Confidence 70%</div>
+<div class="risk medium"><strong>Medium risk:</strong> Core flows, API behaviour and load capacity have no evidence in this presentation, so launch-day reliability is unknown. Absence of findings is not a pass.<div><span class="muted">judgement call</span></div></div>
+<div class="risk high"><strong>High risk:</strong> A vulnerable dependency (larkspur-templates 1.4.1) ships in the product; the fix is a known upgrade to 1.4.3 or later.<div><a class="ref" href="#ev-proof-sec-deps-dep-larkspur-templates-demo-2026-0001"><code>proof-sec-deps/dep-larkspur-templates-demo-2026-0001</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> A secret-looking assignment is committed in config.py and, if real, lives in git history, so removing the line is not enough.<div><a class="ref" href="#ev-proof-sec-secrets-secret-generic-assignment-config-py-4"><code>proof-sec-secrets/secret-generic-assignment-config-py-4</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> The signup form posts over plain HTTP, which is also a functional and trust problem for the one flow that acquires users.<div><a class="ref" href="#ev-proof-privacy-privacy-insecure-forms-form-to-http-localhost-signup-posts-o"><code>proof-privacy/privacy-insecure-forms-form-to-http-localhost-signup-posts-o</code></a></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> The container runs as root and the base image is unpinned, so deploys are neither hardened nor reproducible.<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> Missing security headers and weak session cookie flags weaken the web tier.<div><span class="muted">judgement call</span></div></div>
+<div class="risk low"><strong>Low risk:</strong> The SEO score of 50 against a budget of 80 and missing alt text and meta description are low-effort fixes still outstanding.<div><span class="muted">judgement call</span></div></div>
+<div class="muted">Condition: Run and pass proof-web-e2e on the signup and core purchase flows, proof-api on the endpoints behind them, and proof-load at expected launch traffic, with no high or critical findings. (owner CTO, before launch)</div>
+<div class="muted">Condition: Upgrade larkspur-templates to 1.4.3 or later and re-run the dependency audit clean. (owner CTO, before launch)</div>
+<div class="muted">Condition: Rotate the credential in config.py, move it to an environment variable or secret manager, and purge it from git history. (owner CISO, before launch)</div>
+<div class="muted">Condition: Serve the signup form over HTTPS and post it with POST. (owner CTO, before launch)</div>
+<div class="muted">Condition: Add a non-root USER, pin the base image, and send CSP, HSTS, nosniff, frame protection and secure cookie flags. (owner CTO, within 30 days)</div>
+<div class="qa"><strong>Q:</strong> Were proof-web-e2e, proof-api, proof-load and proof-mobile-e2e run at all? If not, why are they absent from this presentation?<br><strong>A:</strong> No. They were not run for this demo; the presentation shows only what was tested.</div>
+<div class="qa"><strong>Q:</strong> Is the value in config.py a live credential, and has it been used anywhere outside this demo?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+</div>
+<div class="card statement" id="st-ciso" data-vote="hold">
+<div style="display:flex;gap:12px;align-items:center"><div class="av">CISO</div><div><h3>Chief Information Security Officer</h3><div class="muted">Holds a veto over: proof-sec-web, proof-sec-secrets, proof-sec-deps, proof-sec-diff, proof-infra, proof-ai</div></div><div style="margin-left:auto"><span class="badge hold">Hold</span></div></div>
+<p>&ldquo;I cannot clear this. Two of my veto areas have verified high findings: a vulnerable dependency, larkspur-templates 1.4.1, and a secret-looking assignment in config.py. The team&#x27;s own bar was no high findings, and the evidence shows five. Both of mine have simple fixes, so this should be a short hold.&rdquo;</p>
+<div class="muted">Confidence 90%</div>
+<div class="risk high"><strong>High risk:</strong> Vulnerable dependency larkspur-templates 1.4.1 (DEMO-2026-0001) is shipped to production. A known flaw in a templating library can be exploited by an attacker. A fixed version, 1.4.3, exists.<div><a class="ref" href="#ev-proof-sec-deps-dep-larkspur-templates-demo-2026-0001"><code>proof-sec-deps/dep-larkspur-templates-demo-2026-0001</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> A credential may be committed in config.py. If it is real, it is already exposed in code and git history, so removing the line is not enough. It must be rotated.<div><a class="ref" href="#ev-proof-sec-secrets-secret-generic-assignment-config-py-4"><code>proof-sec-secrets/secret-generic-assignment-config-py-4</code></a></div></div>
+<div class="risk low"><strong>Low risk:</strong> A high-entropy string in config.py supports the suspicion that a real secret is committed.<div><span class="muted">judgement call</span></div></div>
+<div class="risk high"><strong>High risk:</strong> The sign-up form posts personal data over plain HTTP, so it can be intercepted in transit.<div><a class="ref" href="#ev-proof-privacy-privacy-insecure-forms-form-to-http-localhost-signup-posts-o"><code>proof-privacy/privacy-insecure-forms-form-to-http-localhost-signup-posts-o</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> Trackers load before consent and no consent banner exists. This is a privacy exposure for visitors and a regulatory risk. I defer to Legal on the legal side.<div><a class="ref" href="#ev-proof-privacy-privacy-trackers-before-consent-1-tracker-s-load-before-cons"><code>proof-privacy/privacy-trackers-before-consent-1-tracker-s-load-before-cons</code></a> <a class="ref" href="#ev-proof-privacy-privacy-consent-banner-trackers-are-present-but-no-consent-b"><code>proof-privacy/privacy-consent-banner-trackers-are-present-but-no-consent-b</code></a></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> The web app is missing CSP, HSTS, nosniff and frame protection headers, and the session cookie lacks HttpOnly, Secure and SameSite. This makes session theft and clickjacking easier.<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> The container runs as root, so a compromise of the app has more impact on the host. The base image is also not pinned, which weakens reproducibility and supply-chain control.<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> Non-essential _ga cookies are set on first visit and there is no privacy policy link, which adds to the privacy exposure.<div><span class="muted">judgement call</span></div></div>
+<div class="muted">Condition: Upgrade larkspur-templates to 1.4.3 or later, then re-run proof-sec-deps and show a clean result. (owner CTO, before launch)</div>
+<div class="muted">Condition: Rotate the credential in config.py, remove it from the code and the git history, load it from an environment variable or secret manager, then re-run proof-sec-secrets. (owner CTO, before launch)</div>
+<div class="muted">Condition: Serve the sign-up form over HTTPS and confirm it posts personal data securely. (owner CTO, before launch)</div>
+<div class="muted">Condition: Gate trackers behind a consent banner with a real reject option, and stop setting _ga cookies before consent. (owner LEGAL, before launch)</div>
+<div class="muted">Condition: Add CSP, HSTS, nosniff and frame protection headers and set HttpOnly, Secure and SameSite on the session cookie. (owner CTO, within 30 days)</div>
+<div class="muted">Condition: Add a non-root USER to the Dockerfile and pin the base image to a version or digest. (owner CTO, within 30 days)</div>
+<div class="qa"><strong>Q:</strong> Is the value in config.py a live credential, and where else has it been used or exposed?<br><strong>A:</strong> Not live: the value was planted for the demo and has never been issued by any service.</div>
+<div class="qa"><strong>Q:</strong> Was the vulnerable larkspur-templates version pinned deliberately, and is anything blocking the upgrade to 1.4.3?<br><strong>A:</strong> Pinned on purpose so the dependency check has something to find; nothing blocks the upgrade to 1.4.3.</div>
+</div>
+<div class="card statement" id="st-cfo" data-vote="hold">
+<div style="display:flex;gap:12px;align-items:center"><div class="av">CFO</div><div><h3>Chief Financial Officer</h3><div class="muted">Holds a veto over: proof-finance</div></div><div style="margin-left:auto"><span class="badge hold">Hold</span></div></div>
+<p>&ldquo;I don&#x27;t have unit economics, load or release-readiness evidence in front of me, so I can&#x27;t tell you a sale earns money, and I won&#x27;t guess. What I can see is five verified high findings, including three privacy ones that carry regulatory fine exposure and a leaked-looking secret that could mean an unbounded cloud bill. Fixing these costs days of engineering; shipping with them could cost far more, so this is a hold until they are cleared.&rdquo;</p>
+<div class="muted">Confidence 80%</div>
+<div class="risk high"><strong>High risk:</strong> Tracker loads before consent, with no consent banner and a non-reject path, creates regulatory fine and complaint exposure that is unbudgeted and out of proportion to the cost of the fix.<div><a class="ref" href="#ev-proof-privacy-privacy-consent-banner-trackers-are-present-but-no-consent-b"><code>proof-privacy/privacy-consent-banner-trackers-are-present-but-no-consent-b</code></a> <a class="ref" href="#ev-proof-privacy-privacy-trackers-before-consent-1-tracker-s-load-before-cons"><code>proof-privacy/privacy-trackers-before-consent-1-tracker-s-load-before-cons</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> Signup form posts personal data over plain HTTP, exposing customer data and creating breach-notification and liability cost.<div><a class="ref" href="#ev-proof-privacy-privacy-insecure-forms-form-to-http-localhost-signup-posts-o"><code>proof-privacy/privacy-insecure-forms-form-to-http-localhost-signup-posts-o</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> A secret-looking credential in source code may be live. If abused it could drive uncapped infrastructure or third-party spend, and rotation plus history cleanup is a cost either way.<div><a class="ref" href="#ev-proof-sec-secrets-secret-generic-assignment-config-py-4"><code>proof-sec-secrets/secret-generic-assignment-config-py-4</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> A vulnerable dependency with a known fix available is an avoidable incident cost; the upgrade is cheap relative to a breach.<div><a class="ref" href="#ev-proof-sec-deps-dep-larkspur-templates-demo-2026-0001"><code>proof-sec-deps/dep-larkspur-templates-demo-2026-0001</code></a></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> No unit-economics, load or release-readiness evidence was presented, so I cannot confirm each sale earns money, what infrastructure will cost at volume, or the payback period.<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> SEO score of 50 against a budget of 80 weakens organic acquisition and pushes customer acquisition cost toward paid channels.<div><span class="muted">judgement call</span></div></div>
+<div class="risk low"><strong>Low risk:</strong> Container runs as root and the base image is unpinned, plus missing security headers and weak cookie flags, add incident-cost risk.<div><span class="muted">judgement call</span></div></div>
+<div class="muted">Condition: Gate all non-essential tags and cookies behind a consent banner with a real reject option, and link a privacy policy from every page. (owner LEGAL, before launch)</div>
+<div class="muted">Condition: Serve the signup form over HTTPS and post it with POST. (owner CTO, before launch)</div>
+<div class="muted">Condition: Rotate the exposed credential, remove it from code and git history, and load it from a secret manager. (owner CISO, before launch)</div>
+<div class="muted">Condition: Upgrade larkspur-templates to 1.4.3 or later and re-run the dependency audit. (owner CTO, before launch)</div>
+<div class="muted">Condition: Produce unit economics per sale (price, direct cost, margin, payback) and a load-test infrastructure cost estimate at expected volume, and present them to the board. (owner CFO, before launch)</div>
+<div class="muted">Condition: Fix missing meta description and image alt text to bring the SEO score to 80 or above. (owner CMO, within 30 days)</div>
+<div class="qa"><strong>Q:</strong> What does one sale earn after direct costs, and how long until the launch spend is paid back?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+<div class="qa"><strong>Q:</strong> Was proof-finance run? If not, why is the veto check missing from this evidence?<br><strong>A:</strong> No. This run covered secrets, dependencies, infra, privacy and SEO only; finance was not in scope, so the CFO&#x27;s evidence is genuinely missing.</div>
+<div class="qa"><strong>Q:</strong> Is the credential in config.py live, and has any spend or access on it been reviewed?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+<div class="qa"><strong>Q:</strong> What is the monthly infrastructure cost at expected launch volume?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+</div>
+<div class="card statement" id="st-cmo" data-vote="hold">
+<div style="display:flex;gap:12px;align-items:center"><div class="av">CMO</div><div><h3>Chief Marketing Officer</h3><div class="muted">No veto</div></div><div style="margin-left:auto"><span class="badge hold">Hold</span></div></div>
+<p>&ldquo;Our only marketing evidence is SEO, and it scores 50 against a budget of 80, with a missing meta description and an image with no alt text on the home page. We also have no evidence at all on AI-search citability, accessibility, translations, email, performance or visuals, so I cannot tell you the first impression holds for every audience. I would not put launch spend behind this page yet.&rdquo;</p>
+<div class="muted">Confidence 80%</div>
+<div class="risk high"><strong>High risk:</strong> The home page fails the team&#x27;s own SEO budget (50 against 80), so organic discovery at launch will be weak and paid traffic will land on an under-optimised page.<div><a class="ref" href="#ev-proof-seo-score-seo-score"><code>proof-seo/score:seo_score</code></a> <a class="ref" href="#ev-proof-seo-score-seo-score-home"><code>proof-seo/score:seo_score:home</code></a></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> No meta description on the home page means search and social snippets are auto-generated and will not carry the launch story.<div><a class="ref" href="#ev-proof-seo-seo-home-meta-description"><code>proof-seo/seo-home-meta-description</code></a></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> The home image has no alt text, which hurts image search and excludes screen-reader users; with no accessibility testing reported we do not know how much wider the gap is.<div><a class="ref" href="#ev-proof-seo-seo-home-img-alt"><code>proof-seo/seo-home-img-alt</code></a></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> Reach is unproven: there is no evidence on AI-search citability, accessibility, translations, transactional email, web performance or visual quality, so key audiences and the brand-carrying emails are untested.<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> Trackers fire before consent and no consent banner exists; launching campaigns that drive traffic here puts the brand&#x27;s first impression and ad measurement at regulatory risk.<div><span class="muted">judgement call</span></div></div>
+<div class="risk low"><strong>Low risk:</strong> No privacy policy link on the page undermines trust for first-time visitors arriving from campaigns.<div><span class="muted">judgement call</span></div></div>
+<div class="muted">Condition: Fix the home page SEO findings (add a 50-160 character meta description, add alt text to the image) and re-run proof-seo until the score is at least 80. (owner CMO, before launch)</div>
+<div class="muted">Condition: Run proof-a11y, proof-web-perf and proof-visual on the home page and fix any high findings. (owner CPO, before launch)</div>
+<div class="muted">Condition: Run proof-geo and proof-email so we know whether the product is citable in AI search and whether the brand emails render and deliver. (owner CMO, before launch)</div>
+<div class="muted">Condition: Ship a consent banner with a real reject option and gate the analytics tags behind it, so campaign traffic is measured lawfully. (owner LEGAL, before launch)</div>
+<div class="muted">Condition: Run proof-i18n if any non-English market is in the launch plan, or confirm in writing that launch is English-only. (owner CPO, within 30 days)</div>
+<div class="qa"><strong>Q:</strong> Which audiences and languages does the launch plan actually target, so I know which of the untested checks matter most?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+<div class="qa"><strong>Q:</strong> Do you have a launch date that is fixed by anything outside the team, or can we wait for the SEO score to reach 80?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+</div>
+<div class="card statement" id="st-sales" data-vote="hold">
+<div style="display:flex;gap:12px;align-items:center"><div class="av">SAL</div><div><h3>Head of Sales</h3><div class="muted">No veto</div></div><div style="margin-left:auto"><span class="badge hold">Hold</span></div></div>
+<p>&ldquo;I cannot put this in front of a serious buyer today. Their security questionnaire will ask about known-vulnerable dependencies, secrets in code, consent for trackers and plain HTTP forms, and we would answer yes to the wrong ones. Close the five high findings and I would back a launch quickly.&rdquo;</p>
+<div class="muted">Confidence 80%</div>
+<div class="risk high"><strong>High risk:</strong> A vulnerable dependency (larkspur-templates 1.4.1) fails the first security questionnaire a buyer sends.<div><a class="ref" href="#ev-proof-sec-deps-dep-larkspur-templates-demo-2026-0001"><code>proof-sec-deps/dep-larkspur-templates-demo-2026-0001</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> A secret-looking credential in config.py would be an instant red flag in enterprise security review and procurement.<div><a class="ref" href="#ev-proof-sec-secrets-secret-generic-assignment-config-py-4"><code>proof-sec-secrets/secret-generic-assignment-config-py-4</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> Trackers load before consent and there is no consent banner, which blocks deals with EU or privacy-conscious buyers.<div><a class="ref" href="#ev-proof-privacy-privacy-consent-banner-trackers-are-present-but-no-consent-b"><code>proof-privacy/privacy-consent-banner-trackers-are-present-but-no-consent-b</code></a> <a class="ref" href="#ev-proof-privacy-privacy-trackers-before-consent-1-tracker-s-load-before-cons"><code>proof-privacy/privacy-trackers-before-consent-1-tracker-s-load-before-cons</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> The signup form posts personal data over plain HTTP, which a buyer or prospect will flag during a demo or review.<div><a class="ref" href="#ev-proof-privacy-privacy-insecure-forms-form-to-http-localhost-signup-posts-o"><code>proof-privacy/privacy-insecure-forms-form-to-http-localhost-signup-posts-o</code></a></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> Missing security headers and weak session cookie flags will surface in buyer security scans.<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> No privacy policy link and non-essential cookies on first visit leave basic privacy questions unanswerable.<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> Weak SEO (50 vs 80 budget, missing meta description, images without alt) hurts discovery and the missing alt text is an accessibility concern for contracts.<div><span class="muted">judgement call</span></div></div>
+<div class="risk low"><strong>Low risk:</strong> Container runs as root with an unpinned base image, which a buyer&#x27;s infrastructure review would query.<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> Evidence for web e2e flows, browser compatibility and accessibility is not in the presentation, so demo reliability and contract accessibility claims are unproven.<div><span class="muted">judgement call</span></div></div>
+<div class="muted">Condition: Upgrade larkspur-templates to 1.4.3 or later and re-run the dependency audit. (owner CTO, before launch)</div>
+<div class="muted">Condition: Rotate the credential in config.py, remove it from code and git history, and load it from an environment variable or secret manager. (owner CISO, before launch)</div>
+<div class="muted">Condition: Add a consent banner with a real reject option and gate googletagmanager.com and _ga cookies behind opt-in. (owner LEGAL, before launch)</div>
+<div class="muted">Condition: Serve the signup form over HTTPS and post personal data with POST only. (owner CTO, before launch)</div>
+<div class="muted">Condition: Add security headers, harden session cookie flags, and link a privacy policy from every page. (owner CISO, within 30 days)</div>
+<div class="muted">Condition: Run web e2e, compatibility and accessibility checks and prepare a standard security questionnaire answer pack. (owner SALES, within 30 days)</div>
+<div class="qa"><strong>Q:</strong> Have the user flows and the demo path been tested end to end, and on which browsers?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+<div class="qa"><strong>Q:</strong> Is there a conformance statement for accessibility that we can give buyers who require one?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+</div>
+<div class="card statement" id="st-coo" data-vote="hold">
+<div style="display:flex;gap:12px;align-items:center"><div class="av">COO</div><div><h3>Chief Operating Officer</h3><div class="muted">Holds a veto over: proof-release</div></div><div style="margin-left:auto"><span class="badge hold">Hold</span></div></div>
+<p>&ldquo;I can&#x27;t sign off on launch day as it stands. Five verified high findings are open, and the computed verdict is Not yet, which misses the team&#x27;s own bar of no high findings. There is no release-readiness evidence in this pack at all: no proof-release, load, email or watch results, so I can&#x27;t tell you who is on call, what alerts fire, or whether rollback and backups are proven.&rdquo;</p>
+<div class="muted">Confidence 80%</div>
+<div class="risk high"><strong>High risk:</strong> A vulnerable dependency (larkspur-templates 1.4.1) ships to production; a known fix exists in 1.4.3 and would be an emergency patch on launch week if skipped now.<div><a class="ref" href="#ev-proof-sec-deps-dep-larkspur-templates-demo-2026-0001"><code>proof-sec-deps/dep-larkspur-templates-demo-2026-0001</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> A secret-looking value is committed in config.py. If real, it must be rotated and purged from git history, which is an operational incident handled before launch rather than during it.<div><a class="ref" href="#ev-proof-sec-secrets-secret-generic-assignment-config-py-4"><code>proof-sec-secrets/secret-generic-assignment-config-py-4</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> Trackers load before consent with no banner, and the signup form posts over plain HTTP. These are live compliance and data exposure problems that would need an urgent rollback or hotfix after launch.<div><a class="ref" href="#ev-proof-privacy-privacy-consent-banner-trackers-are-present-but-no-consent-b"><code>proof-privacy/privacy-consent-banner-trackers-are-present-but-no-consent-b</code></a> <a class="ref" href="#ev-proof-privacy-privacy-insecure-forms-form-to-http-localhost-signup-posts-o"><code>proof-privacy/privacy-insecure-forms-form-to-http-localhost-signup-posts-o</code></a> <a class="ref" href="#ev-proof-privacy-privacy-trackers-before-consent-1-tracker-s-load-before-cons"><code>proof-privacy/privacy-trackers-before-consent-1-tracker-s-load-before-cons</code></a></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> Launch-readiness is unproven. The pack contains no release checklist, load test, transactional email check or watch history, so on-call, alerting, rollback and backup restore are unverified.<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> Container runs as root and the base image is unpinned, so a compromise has a larger blast radius and builds are not reproducible, which complicates rollback.<div><a class="ref" href="#ev-proof-infra-infra-docker-root-dockerfile-1"><code>proof-infra/infra-docker-root-dockerfile-1</code></a> <a class="ref" href="#ev-proof-infra-infra-docker-latest-dockerfile-1"><code>proof-infra/infra-docker-latest-dockerfile-1</code></a></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> Missing security headers and weak session cookie flags increase exposure of live sessions.<div><a class="ref" href="#ev-proof-sec-web-missing-security-headers-and-weak-session-cookie-flags"><code>proof-sec-web/missing-security-headers-and-weak-session-cookie-flags</code></a></div></div>
+<div class="risk low"><strong>Low risk:</strong> SEO score is 50 against a budget of 80, with missing meta description and image alt text, which hurts discoverability from day one.<div><span class="muted">judgement call</span></div></div>
+<div class="muted">Condition: Upgrade larkspur-templates to 1.4.3 or later and re-run proof-sec-deps until clean. (owner CTO, before launch)</div>
+<div class="muted">Condition: Rotate the credential in config.py, remove it from code and git history, and load it from an environment variable or secret manager. (owner CISO, before launch)</div>
+<div class="muted">Condition: Add a consent banner with a real reject option, gate the googletagmanager.com tag behind consent, and move the signup form to HTTPS. (owner LEGAL, before launch)</div>
+<div class="muted">Condition: Run proof-release, proof-load, proof-email and proof-watch and publish results, including a named on-call owner, alert routing, a rehearsed rollback and a proven backup restore. (owner COO, before launch)</div>
+<div class="muted">Condition: Add a non-root USER to the Dockerfile and pin the base image to a version or digest. (owner CTO, within 30 days)</div>
+<div class="muted">Condition: Send CSP, HSTS, nosniff and frame protection headers and set HttpOnly, Secure and SameSite on the session cookie. (owner CTO, within 30 days)</div>
+<div class="qa"><strong>Q:</strong> Where is the proof-release readiness checklist, and which launch-blocking items on it are still open?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+<div class="qa"><strong>Q:</strong> Who is on call on launch day, what alerts page them, and when was rollback last rehearsed?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+<div class="qa"><strong>Q:</strong> Has a backup restore actually been tested, and has the transactional email path been verified end to end?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+</div>
+<div class="card statement" id="st-cpo" data-vote="hold">
+<div style="display:flex;gap:12px;align-items:center"><div class="av">CPO</div><div><h3>Chief Product Officer</h3><div class="muted">No veto</div></div><div style="margin-left:auto"><span class="badge hold">Hold</span></div></div>
+<p>&ldquo;I can&#x27;t tell you the product does the job customers hire it for, because none of the experience evidence is in this pack: no user-flow run, no exploratory pass, no accessibility, visual, compatibility, translation or mobile results. What I can see is a signup form that posts over plain HTTP, a missing consent banner, and weak search basics. The team&#x27;s own bar is no high findings and there are five, so I hold until the signup path is proven and the experience gaps are covered.&rdquo;</p>
+<div class="muted">Confidence 70%</div>
+<div class="risk high"><strong>High risk:</strong> The signup form posts over plain HTTP, so the main conversion path can fail or show browser security warnings, and customers&#x27; personal data is exposed.<div><a class="ref" href="#ev-proof-privacy-privacy-insecure-forms-form-to-http-localhost-signup-posts-o"><code>proof-privacy/privacy-insecure-forms-form-to-http-localhost-signup-posts-o</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> Trackers load before any consent choice and there is no banner with a reject option, so first-time visitors get a non-compliant, trust-eroding first impression.<div><a class="ref" href="#ev-proof-privacy-privacy-consent-banner-trackers-are-present-but-no-consent-b"><code>proof-privacy/privacy-consent-banner-trackers-are-present-but-no-consent-b</code></a> <a class="ref" href="#ev-proof-privacy-privacy-trackers-before-consent-1-tracker-s-load-before-cons"><code>proof-privacy/privacy-trackers-before-consent-1-tracker-s-load-before-cons</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> The pack contains no evidence from user-flow, exploratory, accessibility, visual, compatibility, translation or mobile testing, so we do not know whether the core purchase journey works, or whether it works on promised devices, browsers and languages.<div><a class="ref" href="#ev-proof-seo-score-seo-score"><code>proof-seo/score:seo_score</code></a></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> The home page scores 50 against a budget of 80 for search, so customers will struggle to find the product.<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> The home page image has no alt text, which fails screen-reader users and signals accessibility has not been tested.<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> No privacy policy link on the page leaves customers without a way to see how their data is used before they sign up.<div><span class="muted">judgement call</span></div></div>
+<div class="risk low"><strong>Low risk:</strong> Missing meta description means search results and link previews will show arbitrary text.<div><span class="muted">judgement call</span></div></div>
+<div class="muted">Condition: Fix the signup form so it posts personal data over HTTPS with POST, then re-run the signup flow end to end and attach the evidence. (owner CTO, before launch)</div>
+<div class="muted">Condition: Ship a consent banner with a real reject option and gate the Google Tag Manager tag and _ga cookie behind the visitor&#x27;s choice. (owner LEGAL, before launch)</div>
+<div class="muted">Condition: Run and share the web end-to-end, exploratory, accessibility, visual, compatibility, translation and mobile checks covering the browsers, devices and languages we promise. (owner CPO, before launch)</div>
+<div class="muted">Condition: Add alt text to the home page image, a meta description of 50-160 characters, and a privacy policy link in the footer; bring the SEO score to 80 or above. (owner CMO, before launch)</div>
+<div class="qa"><strong>Q:</strong> Which user journey is the one customers hire this for, and has anyone completed it start to finish on a phone?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+<div class="qa"><strong>Q:</strong> Which browsers, devices and languages do we promise to support, and why were those checks not run for this board?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+<div class="qa"><strong>Q:</strong> Is the form action pointing at http://localhost/signup a demo leftover, or what ships to customers?<br><strong>A:</strong> A demo leftover planted on purpose; a real build would post to an HTTPS endpoint.</div>
+</div>
+<div class="card statement" id="st-legal" data-vote="hold">
+<div style="display:flex;gap:12px;align-items:center"><div class="av">LEG</div><div><h3>General Counsel</h3><div class="muted">Holds a veto over: proof-privacy</div></div><div style="margin-left:auto"><span class="badge hold">Hold</span></div></div>
+<p>&ldquo;My veto is triggered: three verified high privacy findings, covering trackers firing before consent, no consent banner, and a signup form posting over plain HTTP. Collecting personal data this way is exactly what brings a regulator or a complaint, so this cannot ship until they are fixed. This is a risk view, not legal advice, and a real lawyer should confirm the consent and policy wording before launch.&rdquo;</p>
+<div class="muted">Confidence 90%</div>
+<div class="risk high"><strong>High risk:</strong> Trackers are present but there is no consent banner, so visitors have no way to accept or reject non-essential tags. This is a direct consent-law exposure.<div><a class="ref" href="#ev-proof-privacy-privacy-consent-banner-trackers-are-present-but-no-consent-b"><code>proof-privacy/privacy-consent-banner-trackers-are-present-but-no-consent-b</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> Google Tag Manager loads before any consent is given, so visitor data is processed without a lawful basis.<div><a class="ref" href="#ev-proof-privacy-privacy-trackers-before-consent-1-tracker-s-load-before-cons"><code>proof-privacy/privacy-trackers-before-consent-1-tracker-s-load-before-cons</code></a></div></div>
+<div class="risk high"><strong>High risk:</strong> The signup form posts personal data over plain HTTP, exposing it in transit and breaching reasonable-security duties.<div><a class="ref" href="#ev-proof-privacy-privacy-insecure-forms-form-to-http-localhost-signup-posts-o"><code>proof-privacy/privacy-insecure-forms-form-to-http-localhost-signup-posts-o</code></a></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> Non-essential analytics cookie (_ga) is set on the first visit, before consent.<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> No link to a privacy policy on the page, so there is no published notice of what is collected and why.<div><span class="muted">judgement call</span></div></div>
+<div class="risk medium"><strong>Medium risk:</strong> A possible exposed credential and a vulnerable dependency raise breach and contract-breach exposure if personal data is compromised. Security owns the fix, but Legal carries the liability.<div><span class="muted">judgement call</span></div></div>
+<div class="risk low"><strong>Low risk:</strong> Accessibility, email and AI evidence were not presented, so exposure in those areas is unassessed. Missing image alt text is a small signal of accessibility gaps.<div><span class="muted">judgement call</span></div></div>
+<div class="muted">Condition: Add a consent banner with a real reject option, and block Google Tag Manager and the _ga cookie until the visitor opts in. (owner CTO, before launch)</div>
+<div class="muted">Condition: Serve the signup form over HTTPS and post it with POST to an HTTPS endpoint. (owner CTO, before launch)</div>
+<div class="muted">Condition: Publish a privacy policy and terms, and link the policy from every page footer. (owner LEGAL, before launch)</div>
+<div class="muted">Condition: Re-run proof-privacy and show zero verified high findings. (owner CPO, before launch)</div>
+<div class="muted">Condition: Rotate the exposed credential and upgrade the vulnerable dependency, so personal data is not at risk from known issues. (owner CISO, before launch)</div>
+<div class="muted">Condition: Run accessibility and email checks and bring the results to the board. (owner CPO, within 30 days)</div>
+<div class="qa"><strong>Q:</strong> Which jurisdictions will real visitors come from, so we know which consent rules apply?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+<div class="qa"><strong>Q:</strong> What personal data does the signup form collect, and where is it stored and who processes it?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+<div class="qa"><strong>Q:</strong> Is a privacy policy drafted, and has a lawyer reviewed it?<br><strong>A:</strong> <span class="muted">not yet answered by the team</span></div>
+</div>
+<script type="application/json" id="order">["ceo", "cto", "ciso", "cfo", "cmo", "sales", "coo", "cpo", "legal"]</script>
+<div id="decision-block">
+<h2>4. The vote</h2>
+<div class="card"><div class="bar">
+<span style="width:100.0%;background:var(--hold)" title="Hold"></span>
+</div>
+<p class="muted">0 go &middot; 0 go with conditions &middot; 9 hold</p></div>
+<h2>5. The decision</h2>
+<div class="decision hold"><div class="big">Hold</div>
+<ul><li>CISO veto from the evidence: verified high finding: larkspur-templates 1.4.1 is vulnerable (DEMO-2026-0001) [proof-sec-deps/dep-larkspur-templates-demo-2026-0001]</li><li>CISO veto from the evidence: verified high finding: Possible secret-looking assignment in config.py [proof-sec-secrets/secret-generic-assignment-config-py-4]</li><li>LEGAL veto from the evidence: verified high finding: Trackers are present but no consent banner was found [proof-privacy/privacy-consent-banner-trackers-are-present-but-no-consent-b]</li><li>LEGAL veto from the evidence: verified high finding: Form to http://localhost/signup posts over plain HTTP [proof-privacy/privacy-insecure-forms-form-to-http-localhost-signup-posts-o]</li><li>LEGAL veto from the evidence: verified high finding: 1 tracker(s) load before consent: googletagmanager.com [proof-privacy/privacy-trackers-before-consent-1-tracker-s-load-before-cons]</li></ul>
+<div style="opacity:.85;font-size:13px">Computed from the evidence and the votes, not written by hand.</div></div>
+</div>
+<h2>6. Actions <span class="muted" id="actprog" style="font-size:14px"></span></h2>
+<div class="card actions"><h3>Blockers from the evidence <span class="muted">(7)</span></h3>
+<label><input type="checkbox" data-id="a0"><span><strong>Fix: larkspur-templates 1.4.1 is vulnerable (DEMO-2026-0001)</strong><br><span class="muted">before launch &middot; from the evidence <a class="ref" href="#ev-proof-sec-deps-dep-larkspur-templates-demo-2026-0001"><code>proof-sec-deps/dep-larkspur-templates-demo-2026-0001</code></a></span></span></label>
+<label><input type="checkbox" data-id="a1"><span><strong>Fix: Trackers are present but no consent banner was found</strong><br><span class="muted">before launch &middot; from the evidence <a class="ref" href="#ev-proof-privacy-privacy-consent-banner-trackers-are-present-but-no-consent-b"><code>proof-privacy/privacy-consent-banner-trackers-are-present-but-no-consent-b</code></a></span></span></label>
+<label><input type="checkbox" data-id="a2"><span><strong>Fix: Form to http://localhost/signup posts over plain HTTP</strong><br><span class="muted">before launch &middot; from the evidence <a class="ref" href="#ev-proof-privacy-privacy-insecure-forms-form-to-http-localhost-signup-posts-o"><code>proof-privacy/privacy-insecure-forms-form-to-http-localhost-signup-posts-o</code></a></span></span></label>
+<label><input type="checkbox" data-id="a3"><span><strong>Fix: 1 tracker(s) load before consent: googletagmanager.com</strong><br><span class="muted">before launch &middot; from the evidence <a class="ref" href="#ev-proof-privacy-privacy-trackers-before-consent-1-tracker-s-load-before-cons"><code>proof-privacy/privacy-trackers-before-consent-1-tracker-s-load-before-cons</code></a></span></span></label>
+<label><input type="checkbox" data-id="a4"><span><strong>Fix: Possible secret-looking assignment in config.py</strong><br><span class="muted">before launch &middot; from the evidence <a class="ref" href="#ev-proof-sec-secrets-secret-generic-assignment-config-py-4"><code>proof-sec-secrets/secret-generic-assignment-config-py-4</code></a></span></span></label>
+<label><input type="checkbox" data-id="a5"><span><strong>Fix: seo_score back within budget</strong><br><span class="muted">before launch &middot; from the evidence <a class="ref" href="#ev-proof-seo-score-seo-score"><code>proof-seo/score:seo_score</code></a></span></span></label>
+<label><input type="checkbox" data-id="a6"><span><strong>Fix: seo_score:home back within budget</strong><br><span class="muted">before launch &middot; from the evidence <a class="ref" href="#ev-proof-seo-score-seo-score-home"><code>proof-seo/score:seo_score:home</code></a></span></span></label>
+</div>
+<div class="card actions"><h3>Owned by Chief Information Security Officer <span class="muted">(3)</span></h3>
+<label><input type="checkbox" data-id="a7"><span><strong>Rotate the credential in config.py, remove it from code and git history, and load it from an environment variable or secret manager.</strong><br><span class="muted">before launch &middot; raised by CEO, CFO, CISO, COO, CTO, SALES</span></span></label>
+<label><input type="checkbox" data-id="a8"><span><strong>Rotate the exposed credential and upgrade the vulnerable dependency, so personal data is not at risk from known issues.</strong><br><span class="muted">before launch &middot; raised by LEGAL</span></span></label>
+<label><input type="checkbox" data-id="a9"><span><strong>Add security headers, harden session cookie flags, and link a privacy policy from every page.</strong><br><span class="muted">within 30 days &middot; raised by SALES</span></span></label>
+</div>
+<div class="card actions"><h3>Owned by General Counsel <span class="muted">(4)</span></h3>
+<label><input type="checkbox" data-id="a10"><span><strong>Add a consent banner with a real reject option and gate googletagmanager.com and analytics cookies behind opt-in.</strong><br><span class="muted">before launch &middot; raised by CEO, CFO, CISO, CMO, COO, SALES</span></span></label>
+<label><input type="checkbox" data-id="a11"><span><strong>Serve the signup form over HTTPS and link a privacy policy from every page.</strong><br><span class="muted">before launch &middot; raised by CEO, CFO, CTO, LEGAL</span></span></label>
+<label><input type="checkbox" data-id="a12"><span><strong>Ship a consent banner with a real reject option and gate the Google Tag Manager tag and _ga cookie behind the visitor&#x27;s choice.</strong><br><span class="muted">before launch &middot; raised by CPO, LEGAL</span></span></label>
+<label><input type="checkbox" data-id="a13"><span><strong>Publish a privacy policy and terms, and link the policy from every page footer.</strong><br><span class="muted">before launch &middot; raised by LEGAL</span></span></label>
+</div>
+<div class="card actions"><h3>Owned by Chief Technology Officer <span class="muted">(10)</span></h3>
+<label><input type="checkbox" data-id="a14"><span><strong>Upgrade larkspur-templates to 1.4.3 or later and re-run the dependency audit.</strong><br><span class="muted">before launch &middot; raised by CEO, CFO, CTO, SALES</span></span></label>
+<label><input type="checkbox" data-id="a15"><span><strong>Upgrade larkspur-templates to 1.4.3 or later, then re-run proof-sec-deps and show a clean result.</strong><br><span class="muted">before launch &middot; raised by CISO, COO</span></span></label>
+<label><input type="checkbox" data-id="a16"><span><strong>Serve the sign-up form over HTTPS and confirm it posts personal data securely.</strong><br><span class="muted">before launch &middot; raised by CISO, SALES</span></span></label>
+<label><input type="checkbox" data-id="a17"><span><strong>Add CSP, HSTS, nosniff and frame protection headers and set HttpOnly, Secure and SameSite on the session cookie.</strong><br><span class="muted">within 30 days &middot; raised by CISO, COO</span></span></label>
+<label><input type="checkbox" data-id="a18"><span><strong>Add a non-root USER to the Dockerfile and pin the base image to a version or digest.</strong><br><span class="muted">within 30 days &middot; raised by CISO, COO</span></span></label>
+<label><input type="checkbox" data-id="a19"><span><strong>Re-run the full Proof suite and confirm zero high findings before the launch decision is revisited.</strong><br><span class="muted">before launch &middot; raised by CEO</span></span></label>
+<label><input type="checkbox" data-id="a20"><span><strong>Add security headers and cookie flags, run the container as non-root with a pinned base image, and lift the SEO score to 80 or higher.</strong><br><span class="muted">within 30 days &middot; raised by CEO</span></span></label>
+<label><input type="checkbox" data-id="a21"><span><strong>Fix the signup form so it posts personal data over HTTPS with POST, then re-run the signup flow end to end and attach the evidence.</strong><br><span class="muted">before launch &middot; raised by CPO</span></span></label>
+<label><input type="checkbox" data-id="a22"><span><strong>Run and pass proof-web-e2e on the signup and core purchase flows, proof-api on the endpoints behind them, and proof-load at expected launch traffic, with no high or critical findings.</strong><br><span class="muted">before launch &middot; raised by CTO</span></span></label>
+<label><input type="checkbox" data-id="a23"><span><strong>Add a non-root USER, pin the base image, and send CSP, HSTS, nosniff, frame protection and secure cookie flags.</strong><br><span class="muted">within 30 days &middot; raised by CTO</span></span></label>
+</div>
+<div class="card actions"><h3>Owned by Chief Marketing Officer <span class="muted">(3)</span></h3>
+<label><input type="checkbox" data-id="a24"><span><strong>Fix missing meta description and image alt text to bring the SEO score to 80 or above.</strong><br><span class="muted">within 30 days &middot; raised by CFO, CPO</span></span></label>
+<label><input type="checkbox" data-id="a25"><span><strong>Fix the home page SEO findings (add a 50-160 character meta description, add alt text to the image) and re-run proof-seo until the score is at least 80.</strong><br><span class="muted">before launch &middot; raised by CMO</span></span></label>
+<label><input type="checkbox" data-id="a26"><span><strong>Run proof-geo and proof-email so we know whether the product is citable in AI search and whether the brand emails render and deliver.</strong><br><span class="muted">before launch &middot; raised by CMO</span></span></label>
+</div>
+<div class="card actions"><h3>Owned by Chief Financial Officer <span class="muted">(1)</span></h3>
+<label><input type="checkbox" data-id="a27"><span><strong>Produce unit economics per sale (price, direct cost, margin, payback) and a load-test infrastructure cost estimate at expected volume, and present them to the board.</strong><br><span class="muted">before launch &middot; raised by CFO</span></span></label>
+</div>
+<div class="card actions"><h3>Owned by Chief Product Officer <span class="muted">(5)</span></h3>
+<label><input type="checkbox" data-id="a28"><span><strong>Run proof-a11y, proof-web-perf and proof-visual on the home page and fix any high findings.</strong><br><span class="muted">before launch &middot; raised by CMO</span></span></label>
+<label><input type="checkbox" data-id="a29"><span><strong>Run proof-i18n if any non-English market is in the launch plan, or confirm in writing that launch is English-only.</strong><br><span class="muted">within 30 days &middot; raised by CMO</span></span></label>
+<label><input type="checkbox" data-id="a30"><span><strong>Run and share the web end-to-end, exploratory, accessibility, visual, compatibility, translation and mobile checks covering the browsers, devices and languages we promise.</strong><br><span class="muted">before launch &middot; raised by CPO</span></span></label>
+<label><input type="checkbox" data-id="a31"><span><strong>Re-run proof-privacy and show zero verified high findings.</strong><br><span class="muted">before launch &middot; raised by LEGAL</span></span></label>
+<label><input type="checkbox" data-id="a32"><span><strong>Run accessibility and email checks and bring the results to the board.</strong><br><span class="muted">within 30 days &middot; raised by LEGAL</span></span></label>
+</div>
+<div class="card actions"><h3>Owned by Chief Operating Officer <span class="muted">(1)</span></h3>
+<label><input type="checkbox" data-id="a33"><span><strong>Run proof-release, proof-load, proof-email and proof-watch and publish results, including a named on-call owner, alert routing, a rehearsed rollback and a proven backup restore.</strong><br><span class="muted">before launch &middot; raised by COO</span></span></label>
+</div>
+<div class="card actions"><h3>Owned by Head of Sales <span class="muted">(1)</span></h3>
+<label><input type="checkbox" data-id="a34"><span><strong>Run web e2e, compatibility and accessibility checks and prepare a standard security questionnaire answer pack.</strong><br><span class="muted">within 30 days &middot; raised by SALES</span></span></label>
+</div>
+<h2>Appendix: the evidence</h2>
+<div class="card">
+<div id="ev-proof-sec-deps-dep-larkspur-templates-demo-2026-0001" class="risk high"><code>proof-sec-deps/dep-larkspur-templates-demo-2026-0001</code> <strong>high</strong> larkspur-templates 1.4.1 is vulnerable (DEMO-2026-0001)</div>
+<div id="ev-proof-privacy-privacy-consent-banner-trackers-are-present-but-no-consent-b" class="risk high"><code>proof-privacy/privacy-consent-banner-trackers-are-present-but-no-consent-b</code> <strong>high</strong> Trackers are present but no consent banner was found</div>
+<div id="ev-proof-privacy-privacy-insecure-forms-form-to-http-localhost-signup-posts-o" class="risk high"><code>proof-privacy/privacy-insecure-forms-form-to-http-localhost-signup-posts-o</code> <strong>high</strong> Form to http://localhost/signup posts over plain HTTP</div>
+<div id="ev-proof-privacy-privacy-trackers-before-consent-1-tracker-s-load-before-cons" class="risk high"><code>proof-privacy/privacy-trackers-before-consent-1-tracker-s-load-before-cons</code> <strong>high</strong> 1 tracker(s) load before consent: googletagmanager.com</div>
+<div id="ev-proof-sec-secrets-secret-generic-assignment-config-py-4" class="risk high"><code>proof-sec-secrets/secret-generic-assignment-config-py-4</code> <strong>high</strong> Possible secret-looking assignment in config.py</div>
+<div id="ev-proof-infra-infra-docker-root-dockerfile-1" class="risk medium"><code>proof-infra/infra-docker-root-dockerfile-1</code> <strong>medium</strong> Container runs as root (Dockerfile)</div>
+<div id="ev-proof-sec-web-missing-security-headers-and-weak-session-cookie-flags" class="risk medium"><code>proof-sec-web/missing-security-headers-and-weak-session-cookie-flags</code> <strong>medium</strong> Missing security headers and weak session cookie flags</div>
+<div id="ev-proof-privacy-privacy-first-load-cookies-non-essential-cookies-set-on-the-" class="risk medium"><code>proof-privacy/privacy-first-load-cookies-non-essential-cookies-set-on-the-</code> <strong>medium</strong> Non-essential cookies set on the first visit: _ga</div>
+<div id="ev-proof-privacy-privacy-privacy-policy-no-link-to-a-privacy-policy-on-this-p" class="risk medium"><code>proof-privacy/privacy-privacy-policy-no-link-to-a-privacy-policy-on-this-p</code> <strong>medium</strong> No link to a privacy policy on this page</div>
+<div id="ev-proof-seo-seo-home-img-alt" class="risk medium"><code>proof-seo/seo-home-img-alt</code> <strong>medium</strong> 1 of 1 images have no alt on home.html</div>
+<div id="ev-proof-seo-seo-home-meta-description" class="risk medium"><code>proof-seo/seo-home-meta-description</code> <strong>medium</strong> meta description missing on home.html</div>
+<div id="ev-proof-infra-infra-docker-latest-dockerfile-1" class="risk low"><code>proof-infra/infra-docker-latest-dockerfile-1</code> <strong>low</strong> Base image is not pinned to a version (Dockerfile)</div>
+<div id="ev-proof-sec-secrets-secret-high-entropy-config-py-4" class="risk low"><code>proof-sec-secrets/secret-high-entropy-config-py-4</code> <strong>low</strong> Possible high-entropy string in config.py</div>
+<div id="ev-proof-seo-score-seo-score" class="risk high"><code>proof-seo/score:seo_score</code> 50 points against &gt;= 80</div>
+<div id="ev-proof-seo-score-seo-score-home" class="risk high"><code>proof-seo/score:seo_score:home</code> 50 points against &gt;= 80</div>
+<span id="ev-proof-infra-coverage-dockerfile"></span>
+<span id="ev-proof-infra-coverage-compose"></span>
+<span id="ev-proof-infra-coverage-kubernetes"></span>
+<span id="ev-proof-infra-coverage-terraform"></span>
+<span id="ev-proof-infra-coverage-ci"></span>
+<span id="ev-proof-infra-coverage-env"></span>
+<span id="ev-proof-privacy-coverage-trackers-before-consent"></span>
+<span id="ev-proof-privacy-coverage-consent-banner"></span>
+<span id="ev-proof-privacy-coverage-privacy-policy"></span>
+<span id="ev-proof-privacy-coverage-insecure-forms"></span>
+<span id="ev-proof-privacy-coverage-first-load-cookies"></span>
+<span id="ev-proof-privacy-coverage-pii-in-urls"></span>
+<span id="ev-proof-sec-deps-coverage-audit"></span>
+<span id="ev-proof-sec-secrets-coverage-scan"></span>
+<span id="ev-proof-seo-coverage-title"></span>
+<span id="ev-proof-seo-coverage-meta-description"></span>
+<span id="ev-proof-seo-coverage-h1"></span>
+<span id="ev-proof-seo-coverage-heading-order"></span>
+<span id="ev-proof-seo-coverage-img-alt"></span>
+<span id="ev-proof-seo-coverage-canonical"></span>
+<span id="ev-proof-seo-coverage-lang"></span>
+<span id="ev-proof-seo-coverage-viewport"></span>
+<span id="ev-proof-seo-coverage-open-graph"></span>
+<span id="ev-proof-seo-coverage-structured-data"></span>
+<span id="ev-proof-seo-coverage-internal-links"></span>
+<span id="ev-proof-seo-coverage-word-count"></span>
+<span id="ev-proof-seo-coverage-lighthouse-seo"></span>
+<span id="ev-proof-seo-coverage-robots-present"></span>
+<span id="ev-proof-seo-coverage-robots-open"></span>
+<span id="ev-proof-seo-coverage-sitemap-present"></span>
+<span id="ev-proof-seo-coverage-sitemap-valid"></span>
+<span id="ev-proof-seo-coverage-sitemap-covers-pages"></span>
+</div>
+<p class="muted">Directors are simulated by sub-agents reading the same evidence. Their judgement is advice; the evidence and the computed decision are the record.</p>
+</div><script>
+(function(){
+  var order = JSON.parse(document.getElementById('order').textContent);
+  var stmts = order.map(function(id){return document.getElementById('st-'+id);});
+  var replayBtn = document.getElementById('replay'), nextBtn = document.getElementById('next'), allBtn = document.getElementById('showall');
+  var idx = order.length;
+  function showUpTo(n){ stmts.forEach(function(el,i){ if(!el) return; el.classList.toggle('hidden', i>=n); if(i===n-1){el.classList.remove('reveal'); void el.offsetWidth; el.classList.add('reveal'); el.scrollIntoView({behavior:'smooth',block:'start'});} });
+    nextBtn.textContent = n>=order.length ? 'All directors have spoken' : 'Next director ('+(n+1)+' of '+order.length+')'; nextBtn.disabled = n>=order.length; idx=n; }
+  replayBtn.addEventListener('click', function(){ document.getElementById('decision-block').classList.add('hidden'); showUpTo(0); document.getElementById('meeting').scrollIntoView({behavior:'smooth'}); });
+  nextBtn.addEventListener('click', function(){ showUpTo(idx+1); if(idx>=order.length){ var d=document.getElementById('decision-block'); d.classList.remove('hidden'); d.classList.add('reveal'); } });
+  allBtn.addEventListener('click', function(){ showUpTo(order.length); document.getElementById('decision-block').classList.remove('hidden'); });
+  document.querySelectorAll('.seat').forEach(function(b){ b.addEventListener('click', function(){ var id=b.getAttribute('data-seat'); var i=order.indexOf(id); if(i>=idx) showUpTo(i+1); var el=document.getElementById('st-'+id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }); });
+  document.querySelectorAll('[data-filter]').forEach(function(b){ b.addEventListener('click', function(){ var f=b.getAttribute('data-filter');
+    document.querySelectorAll('[data-filter]').forEach(function(x){x.classList.toggle('on', x===b);});
+    stmts.forEach(function(el){ if(!el) return; var v=el.getAttribute('data-vote'); el.style.display = (f==='all'||v===f)?'':'none'; }); }); });
+  var key='proof-board-actions-'+document.body.getAttribute('data-fp');
+  var saved={}; try{ saved=JSON.parse(localStorage.getItem(key)||'{}'); }catch(e){ saved={}; }
+  document.querySelectorAll('.actions input[type=checkbox]').forEach(function(cb){ var id=cb.getAttribute('data-id');
+    if(saved[id]){ cb.checked=true; cb.parentNode.classList.add('done'); }
+    cb.addEventListener('change', function(){ cb.parentNode.classList.toggle('done', cb.checked); saved[id]=cb.checked;
+      try{ localStorage.setItem(key, JSON.stringify(saved)); }catch(e){}
+      var done=document.querySelectorAll('.actions input:checked').length, all=document.querySelectorAll('.actions input').length;
+      document.getElementById('actprog').textContent = done+' of '+all+' done'; }); });
+  var done=document.querySelectorAll('.actions input:checked').length, all=document.querySelectorAll('.actions input').length;
+  var p=document.getElementById('actprog'); if(p) p.textContent = done+' of '+all+' done';
+})();
+</script></body></html>
