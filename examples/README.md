@@ -36,7 +36,7 @@ service, and the advisory exists only in `demo-shop/advisories.json`.
 
 `board-meeting.html` is a real board meeting held on the demo shop's evidence: nine
 director sub-agents (CEO, CTO, CISO, CFO, CMO, Sales, COO, CPO, Legal) heard the
-presentation and voted. Open it in a browser and press "Replay the meeting". The
+presentation and voted. Open it in a browser and step through the agenda with Next or the arrow keys. The
 board held the launch: the CISO's and Legal's vetoes fired from verified high
 findings, and every director voted Hold. To hold your own, run `/proof-board`
 after the testing skills.

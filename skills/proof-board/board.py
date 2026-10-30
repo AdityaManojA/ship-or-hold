@@ -424,35 +424,154 @@ def decide(r, seats, answers, triggered):
             "vetoes": triggered, "conditions": conditions, "verdict": r["verdict"]}
 
 
+# --------------------------------------------------------------- agenda
+
+# The meeting walks the audits area by area, in the order a board would take them.
+AREAS = [
+    ("flows", "Product and user flows",
+     ["proof-web-e2e", "proof-mobile-e2e", "proof-explore", "proof-compat", "proof-visual"]),
+    ("reliability", "Reliability and performance", ["proof-api", "proof-load", "proof-web-perf", "proof-watch"]),
+    ("security", "Security",
+     ["proof-sec-web", "proof-sec-secrets", "proof-sec-deps", "proof-sec-diff", "proof-mobile-audit"]),
+    ("infra", "Infrastructure and deployment", ["proof-infra"]),
+    ("privacy", "Privacy and legal", ["proof-privacy"]),
+    ("reach", "Accessibility, languages and reach", ["proof-a11y", "proof-i18n", "proof-seo", "proof-geo"]),
+    ("ai", "AI features", ["proof-ai"]),
+    ("quality", "Code health and test strength", ["proof-mutation", "proof-restraint"]),
+    ("finance", "Finance", ["proof-finance"]),
+    ("launch", "Launch readiness and operations", ["proof-release", "proof-email"]),
+]
+SKILL_AREA = {sk: aid for aid, _, sks in AREAS for sk in sks}
+BLOCKER, CONCERNS, CLEAR, NOT_COVERED = "Blocker", "Concerns", "Clear", "Not covered"
+OUTCOME_CLASS = {BLOCKER: "hold", CONCERNS: "go_with_conditions", CLEAR: "go", NOT_COVERED: "none"}
+
+
+def _ref_area(ref):
+    return SKILL_AREA.get(ref.split("/")[0])
+
+
+def agenda(r, seats, answers, triggered):
+    """Split the meeting into agenda items, one per audit area that has evidence or is required."""
+    present = (set(f["skill"] for f in r["findings"]) | set(c["skill"] for c in r["coverage"]) |
+               set(s["skill"] for s in r["scores"]))
+    items = []
+    for aid, title, sks in AREAS:
+        run = [s for s in sks if s in present]
+        missing = [s for s in sks if s in r["required"] and s not in present]
+        if not run and not missing:
+            continue
+        fs = [f for f in r["findings"] if f["skill"] in sks]
+        ver = sorted([f for f in fs if f["status"] == "verified"], key=lambda f: verdict.RANK[f["severity"]])
+        unv = [f for f in fs if f["status"] == "unverified"]
+        ruled = [f for f in fs if f["status"] == "false_positive"]
+        metrics = [(s["skill"], m) for s in r["scores"] if s["skill"] in sks for m in s["metrics"]]
+        cov = dict((st, 0) for st in ledger.COVERAGE_STATUSES)
+        notrun = []
+        for c in r["coverage"]:
+            if c["skill"] in sks:
+                for ch in c["checks"]:
+                    cov[ch["status"]] += 1
+                    if ch["status"] == "not_run":
+                        notrun.append((c["skill"], ch))
+        here = [v for v in triggered if v["ref"].split("/")[0] in sks]
+        high = [f for f in ver if f["severity"] in ("critical", "high")]
+        medium = [f for f in ver if f["severity"] == "medium"]
+        failing = [(sk, m) for sk, m in metrics if not ledger.metric_passes(m)]
+        reasons = []
+        if not run:
+            outcome = NOT_COVERED
+            reasons.append("Required by the target but not run: %s." % ", ".join(missing))
+        elif high or here:
+            outcome = BLOCKER
+            if high:
+                reasons.append("%d verified high or critical finding(s)." % len(high))
+            if here:
+                reasons.append("Veto triggered for %s." % ", ".join(sorted(set(v["seat"].upper() for v in here))))
+        elif medium or failing or [1 for sk, _ in notrun if sk in r["required"]]:
+            outcome = CONCERNS
+            if medium:
+                reasons.append("%d verified medium finding(s)." % len(medium))
+            if failing:
+                reasons.append("%d score(s) over budget." % len(failing))
+            req_notrun = [ch for sk, ch in notrun if sk in r["required"]]
+            if req_notrun:
+                reasons.append("%d required check(s) not yet run." % len(req_notrun))
+        else:
+            outcome = CLEAR
+            reasons.append("Covered, and nothing verified at medium or above.")
+        if run and missing:
+            reasons.append("Also required but not run: %s." % ", ".join(missing))
+        speakers = []
+        for seat in seats:
+            a = answers.get(seat["id"])
+            if not a:
+                continue
+            mine = [rk for rk in a.get("risks") or [] if any(_ref_area(x) == aid for x in rk.get("evidence") or [])]
+            if mine:
+                speakers.append({"seat": seat["id"], "risks": mine})
+        items.append({"id": aid, "title": title, "skills": run, "missing": missing, "verified": ver,
+                      "unverified": unv, "ruled_out": ruled, "metrics": metrics, "coverage": cov,
+                      "notrun": notrun, "vetoes": here, "outcome": outcome, "reasons": reasons,
+                      "speakers": speakers})
+    general = []
+    for seat in seats:
+        a = answers.get(seat["id"])
+        if not a:
+            continue
+        mine = [rk for rk in a.get("risks") or [] if not any(_ref_area(x) for x in rk.get("evidence") or [])]
+        if mine:
+            general.append({"seat": seat["id"], "risks": mine})
+    untested = [title for aid, title, sks in AREAS if not any(s in present or s in r["required"] for s in sks)]
+    return items, general, untested
+
+
 # -------------------------------------------------------------- minutes
 
-def minutes_md(r, seats, answers, dec, qa):
+def minutes_md(r, seats, answers, dec, qa, items, general, untested):
     t = r.get("target") or {}
+    title_of = dict((s["id"], s["title"]) for s in seats)
     L = ["# Board minutes: %s" % (t.get("name") or "the product"), "",
          "**Decision: %s**" % dec["decision"], ""]
     for x in dec["reasons"]:
         L.append("- %s" % x)
     L += ["", "Proof verdict: %s. Votes: %d go, %d go with conditions, %d hold%s." % (
         dec["verdict"], len(dec["votes"]["go"]), len(dec["votes"]["go_with_conditions"]), len(dec["votes"]["hold"]),
-        (", %d did not answer" % len(dec["missing"])) if dec["missing"] else ""), ""]
+        (", %d did not answer" % len(dec["missing"])) if dec["missing"] else ""), "", "## Agenda", ""]
+    for i, it in enumerate(items, 1):
+        L.append("%d. %s: %s" % (i, it["title"], it["outcome"]))
+    if untested:
+        L.append("")
+        L.append("Not tested, so not discussed: %s." % ", ".join(untested))
+    for i, it in enumerate(items, 1):
+        L += ["", "## %d. %s: %s" % (i, it["title"], it["outcome"]), ""]
+        for x in it["reasons"]:
+            L.append("- %s" % x)
+        for f in it["verified"]:
+            L.append("- [%s/%s] %s: %s" % (f["skill"], f["id"], f["severity"], f["title"]))
+        for sk, m in it["metrics"]:
+            L.append("- [%s/score:%s] %s %s, budget %s %s" % (sk, m["id"], verdict._n(m["value"]), m["unit"], m["op"],
+                                                              verdict._n(m["budget"])))
+        for sp in it["speakers"]:
+            for rk in sp["risks"]:
+                L.append("- %s (%s): %s" % (title_of[sp["seat"]], rk["severity"], rk["risk"]))
+    if general:
+        L += ["", "## Other concerns", ""]
+        for sp in general:
+            for rk in sp["risks"]:
+                L.append("- %s (%s): %s" % (title_of[sp["seat"]], rk["severity"], rk["risk"]))
+    L += ["", "## Questions", ""]
     for seat in seats:
         a = answers.get(seat["id"])
-        L.append("## %s (%s): %s" % (seat["title"], seat["short"], VOTE_LABEL[a["vote"]] if a else "did not answer"))
-        if not a:
-            L.append("")
-            continue
-        L.append("")
-        L.append(a["summary"])
-        for rk in a.get("risks") or []:
-            L.append("- Risk (%s): %s %s" % (rk["severity"], rk["risk"],
-                                             " ".join("[%s]" % e for e in rk.get("evidence") or [])))
-        for i, q in enumerate(a.get("questions") or []):
+        for i, q in enumerate((a or {}).get("questions") or []):
             ans = qa.get(seat["id"], {}).get(str(i))
-            L.append("- Question: %s" % q)
+            L.append("- %s: %s" % (seat["short"], q))
             L.append("  - Answer: %s" % (ans or "not yet answered"))
-        L.append("")
-    L.append("## Actions")
-    L.append("")
+    L += ["", "## The vote", ""]
+    for seat in seats:
+        a = answers.get(seat["id"])
+        L.append("- %s: %s. %s" % (seat["title"], VOTE_LABEL[a["vote"]] if a else "did not answer",
+                                   a["summary"] if a else ""))
+    L += ["", "## Actions", ""]
     for c in dec["conditions"]:
         src = ("evidence [%s]" % c["ref"]) if c["from"] == "evidence" else "raised by %s" % ", ".join(
             x.upper() for x in c["raised_by"])
@@ -464,71 +583,6 @@ def minutes_md(r, seats, answers, dec, qa):
 
 def e(s):
     return html.escape(str(s if s is not None else ""), quote=True)
-
-
-MEETING_CSS = """
-:root{--bg:#f6f7f9;--card:#fff;--ink:#1d2330;--muted:#5d6675;--line:#dfe3ea;--go:#1a7f37;--cond:#9a6700;--hold:#cf222e;--accent:#3355cc}
-@media (prefers-color-scheme:dark){:root{--bg:#0d1117;--card:#161b22;--ink:#e6edf3;--muted:#8d96a0;--line:#30363d;--accent:#7c9cff}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,Segoe UI,Helvetica,Arial,sans-serif}
-.wrap{max-width:1040px;margin:0 auto;padding:24px 16px 64px}
-h1{font-size:26px;margin:0}h2{font-size:18px;margin:36px 0 12px}h3{margin:0;font-size:16px}
-.muted{color:var(--muted)}.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:12px 0}
-.badge{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;color:#fff}
-.go{background:var(--go)}.go_with_conditions{background:var(--cond)}.hold{background:var(--hold)}.none{background:#6e7781}
-.decision{border-radius:12px;padding:20px;color:#fff;margin:16px 0}
-.decision .big{font-size:28px;font-weight:700}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
-.kpi .n{font-size:24px;font-weight:700}
-.room{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
-.seat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;text-align:left;color:inherit;font:inherit}
-.seat:hover,.seat:focus{border-color:var(--accent);outline:none}
-.av{display:inline-flex;align-items:center;justify-content:center;border-radius:16px;background:rgba(127,127,127,.08);padding:4px;margin-bottom:8px;flex:none}
-.av svg{display:block}
-.statement{display:block}.hidden{display:none !important}
-.statement.reveal{animation:fade .5s ease}@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-.risk{border-left:3px solid var(--line);padding:2px 0 2px 10px;margin:6px 0}
-.risk.high{border-color:var(--hold)}.risk.medium{border-color:var(--cond)}.risk.low{border-color:#6e7781}
-code{background:rgba(127,127,127,.15);padding:1px 5px;border-radius:4px;font-size:12px}
-a.ref{text-decoration:none}
-.controls{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
-button.ctl{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
-button.ctl.on{border-color:var(--accent);color:var(--accent)}
-.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line)}
-.bar span{display:block;height:100%}
-.actions label{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
-.actions label.done span{text-decoration:line-through;color:var(--muted)}
-.qa{margin:6px 0 6px 0;padding:8px 10px;border-radius:8px;background:rgba(127,127,127,.08)}
-details summary{cursor:pointer}
-"""
-
-MEETING_JS = """
-(function(){
-  var order = JSON.parse(document.getElementById('order').textContent);
-  var stmts = order.map(function(id){return document.getElementById('st-'+id);});
-  var replayBtn = document.getElementById('replay'), nextBtn = document.getElementById('next'), allBtn = document.getElementById('showall');
-  var idx = order.length;
-  function showUpTo(n){ stmts.forEach(function(el,i){ if(!el) return; el.classList.toggle('hidden', i>=n); if(i===n-1){el.classList.remove('reveal'); void el.offsetWidth; el.classList.add('reveal'); el.scrollIntoView({behavior:'smooth',block:'start'});} });
-    nextBtn.textContent = n>=order.length ? 'All directors have spoken' : 'Next director ('+(n+1)+' of '+order.length+')'; nextBtn.disabled = n>=order.length; idx=n; }
-  replayBtn.addEventListener('click', function(){ document.getElementById('decision-block').classList.add('hidden'); showUpTo(0); document.getElementById('meeting').scrollIntoView({behavior:'smooth'}); });
-  nextBtn.addEventListener('click', function(){ showUpTo(idx+1); if(idx>=order.length){ var d=document.getElementById('decision-block'); d.classList.remove('hidden'); d.classList.add('reveal'); } });
-  allBtn.addEventListener('click', function(){ showUpTo(order.length); document.getElementById('decision-block').classList.remove('hidden'); });
-  document.querySelectorAll('.seat').forEach(function(b){ b.addEventListener('click', function(){ var id=b.getAttribute('data-seat'); var i=order.indexOf(id); if(i>=idx) showUpTo(i+1); var el=document.getElementById('st-'+id); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }); });
-  document.querySelectorAll('[data-filter]').forEach(function(b){ b.addEventListener('click', function(){ var f=b.getAttribute('data-filter');
-    document.querySelectorAll('[data-filter]').forEach(function(x){x.classList.toggle('on', x===b);});
-    stmts.forEach(function(el){ if(!el) return; var v=el.getAttribute('data-vote'); el.style.display = (f==='all'||v===f)?'':'none'; }); }); });
-  var key='proof-board-actions-'+document.body.getAttribute('data-fp');
-  var saved={}; try{ saved=JSON.parse(localStorage.getItem(key)||'{}'); }catch(e){ saved={}; }
-  document.querySelectorAll('.actions input[type=checkbox]').forEach(function(cb){ var id=cb.getAttribute('data-id');
-    if(saved[id]){ cb.checked=true; cb.parentNode.classList.add('done'); }
-    cb.addEventListener('change', function(){ cb.parentNode.classList.toggle('done', cb.checked); saved[id]=cb.checked;
-      try{ localStorage.setItem(key, JSON.stringify(saved)); }catch(e){}
-      var done=document.querySelectorAll('.actions input:checked').length, all=document.querySelectorAll('.actions input').length;
-      document.getElementById('actprog').textContent = done+' of '+all+' done'; }); });
-  var done=document.querySelectorAll('.actions input:checked').length, all=document.querySelectorAll('.actions input').length;
-  var p=document.getElementById('actprog'); if(p) p.textContent = done+' of '+all+' done';
-})();
-"""
 
 
 # Each seat has its own gradient (light top, deeper bottom), clothing colour, and a
@@ -623,174 +677,366 @@ def avatar_svg(seat_id, size=56, suffix=""):
     return "".join(parts)
 
 
+
+MEETING_CSS = """
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1d2330;--muted:#5d6675;--line:#dfe3ea;--go:#1a7f37;--cond:#9a6700;--hold:#cf222e;--accent:#3355cc}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1117;--card:#161b22;--ink:#e6edf3;--muted:#8d96a0;--line:#30363d;--accent:#7c9cff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,Segoe UI,Helvetica,Arial,sans-serif}
+.wrap{max-width:1000px;margin:0 auto;padding:0 16px 64px}
+h1{font-size:26px;margin:4px 0 0}h2{font-size:21px;margin:6px 0 14px}h3{margin:0;font-size:16px}h4{margin:18px 0 8px;font-size:14px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.muted{color:var(--muted)}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}
+.badge{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;color:#fff;white-space:nowrap}
+.go{background:var(--go)}.go_with_conditions{background:var(--cond)}.hold{background:var(--hold)}.none{background:#6e7781}
+.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 0 8px;margin-bottom:12px}
+.top .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.progress{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin-top:8px}
+.progress span{display:block;height:100%;background:var(--accent);width:0;transition:width .3s ease}
+button.ctl{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;font:inherit}
+button.ctl:disabled{opacity:.45;cursor:default}button.ctl.on{border-color:var(--accent);color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+select.jump{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font:inherit;max-width:100%}
+.steptitle{font-weight:600}.spacer{flex:1}
+.step{display:none}.step.active{display:block;animation:fade .35s ease}
+body.all .step{display:block;border-top:1px dashed var(--line);padding-top:12px;margin-top:24px}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.kicker{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.kpi .n{font-size:24px;font-weight:700}
+.room{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.seat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:left}
+.av{display:inline-flex;align-items:center;justify-content:center;border-radius:16px;background:rgba(127,127,127,.08);padding:4px;flex:none}
+.av svg{display:block}
+.agenda{list-style:none;padding:0;margin:0}.agenda li{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.agenda .num{width:26px;height:26px;border-radius:50%;background:var(--line);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex:none}
+.agenda a{color:inherit;text-decoration:none}.agenda a:hover{color:var(--accent)}
+.speaker{display:flex;gap:12px;align-items:flex-start;margin:12px 0}
+.bubble{background:var(--card);border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:10px 12px;flex:1}
+.risk{border-left:3px solid var(--line);padding:2px 0 2px 10px;margin:6px 0}
+.risk.high,.risk.critical{border-color:var(--hold)}.risk.medium{border-color:var(--cond)}.risk.low,.risk.info{border-color:#6e7781}
+.outcome{border-radius:12px;padding:14px 16px;color:#fff;margin-top:16px}
+.outcome .big{font-size:20px;font-weight:700}
+.decision{border-radius:14px;padding:22px;color:#fff;margin:16px 0}
+.decision .big{font-size:30px;font-weight:700}
+code{background:rgba(127,127,127,.15);padding:1px 5px;border-radius:4px;font-size:12px}
+a.ref{text-decoration:none}
+table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line)}
+.bar span{display:block;height:100%}
+.votes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.vote{opacity:0;animation:rise .45s ease forwards}
+.step:not(.active) .vote{animation:none;opacity:1}body.all .vote{opacity:1;animation:none}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.actions label{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
+.actions label.done span{text-decoration:line-through;color:var(--muted)}
+.qa{margin:8px 0;padding:10px 12px;border-radius:10px;background:rgba(127,127,127,.08)}
+.hint{font-size:12px}
+@media print{.top{display:none}.step{display:block !important}}
+"""
+
+MEETING_JS = """
+(function(){
+  var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  var prev = document.getElementById('prev'), next = document.getElementById('next');
+  var label = document.getElementById('steplabel'), bar = document.getElementById('progbar');
+  var jump = document.getElementById('jump'), mode = document.getElementById('mode');
+  var cur = 0;
+  function go(i, scroll){
+    i = Math.max(0, Math.min(steps.length - 1, i)); cur = i;
+    steps.forEach(function(s, k){ s.classList.toggle('active', k === i); });
+    label.textContent = 'Step ' + (i + 1) + ' of ' + steps.length + ': ' + steps[i].getAttribute('data-title');
+    bar.style.width = (100 * (i + 1) / steps.length) + '%';
+    prev.disabled = i === 0;
+    next.disabled = i === steps.length - 1;
+    next.textContent = i === steps.length - 1 ? 'End of meeting' : 'Next: ' + steps[i + 1].getAttribute('data-title');
+    jump.value = String(i);
+    try { history.replaceState(null, '', '#step-' + (i + 1)); } catch (e) {}
+    if (scroll !== false) window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+  prev.addEventListener('click', function(){ go(cur - 1); });
+  next.addEventListener('click', function(){ go(cur + 1); });
+  jump.addEventListener('change', function(){ go(parseInt(jump.value, 10)); });
+  document.querySelectorAll('[data-goto]').forEach(function(a){
+    a.addEventListener('click', function(ev){ ev.preventDefault(); if (document.body.classList.contains('all')) {
+      var t = document.getElementById(a.getAttribute('data-goto')); if (t) t.scrollIntoView({behavior: 'smooth'}); return; }
+      go(steps.indexOf(document.getElementById(a.getAttribute('data-goto')))); });
+  });
+  mode.addEventListener('click', function(){
+    var all = document.body.classList.toggle('all');
+    mode.textContent = all ? 'Step through' : 'Show all';
+    prev.style.display = next.style.display = jump.style.display = all ? 'none' : '';
+    label.textContent = all ? 'The whole meeting on one page' : label.textContent;
+    if (!all) go(cur, false);
+  });
+  document.addEventListener('keydown', function(ev){
+    if (document.body.classList.contains('all')) return;
+    if (ev.target && /INPUT|SELECT|TEXTAREA/.test(ev.target.tagName)) return;
+    if (ev.key === 'ArrowRight' || ev.key === 'PageDown') { go(cur + 1); ev.preventDefault(); }
+    if (ev.key === 'ArrowLeft' || ev.key === 'PageUp') { go(cur - 1); ev.preventDefault(); }
+  });
+  document.querySelectorAll('a.ref').forEach(function(a){
+    a.addEventListener('click', function(){ var ap = document.getElementById('step-evidence');
+      if (ap && !document.body.classList.contains('all')) go(steps.indexOf(ap), false); });
+  });
+  var key = 'proof-board-actions-' + document.body.getAttribute('data-fp');
+  var saved = {}; try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) { saved = {}; }
+  function prog(){ var d = document.querySelectorAll('.actions input:checked').length, a = document.querySelectorAll('.actions input').length;
+    var p = document.getElementById('actprog'); if (p) p.textContent = d + ' of ' + a + ' done'; }
+  document.querySelectorAll('.actions input[type=checkbox]').forEach(function(cb){ var id = cb.getAttribute('data-id');
+    if (saved[id]) { cb.checked = true; cb.parentNode.classList.add('done'); }
+    cb.addEventListener('change', function(){ cb.parentNode.classList.toggle('done', cb.checked); saved[id] = cb.checked;
+      try { localStorage.setItem(key, JSON.stringify(saved)); } catch (e) {} prog(); }); });
+  prog();
+  var m = /#step-(\\d+)/.exec(location.hash || '');
+  go(m ? parseInt(m[1], 10) - 1 : 0, false);
+})();
+"""
+
+
+def _anchor(ref):
+    return "ev-" + re.sub(r"[^a-z0-9-]+", "-", ref.lower())
+
+
 def _ref_link(ref):
-    anchor = "ev-" + re.sub(r"[^a-z0-9-]+", "-", ref.lower())
-    return '<a class="ref" href="#%s"><code>%s</code></a>' % (anchor, e(ref))
+    return '<a class="ref" href="#%s"><code>%s</code></a>' % (_anchor(ref), e(ref))
 
 
-def meeting_html(r, seats, answers, dec, qa, fp):
+def _risk_html(rk):
+    refs = " ".join(_ref_link(x) for x in rk.get("evidence") or []) or '<span class="muted">judgement call</span>'
+    return '<div class="risk %s"><strong>%s:</strong> %s<div>%s</div></div>' % (
+        e(rk["severity"]), e(rk["severity"].capitalize()), e(rk["risk"]), refs)
+
+
+def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested):
     t = r.get("target") or {}
     name = t.get("name") or "The product"
-    sev = {s: sum(1 for f in r["findings"] if f["status"] == "verified" and f["severity"] == s) for s in ledger.SEVERITIES}
+    seat_by = dict((s["id"], s) for s in seats)
+    sev = dict((s, sum(1 for f in r["findings"] if f["status"] == "verified" and f["severity"] == s))
+               for s in ledger.SEVERITIES)
     metrics = [m for s in r["scores"] for m in s["metrics"]]
     passing = sum(1 for m in metrics if ledger.metric_passes(m))
     covered = sum(1 for c in r["coverage"] for ch in c["checks"] if ch["status"] == "covered")
     total_checks = sum(len(c["checks"]) for c in r["coverage"])
-    dec_class = {GO: "go", GO_COND: "go_with_conditions", HOLD: "hold"}[dec["decision"]]
     V = {"Ship": "go", "Not yet": "go_with_conditions", "Incomplete": "hold"}
-    L = ["<!doctype html>", '<html lang="en"><head><meta charset="utf-8">',
-         '<meta name="viewport" content="width=device-width, initial-scale=1">',
-         "<title>%s - Board meeting</title><style>%s</style></head>" % (e(name), MEETING_CSS),
-         '<body data-fp="%s"><div class="wrap">' % e(fp),
-         '<div class="muted">Board meeting &middot; %s</div>' % e(ledger.now()[:10]),
-         "<h1>%s</h1>" % e(name),
-         '<p class="muted">The team presented the product and its Proof evidence to the board. '
-         'Each director judged it through their own role.</p>']
+    steps = []  # (id, title, html)
 
-    # The presentation
-    L.append("<h2>1. The presentation</h2>")
-    L.append('<div class="card"><div>Proof verdict <span class="badge %s">%s</span></div>' % (V[r["verdict"]], e(r["verdict"])))
+    # ---- opening: the presentation, the room, the agenda
+    S = ['<div class="kicker">Opening</div><h2>The team presents %s</h2>' % e(name)]
     bits = []
     if t.get("kind"):
         bits.append("Kind: %s" % e(t["kind"]))
     if t.get("urls"):
         bits.append("Where: %s" % e(", ".join(t["urls"])))
     if t.get("done_means"):
-        bits.append("Bar for done: %s" % e(t["done_means"]))
-    if bits:
-        L.append('<p class="muted">%s</p>' % " &middot; ".join(bits))
-    L.append("</div>")
-    L.append('<div class="kpis">')
+        bits.append("The team's bar for done: %s" % e(t["done_means"]))
+    S.append('<div class="card"><div>Proof verdict <span class="badge %s">%s</span></div><p class="muted">%s</p></div>' % (
+        V[r["verdict"]], e(r["verdict"]), " &middot; ".join(bits)))
+    S.append('<div class="kpis">')
     for label, n in (("Critical", sev["critical"]), ("High", sev["high"]), ("Medium", sev["medium"]), ("Low", sev["low"])):
-        L.append('<div class="kpi"><div class="muted">%s findings</div><div class="n">%d</div></div>' % (label, n))
-    L.append('<div class="kpi"><div class="muted">Scores in budget</div><div class="n">%d/%d</div></div>' % (passing, len(metrics)))
-    L.append('<div class="kpi"><div class="muted">Checks covered</div><div class="n">%d/%d</div></div>' % (covered, total_checks))
-    L.append("</div>")
-    skills_run = sorted(set([c["skill"] for c in r["coverage"]] + [s["skill"] for s in r["scores"]] + [f["skill"] for f in r["findings"]]))
-    L.append('<details class="card"><summary>What was tested (%d skills)</summary><p>%s</p></details>' % (
-        len(skills_run), ", ".join("<code>%s</code>" % e(s) for s in skills_run)))
-
-    # The room
-    L.append("<h2>2. The room</h2>")
-    L.append('<div class="room">')
+        S.append('<div class="kpi"><div class="muted">%s findings</div><div class="n">%d</div></div>' % (label, n))
+    S.append('<div class="kpi"><div class="muted">Scores in budget</div><div class="n">%d/%d</div></div>' % (passing, len(metrics)))
+    S.append('<div class="kpi"><div class="muted">Checks covered</div><div class="n">%d/%d</div></div></div>' % (covered, total_checks))
+    S.append("<h4>The room</h4><div class=\"room\">")
     for seat in seats:
-        a = answers.get(seat["id"])
-        vote = a["vote"] if a else "none"
-        L.append('<button class="seat" data-seat="%s"><div class="av">%s</div><h3>%s</h3><div class="muted">%s</div>'
-                 '<div style="margin-top:6px"><span class="badge %s">%s</span></div></button>' % (
-                     e(seat["id"]), avatar_svg(seat["id"], 84, "r"),
-                     e(seat["short"]), e(seat["title"]), vote, e(VOTE_LABEL.get(vote, "Did not answer"))))
-    L.append("</div>")
+        S.append('<div class="seat"><div class="av">%s</div><h3 style="margin-top:6px">%s</h3><div class="muted">%s</div>'
+                 '<div class="muted hint">%s</div></div>' % (
+                     avatar_svg(seat["id"], 72, "o"), e(seat["short"]), e(seat["title"]),
+                     e(("Veto: " + ", ".join(x.replace("proof-", "") for x in seat["veto"])) if seat["veto"] else "No veto")))
+    S.append("</div><h4>Agenda</h4><ol class=\"agenda\">")
+    for i, it in enumerate(items, 1):
+        S.append('<li><span class="num">%d</span><a href="#" data-goto="step-%s">%s</a>'
+                 '<span class="muted hint">%s</span></li>' % (i, it["id"], e(it["title"]),
+                                                             e(", ".join(s.replace("proof-", "") for s in it["skills"] or it["missing"]))))
+    extra = (["Other concerns"] if general else []) + ["Questions from the board", "The vote", "The decision", "Actions"]
+    for j, x in enumerate(extra, len(items) + 1):
+        S.append('<li><span class="num">%d</span><span>%s</span></li>' % (j, e(x)))
+    S.append("</ol>")
+    if untested:
+        S.append('<p class="muted">Not tested, so not on the agenda: %s.</p>' % e(", ".join(untested)))
+    steps.append(("opening", "Opening", "".join(S)))
 
-    # The meeting
-    L.append('<h2 id="meeting">3. The meeting</h2>')
-    L.append('<div class="controls"><button class="ctl" id="replay">Replay the meeting</button>'
-             '<button class="ctl" id="next" disabled>All directors have spoken</button>'
-             '<button class="ctl" id="showall">Show everyone</button>'
-             '<span class="muted" style="align-self:center">Filter:</span>'
-             '<button class="ctl on" data-filter="all">All</button><button class="ctl" data-filter="go">Go</button>'
-             '<button class="ctl" data-filter="go_with_conditions">Conditions</button><button class="ctl" data-filter="hold">Hold</button></div>')
-    order = []
-    for seat in seats:
+    # ---- one step per audit area
+    for i, it in enumerate(items, 1):
+        S = ['<div class="kicker">Agenda item %d of %d</div><h2>%s</h2>' % (i, len(items), e(it["title"]))]
+        S.append('<div class="card"><div class="kicker">The team presents</div>')
+        if it["skills"]:
+            c = it["coverage"]
+            S.append("<p>Tested with %s: %d check(s) covered, %d not applicable, %d not yet run.</p>" % (
+                ", ".join("<code>%s</code>" % e(s) for s in it["skills"]), c["covered"], c["not_applicable"], c["not_run"]))
+        if it["missing"]:
+            S.append('<p class="muted">Required but not run: %s.</p>' % e(", ".join(it["missing"])))
+        if it["verified"]:
+            S.append("<h4>Verified findings</h4>")
+            for f in it["verified"]:
+                ref = "%s/%s" % (f["skill"], f["id"])
+                S.append('<div class="risk %s"><span class="badge %s">%s</span> %s<div>%s</div></div>' % (
+                    e(f["severity"]), "hold" if f["severity"] in ("critical", "high") else
+                    ("go_with_conditions" if f["severity"] == "medium" else "none"), e(f["severity"]), e(f["title"]),
+                    _ref_link(ref)))
+        elif it["skills"]:
+            S.append('<p class="muted">No verified findings in this area.</p>')
+        if it["metrics"]:
+            S.append("<h4>Scores</h4><table><tr><th>metric</th><th>value</th><th>budget</th><th></th></tr>")
+            for sk, m in it["metrics"]:
+                ok = ledger.metric_passes(m)
+                S.append('<tr><td>%s</td><td>%s %s</td><td>%s %s</td><td><span class="badge %s">%s</span></td></tr>' % (
+                    _ref_link("%s/score:%s" % (sk, m["id"])), e(verdict._n(m["value"])), e(m["unit"]), e(m["op"]),
+                    e(verdict._n(m["budget"])), "go" if ok else "hold", "within budget" if ok else "over budget"))
+            S.append("</table>")
+        if it["notrun"]:
+            S.append("<h4>Not yet checked</h4><ul>%s</ul>" % "".join(
+                "<li class=\"muted\">%s: %s</li>" % (e(sk), e(ch["title"])) for sk, ch in it["notrun"][:8]))
+        if it["unverified"] or it["ruled_out"]:
+            S.append('<p class="muted">%d unverified lead(s) not counted, %d ruled out.</p>' % (
+                len(it["unverified"]), len(it["ruled_out"])))
+        S.append("</div>")
+        S.append('<div class="kicker" style="margin-top:18px">The board discusses</div>')
+        if not it["speakers"]:
+            S.append('<p class="muted">No director raised a concern on this item.</p>')
+        for k, sp in enumerate(it["speakers"]):
+            seat = seat_by[sp["seat"]]
+            S.append('<div class="speaker"><div class="av">%s</div><div class="bubble"><strong>%s</strong>%s</div></div>' % (
+                avatar_svg(seat["id"], 48, "i%d%d" % (i, k)), e(seat["title"]),
+                "".join(_risk_html(rk) for rk in sp["risks"])))
+        if it["vetoes"]:
+            S.append('<p><strong>Vetoes from the evidence:</strong> %s</p>' % "; ".join(
+                "%s on %s" % (e(v["seat"].upper()), _ref_link(v["ref"])) for v in it["vetoes"]))
+        S.append('<div class="outcome %s"><div class="big">Item outcome: %s</div><div>%s</div></div>' % (
+            OUTCOME_CLASS[it["outcome"]], e(it["outcome"]), e(" ".join(it["reasons"]))))
+        steps.append(("step-" + it["id"], it["title"], "".join(S)))
+
+    # ---- other concerns (judgement calls not tied to an area)
+    if general:
+        S = ['<div class="kicker">Other concerns</div><h2>Concerns that are not tied to one audit</h2>']
+        for k, sp in enumerate(general):
+            seat = seat_by[sp["seat"]]
+            S.append('<div class="speaker"><div class="av">%s</div><div class="bubble"><strong>%s</strong>%s</div></div>' % (
+                avatar_svg(seat["id"], 48, "g%d" % k), e(seat["title"]), "".join(_risk_html(rk) for rk in sp["risks"])))
+        steps.append(("step-general", "Other concerns", "".join(S)))
+
+    # ---- questions
+    S = ['<div class="kicker">Questions</div><h2>Questions from the board</h2>']
+    asked = 0
+    for k, seat in enumerate(seats):
         a = answers.get(seat["id"])
-        order.append(seat["id"])
-        vote = a["vote"] if a else "none"
-        L.append('<div class="card statement" id="st-%s" data-vote="%s">' % (e(seat["id"]), vote))
-        L.append('<div style="display:flex;gap:12px;align-items:center"><div class="av">%s</div><div><h3>%s</h3>'
-                 '<div class="muted">%s</div></div><div style="margin-left:auto"><span class="badge %s">%s</span></div></div>' % (
-                     avatar_svg(seat["id"], 56, "s"), e(seat["title"]),
-                     e(", ".join(seat["veto"]) and "Holds a veto over: " + ", ".join(seat["veto"]) or "No veto"),
-                     vote, e(VOTE_LABEL.get(vote, "Did not answer"))))
-        if not a:
-            L.append('<p class="muted">This director did not give a valid answer.</p></div>')
+        qs = (a or {}).get("questions") or []
+        if not qs:
             continue
-        L.append('<p>&ldquo;%s&rdquo;</p>' % e(a["summary"]))
-        if a.get("confidence") is not None:
-            L.append('<div class="muted">Confidence %d%%</div>' % int(round(float(a["confidence"]) * 100)))
-        for rk in a.get("risks") or []:
-            refs = " ".join(_ref_link(x) for x in rk.get("evidence") or []) or '<span class="muted">judgement call</span>'
-            L.append('<div class="risk %s"><strong>%s risk:</strong> %s<div>%s</div></div>' % (
-                e(rk["severity"]), e(rk["severity"].capitalize()), e(rk["risk"]), refs))
-        for c in a.get("conditions") or []:
-            L.append('<div class="muted">Condition: %s (owner %s, %s)</div>' % (
-                e(c["action"]), e((c.get("owner") or seat["id"]).upper()), e(c.get("by") or "before launch")))
-        for i, q in enumerate(a.get("questions") or []):
+        S.append('<div class="speaker"><div class="av">%s</div><div class="bubble"><strong>%s asks</strong>' % (
+            avatar_svg(seat["id"], 48, "q%d" % k), e(seat["title"])))
+        for i, q in enumerate(qs):
+            asked += 1
             ans = qa.get(seat["id"], {}).get(str(i))
-            L.append('<div class="qa"><strong>Q:</strong> %s<br><strong>A:</strong> %s</div>' % (
-                e(q), e(ans) if ans else '<span class="muted">not yet answered by the team</span>'))
-        L.append("</div>")
-    L.append('<script type="application/json" id="order">%s</script>' % json.dumps(order))
+            S.append('<div class="qa"><strong>Q:</strong> %s<br><strong>Team:</strong> %s</div>' % (
+                e(q), e(ans) if ans else '<span class="muted">not yet answered</span>'))
+        S.append("</div></div>")
+    if not asked:
+        S.append('<p class="muted">The board had no questions.</p>')
+    steps.append(("step-questions", "Questions from the board", "".join(S)))
 
-    # The vote and decision
-    nv = {k: len(v) for k, v in dec["votes"].items()}
+    # ---- the vote
+    nv = dict((k, len(v)) for k, v in dec["votes"].items())
     tot = max(1, sum(nv.values()) + len(dec["missing"]))
-    L.append('<div id="decision-block">')
-    L.append("<h2>4. The vote</h2>")
-    L.append('<div class="card"><div class="bar">')
-    for k, color in (("go", "var(--go)"), ("go_with_conditions", "var(--cond)"), ("hold", "var(--hold)")):
-        if nv[k]:
-            L.append('<span style="width:%.1f%%;background:%s" title="%s"></span>' % (100.0 * nv[k] / tot, color, VOTE_LABEL[k]))
+    S = ['<div class="kicker">The vote</div><h2>Each director gives their verdict</h2><div class="votes">']
+    for k, seat in enumerate(seats):
+        a = answers.get(seat["id"])
+        vote = a["vote"] if a else "none"
+        S.append('<div class="card vote" style="animation-delay:%.2fs"><div style="display:flex;gap:10px;align-items:center">'
+                 '<div class="av">%s</div><div><h3>%s</h3><span class="badge %s">%s</span></div></div>' % (
+                     0.25 * k, avatar_svg(seat["id"], 48, "v%d" % k), e(seat["title"]), vote,
+                     e(VOTE_LABEL.get(vote, "Did not answer"))))
+        if a:
+            S.append('<p>&ldquo;%s&rdquo;</p><div class="muted hint">Confidence %d%%</div>' % (
+                e(a["summary"]), int(round(float(a["confidence"]) * 100))))
+            for c in a.get("conditions") or []:
+                S.append('<div class="muted hint">Condition: %s</div>' % e(c["action"]))
+        S.append("</div>")
+    S.append('</div><div class="card"><div class="bar">')
+    for key, color in (("go", "var(--go)"), ("go_with_conditions", "var(--cond)"), ("hold", "var(--hold)")):
+        if nv[key]:
+            S.append('<span style="width:%.1f%%;background:%s"></span>' % (100.0 * nv[key] / tot, color))
     if dec["missing"]:
-        L.append('<span style="width:%.1f%%;background:#6e7781" title="Did not answer"></span>' % (100.0 * len(dec["missing"]) / tot))
-    L.append("</div>")
-    L.append('<p class="muted">%d go &middot; %d go with conditions &middot; %d hold%s</p></div>' % (
+        S.append('<span style="width:%.1f%%;background:#6e7781"></span>' % (100.0 * len(dec["missing"]) / tot))
+    S.append('</div><p class="muted">%d go &middot; %d go with conditions &middot; %d hold%s</p></div>' % (
         nv["go"], nv["go_with_conditions"], nv["hold"],
         (" &middot; %d did not answer" % len(dec["missing"])) if dec["missing"] else ""))
-    L.append("<h2>5. The decision</h2>")
-    L.append('<div class="decision %s"><div class="big">%s</div>' % (dec_class, e(dec["decision"])))
-    L.append("<ul>%s</ul>" % "".join("<li>%s</li>" % e(x) for x in dec["reasons"]))
-    L.append('<div style="opacity:.85;font-size:13px">Computed from the evidence and the votes, not written by hand.</div></div>')
-    L.append("</div>")
+    steps.append(("step-vote", "The vote", "".join(S)))
 
-    # Actions
-    L.append('<h2>6. Actions <span class="muted" id="actprog" style="font-size:14px"></span></h2>')
+    # ---- the decision
+    dec_class = {GO: "go", GO_COND: "go_with_conditions", HOLD: "hold"}[dec["decision"]]
+    S = ['<div class="kicker">The decision</div><h2>The board decides</h2>',
+         '<div class="decision %s"><div class="big">%s</div><ul>%s</ul>'
+         '<div style="opacity:.85;font-size:13px">Computed from the evidence and the votes, not written by hand.</div></div>' % (
+             dec_class, e(dec["decision"]), "".join("<li>%s</li>" % e(x) for x in dec["reasons"]))]
+    S.append("<h4>Where each audit landed</h4><ol class=\"agenda\">")
+    for i, it in enumerate(items, 1):
+        S.append('<li><span class="num">%d</span><span style="flex:1">%s</span><span class="badge %s">%s</span></li>' % (
+            i, e(it["title"]), OUTCOME_CLASS[it["outcome"]], e(it["outcome"])))
+    S.append("</ol>")
+    steps.append(("step-decision", "The decision", "".join(S)))
+
+    # ---- actions
+    S = ['<div class="kicker">Actions</div><h2>What happens next <span class="muted hint" id="actprog"></span></h2>']
     if not dec["conditions"]:
-        L.append('<div class="card"><p class="muted">No actions.</p></div>')
+        S.append('<div class="card"><p class="muted">No actions.</p></div>')
     groups = [("Blockers from the evidence", [c for c in dec["conditions"] if c["from"] == "evidence"])]
     owners = []
     for c in dec["conditions"]:
         if c["from"] != "evidence" and c["owner"] not in owners:
             owners.append(c["owner"])
-    titles = {s["id"]: s["title"] for s in seats}
     for o in owners:
-        groups.append(("Owned by %s" % titles.get(o, o.upper()), [c for c in dec["conditions"]
-                                                                 if c["from"] != "evidence" and c["owner"] == o]))
-    i = 0
-    for title, items in groups:
-        if not items:
+        groups.append(("Owned by %s" % seat_by[o]["title"] if o in seat_by else "Owned by %s" % o.upper(),
+                       [c for c in dec["conditions"] if c["from"] != "evidence" and c["owner"] == o]))
+    n = 0
+    for title, group in groups:
+        if not group:
             continue
-        L.append('<div class="card actions"><h3>%s <span class="muted">(%d)</span></h3>' % (e(title), len(items)))
-        for c in items:
-            if c["from"] == "evidence":
-                src = "from the evidence " + _ref_link(c["ref"])
-            else:
-                src = "raised by %s" % e(", ".join(x.upper() for x in c["raised_by"]))
-            L.append('<label><input type="checkbox" data-id="a%d"><span><strong>%s</strong><br>'
-                     '<span class="muted">%s &middot; %s</span></span></label>' % (i, e(c["action"]), e(c["by"]), src))
-            i += 1
-        L.append("</div>")
+        S.append('<div class="card actions"><h3>%s <span class="muted">(%d)</span></h3>' % (e(title), len(group)))
+        for c in group:
+            src = ("from the evidence " + _ref_link(c["ref"])) if c["from"] == "evidence" else \
+                "raised by %s" % e(", ".join(x.upper() for x in c["raised_by"]))
+            S.append('<label><input type="checkbox" data-id="a%d"><span><strong>%s</strong><br>'
+                     '<span class="muted">%s &middot; %s</span></span></label>' % (n, e(c["action"]), e(c["by"]), src))
+            n += 1
+        S.append("</div>")
+    steps.append(("step-actions", "Actions", "".join(S)))
 
-    # Evidence appendix
-    L.append("<h2>Appendix: the evidence</h2>")
-    L.append('<div class="card">')
+    # ---- the evidence
+    S = ['<div class="kicker">Appendix</div><h2>The evidence</h2><div class="card">']
     for f in sorted([f for f in r["findings"] if f["status"] == "verified"], key=lambda f: verdict.RANK[f["severity"]]):
         ref = "%s/%s" % (f["skill"], f["id"])
-        L.append('<div id="ev-%s" class="risk %s"><code>%s</code> <strong>%s</strong> %s</div>' % (
-            re.sub(r"[^a-z0-9-]+", "-", ref.lower()), "high" if f["severity"] in ("critical", "high") else f["severity"],
-            e(ref), e(f["severity"]), e(f["title"])))
+        S.append('<div id="%s" class="risk %s"><code>%s</code> <strong>%s</strong> %s%s</div>' % (
+            _anchor(ref), e(f["severity"]), e(ref), e(f["severity"]), e(f["title"]),
+            ("<div class=\"muted hint\">Evidence: %s</div>" % e(", ".join(f.get("evidence") or []))) if f.get("evidence") else ""))
     for s in r["scores"]:
         for m in s["metrics"]:
             ref = "%s/score:%s" % (s["skill"], m["id"])
-            L.append('<div id="ev-%s" class="risk %s"><code>%s</code> %s %s against %s %s</div>' % (
-                re.sub(r"[^a-z0-9-]+", "-", ref.lower()), "low" if ledger.metric_passes(m) else "high",
-                e(ref), e(verdict._n(m["value"])), e(m["unit"]), e(m["op"]), e(verdict._n(m["budget"]))))
+            S.append('<div id="%s" class="risk %s"><code>%s</code> %s %s against %s %s</div>' % (
+                _anchor(ref), "low" if ledger.metric_passes(m) else "high", e(ref), e(verdict._n(m["value"])),
+                e(m["unit"]), e(m["op"]), e(verdict._n(m["budget"]))))
     for c in r["coverage"]:
         for ch in c["checks"]:
-            ref = "%s/coverage:%s" % (c["skill"], ch["id"])
-            L.append('<span id="ev-%s"></span>' % re.sub(r"[^a-z0-9-]+", "-", ref.lower()))
-    L.append("</div>")
-    L.append('<p class="muted">Directors are simulated by sub-agents reading the same evidence. Their judgement is '
-             'advice; the evidence and the computed decision are the record.</p>')
+            S.append('<span id="%s"></span>' % _anchor("%s/coverage:%s" % (c["skill"], ch["id"])))
+    S.append('</div><p class="muted">The directors are simulated by sub-agents reading the same evidence. Their judgement '
+             'is advice; the evidence and the computed decision are the record.</p>')
+    steps.append(("step-evidence", "The evidence", "".join(S)))
+
+    # ---- assemble
+    L = ["<!doctype html>", '<html lang="en"><head><meta charset="utf-8">',
+         '<meta name="viewport" content="width=device-width, initial-scale=1">',
+         "<title>%s - Board meeting</title><style>%s</style></head>" % (e(name), MEETING_CSS),
+         '<body data-fp="%s"><div class="wrap">' % e(fp),
+         '<div class="top"><div class="muted hint">Board meeting &middot; %s</div><h1>%s</h1>' % (e(ledger.now()[:10]), e(name)),
+         '<div class="row" style="margin-top:8px"><button class="ctl" id="prev">Previous</button>'
+         '<button class="ctl primary" id="next">Next</button>'
+         '<select class="jump" id="jump" aria-label="Jump to a step">%s</select>'
+         '<span class="spacer"></span><span class="muted hint">Arrow keys move between steps</span>'
+         '<button class="ctl" id="mode">Show all</button></div>'
+         '<div class="steptitle" id="steplabel" style="margin-top:6px"></div>'
+         '<div class="progress"><span id="progbar"></span></div></div>' % "".join(
+             '<option value="%d">%d. %s</option>' % (k, k + 1, e(title)) for k, (_, title, _) in enumerate(steps))]
+    for sid, title, body in steps:
+        L.append('<section class="step" id="%s" data-title="%s">%s</section>' % (e(sid), e(title), body))
     L.append("</div><script>%s</script></body></html>" % MEETING_JS)
     return "\n".join(L) + "\n"
 
@@ -917,8 +1163,10 @@ def _build(d):
     dec = decide(r, seats, good, triggered)
     qa = _load_qa(d)
     bdir = _board_dir(d)
-    _write(os.path.join(bdir, "minutes.md"), minutes_md(r, seats, good, dec, qa))
-    _write(os.path.join(bdir, "meeting.html"), meeting_html(r, seats, good, dec, qa, meta["fingerprint"]))
+    items, general, untested = agenda(r, seats, good, triggered)
+    _write(os.path.join(bdir, "minutes.md"), minutes_md(r, seats, good, dec, qa, items, general, untested))
+    _write(os.path.join(bdir, "meeting.html"),
+           meeting_html(r, seats, good, dec, qa, meta["fingerprint"], items, general, untested))
     with open(os.path.join(bdir, "decision.json"), "w", encoding="utf-8") as fh:
         json.dump(dict(dec, generated=ledger.now(), invalid=bad), fh, indent=2, ensure_ascii=False)
     return dec, bad, stale, bdir

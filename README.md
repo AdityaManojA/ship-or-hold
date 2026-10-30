@@ -157,10 +157,14 @@ ledger, and a director cannot cite one that does not exist. Vetoes come from the
 evidence itself, not from a director's mood: a verified high security finding holds
 the launch whatever the votes say.
 
-The result is `proof/board/meeting.html`: the presentation, the room with each
-director's vote, the meeting (replay it one director at a time, or filter by vote),
-the board's questions with the team's answers, the vote, the computed decision with
-every reason, and the action list grouped by owner, which you can tick off.
+The result is `proof/board/meeting.html`, which runs the meeting step by step:
+the opening presentation, then one agenda item per audit area (security, privacy,
+infrastructure, user flows, reliability, reach, AI, code health, finance, launch
+readiness), each with the team's slide, the directors who speak to it, and a
+computed outcome (Blocker, Concerns, Clear or Not covered); then the board's
+questions with the team's answers, the vote, the decision, and the action list
+grouped by owner, which you can tick off. Next, Previous and the arrow keys move
+through it; Show all puts it on one page.
 `examples/board-meeting.html` is a real meeting held on the demo shop.
 
 ## In CI

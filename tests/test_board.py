@@ -190,11 +190,40 @@ class Board(unittest.TestCase):
         self.decision()
         with open(os.path.join(self.d, "board", "meeting.html"), encoding="utf-8") as fh:
             page = fh.read()
-        for part in ("The presentation", "The room", "Replay the meeting", "The vote", "The decision", "Actions"):
+        for part in ("Opening", "The room", "Agenda", "Product and user flows", "Item outcome",
+                     "Questions from the board", "The vote", "The decision", "Actions", "Show all"):
             self.assertIn(part, page)
         self.assertNotIn("<script>x</script>", page)
         self.assertIn("&lt;script&gt;x&lt;/script&gt;", page)
         self.assertTrue(all(ord(c) < 128 for c in page))
+
+    def test_agenda_walks_the_audits(self):
+        f = ledger.new_finding("proof-sec-web", "Account takeover", "high", evidence=["evidence/proof-web-e2e/c.png"])
+        ledger.write_finding(self.d, f)
+        ledger.verify(self.d, "proof-sec-web", f["id"], by="evidence-file")
+        ledger.write_scores(self.d, "proof-seo", [{"id": "seo_score", "value": 50, "unit": "points", "budget": 80, "op": ">="}])
+        r, _ = board.evidence(self.d)
+        seats = board.load_seats()
+        cto = answer("cto", "hold", risks=[{"risk": "checkout untested at scale", "severity": "medium",
+                                            "evidence": ["proof-web-e2e/coverage:checkout"]}])
+        ceo = answer("ceo", "hold", risks=[{"risk": "general unease", "severity": "low", "evidence": []}])
+        items, general, untested = board.agenda(r, seats, {"cto": cto, "ceo": ceo}, board.vetoes(r, seats))
+        by = {it["id"]: it for it in items}
+        self.assertEqual([it["id"] for it in items], ["flows", "security", "reach"])  # board order
+        self.assertEqual(by["flows"]["outcome"], "Clear")
+        self.assertEqual(by["security"]["outcome"], "Blocker")
+        self.assertEqual(by["reach"]["outcome"], "Concerns")
+        self.assertEqual([sp["seat"] for sp in by["flows"]["speakers"]], ["cto"])
+        self.assertEqual([sp["seat"] for sp in general], ["ceo"])
+        self.assertIn("Finance", untested)
+
+    def test_required_but_missing_area_is_not_covered(self):
+        ledger.write_target(self.d, {"name": "Shop", "kind": "web", "authorised": True,
+                                     "required_skills": ["proof-web-e2e", "proof-finance"]})
+        r, _ = board.evidence(self.d)
+        items, _, _ = board.agenda(r, board.load_seats(), {}, [])
+        fin = next(it for it in items if it["id"] == "finance")
+        self.assertEqual(fin["outcome"], "Not covered")
 
     def test_avatars_distinct(self):
         svgs = {s: board.avatar_svg(s, 56, "t") for s in self.seats}

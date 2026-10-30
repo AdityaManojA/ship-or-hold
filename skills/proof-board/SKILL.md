@@ -115,22 +115,39 @@ The decision is computed:
 - **Go** when the Proof verdict is Ship and every director who answered voted go.
 
 It writes `proof/board/minutes.md`, `proof/board/decision.json`, and
-`proof/board/meeting.html`, an interactive page:
+`proof/board/meeting.html`, an interactive page that runs the meeting step by step,
+the way a board takes it:
 
-1. The presentation: verdict, finding counts, scores, coverage.
-2. The room: each director with their vote; click one to jump to what they said.
-3. The meeting: each director's statement, risks linked to the evidence,
-   conditions, and the board's questions with the team's answers. "Replay the
-   meeting" reveals the directors one at a time, ending on the vote; filters show
-   only Go, Conditions or Hold.
-4. The vote, as a bar.
-5. The decision, with every reason.
-6. The actions: the evidence blockers and every condition, each with an owner, as a
-   checklist you can tick off (remembered in your browser).
+1. **Opening.** The team presents: the verdict, finding counts, scores, coverage,
+   the nine directors in the room, and the agenda.
+2. **One agenda item per audit area**, in board order: product and user flows,
+   reliability and performance, security, infrastructure, privacy and legal,
+   accessibility and reach, AI features, code health, finance, launch readiness.
+   Only areas with evidence, or that the target requires, are on the agenda; the
+   rest are listed as not tested. Each item has three parts:
+   - the team presents that area: what was run, its verified findings, its scores
+     against budget, the checks not yet run;
+   - the board discusses: each director whose risks cite evidence from that area
+     speaks, with every risk linked to its evidence;
+   - the item outcome, computed: **Blocker** (a verified high or critical finding,
+     or a veto), **Concerns** (a medium finding, a score over budget, or a required
+     check not run), **Clear**, or **Not covered** (required but not run).
+3. **Other concerns**: judgement calls that are not tied to one audit.
+4. **Questions from the board**, with the team's answers.
+5. **The vote**: each director's verdict, revealed one after another, and the tally.
+6. **The decision**, with every reason, and where each audit landed.
+7. **Actions**, grouped by owner, as a checklist you can tick off (remembered in
+   your browser), then the evidence appendix every reference links to.
 
-Open the page for the user (the built-in browser, or send the file), and narrate
-the meeting in chat as well: the presentation in two lines, then each director in
-turn with their vote and their main point, then the decision and the top actions.
+Move with Next and Previous, the arrow keys or the step list; each step has its
+own link (`#step-3`). "Show all" puts the whole meeting on one page for reading or
+printing.
+
+Open the page for the user (the built-in browser, or send the file), and run the
+same meeting in chat, item by item: the opening in two lines, then for each agenda
+item what the team showed, what each director said, and the outcome; then the
+questions, the vote, the decision and the top actions. Pause after each agenda item
+if the user wants to discuss it.
 
 ## Honest limits
 
