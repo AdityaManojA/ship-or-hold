@@ -147,6 +147,31 @@ def root(d="proof"):
     return os.path.abspath(d)
 
 
+def guard_out(path, d="proof", force=False, ours=None):
+    """Stop a tool overwriting a file the user owns.
+
+    Writing is fine when the file does not exist, sits under the proof folder, carries
+    the marker ``ours`` (a file an earlier Proof run wrote), or ``force`` is set.
+    Otherwise the tool exits with a message instead of replacing the file.
+    """
+    if force or not os.path.isfile(path):
+        return
+    base, full = root(d), os.path.abspath(path)
+    try:
+        if os.path.commonpath([base, full]) == base:
+            return
+    except ValueError:  # another drive
+        pass
+    if ours:
+        try:
+            with open(full, encoding="utf-8", errors="replace") as fh:
+                if ours in fh.read(65536):
+                    return
+        except OSError:
+            pass
+    raise SystemExit("%s already exists and was not written by Proof; pass --force to overwrite it" % path)
+
+
 def _read_json(path):
     with open(path, encoding="utf-8") as fh:
         return json.load(fh)
@@ -185,6 +210,34 @@ def load_target(d="proof"):
     if not os.path.exists(path):
         return None
     return _validated(_read_json(path), "target")
+
+
+LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1", "0.0.0.0"}
+
+
+def _url_host(url):
+    from urllib.parse import urlparse
+    return (urlparse(url if "//" in url else "//" + url).hostname or "").lower()
+
+
+def authorised_for(d, url):
+    """Return None when traffic may be sent to url, else the reason it may not.
+
+    A local address is always allowed. Anything else must be one of the hosts in
+    proof/target.json, and the target must be marked as owned or authorised.
+    """
+    host = _url_host(url)
+    if host in LOCAL_HOSTS or host.endswith(".localhost") or host.endswith(".test"):
+        return None
+    t = load_target(d)
+    if not t:
+        return "%s is not a local address and there is no proof/target.json; run /proof-plan first" % host
+    if not t.get("authorised"):
+        return "proof/target.json does not say you own or are authorised to test this target"
+    hosts = set(_url_host(u) for u in t.get("urls") or [])
+    if host not in hosts:
+        return "%s is not one of the target's hosts (%s)" % (host, ", ".join(sorted(hosts)) or "none listed")
+    return None
 
 
 # --------------------------------------------------------------- findings

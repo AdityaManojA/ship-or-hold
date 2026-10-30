@@ -62,6 +62,7 @@ CATEGORIES = [
 def cmd_deck(a):
     deck = {"categories": CATEGORIES}
     if a.out:
+        ledger.guard_out(a.out, a.dir, a.force)
         with open(a.out, "w", encoding="utf-8") as fh:
             json.dump(deck, fh, indent=2)
         print("%s wrote the test deck to %s" % (ledger.OK, a.out))
@@ -144,6 +145,7 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd", required=True)
     d = sub.add_parser("deck", help="show or write the test deck")
     d.add_argument("--out")
+    d.add_argument("--force", action="store_true", help="overwrite the file even if it is not one Proof wrote")
     d.set_defaults(func=cmd_deck)
     sub.add_parser("plan", help="create the coverage ledger").set_defaults(func=cmd_plan)
     r = sub.add_parser("result", help="record a category pass or fail")

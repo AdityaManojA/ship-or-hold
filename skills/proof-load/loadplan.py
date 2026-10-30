@@ -58,6 +58,10 @@ export default function () {
 
 
 def cmd_plan(a):
+    why = ledger.authorised_for(a.dir, a.target)
+    if why:
+        raise SystemExit("Not writing a load plan: %s. Load against a host you do not own can take it "
+                         "down; point it at a local or staging copy, or record the target with /proof-plan." % why)
     out = a.out or os.path.join("proof", "load")
     os.makedirs(out, exist_ok=True)
     budget = [dict(m) for m in DEFAULT_BUDGET]
@@ -69,6 +73,8 @@ def cmd_plan(a):
             m["budget"] = a.p99
         if m["id"] == "rps" and a.rps:
             m["budget"] = a.rps
+    ledger.guard_out(os.path.join(out, "budget.json"), a.dir, a.force, ours='"p95_ms"')
+    ledger.guard_out(os.path.join(out, "load.js"), a.dir, a.force, ours="// Load plan for ")
     with open(os.path.join(out, "budget.json"), "w", encoding="utf-8") as fh:
         json.dump({"metrics": budget}, fh, indent=2)
     p95 = next(m["budget"] for m in budget if m["id"] == "p95_ms")
@@ -175,6 +181,7 @@ def main(argv=None):
     p.add_argument("--p99", type=int)
     p.add_argument("--rps", type=int)
     p.add_argument("--out")
+    p.add_argument("--force", action="store_true", help="overwrite the file even if it is not one Proof wrote")
     p.set_defaults(func=cmd_plan)
     r = sub.add_parser("record", help="score a measured result against the budget")
     r.add_argument("--measured", required=True)

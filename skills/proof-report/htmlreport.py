@@ -168,6 +168,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--dir", default="proof")
     ap.add_argument("--out", help="default: <dir>/report.html")
+    ap.add_argument("--force", action="store_true", help="overwrite the file even if it is not one Proof wrote")
     ap.add_argument("--fail-on", choices=ledger.SEVERITIES[:-1])
     a = ap.parse_args(argv)
     if not os.path.isdir(a.dir):
@@ -175,6 +176,7 @@ def main(argv=None):
         return 2
     r = verdict.compute(a.dir, a.fail_on)
     out = a.out or os.path.join(a.dir, "report.html")
+    ledger.guard_out(out, a.dir, a.force, ours="Proof report</title>")
     with open(out, "w", encoding="utf-8") as fh:
         fh.write(render_html(a.dir, r))
     print("Verdict: %s. Wrote %s" % (r["verdict"], out))

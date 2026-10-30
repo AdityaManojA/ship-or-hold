@@ -142,6 +142,7 @@ def cmd_template(a):
              "fixed": "2.3.1", "reference": "your advisory source url"},
         ]
     }
+    ledger.guard_out(a.out, a.dir, a.force)
     with open(a.out, "w", encoding="utf-8") as fh:
         json.dump(sample, fh, indent=2)
     print("%s wrote an advisory template to %s. Fill it from your own advisory export." % (ledger.OK, a.out))
@@ -237,6 +238,7 @@ def main(argv=None):
     au.set_defaults(func=cmd_audit)
     t = sub.add_parser("template", help="write an advisory file template")
     t.add_argument("--out", required=True)
+    t.add_argument("--force", action="store_true", help="overwrite the file even if it is not one Proof wrote")
     t.set_defaults(func=cmd_template)
     sub.add_parser("status", help="recorded findings").set_defaults(func=cmd_status)
     a = ap.parse_args(argv)

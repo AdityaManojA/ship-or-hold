@@ -272,6 +272,7 @@ def cmd_script(a):
     else:
         body = _PY_TEMPLATE % {"id": a.flow_id, "name": os.path.basename(a.out),
                                "start": flow["start"], "png": png, "txt": txt, "steps": flow["steps"]}
+    ledger.guard_out(a.out, a.dir, a.force)
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     with open(a.out, "w", encoding="utf-8") as fh:
         fh.write(body)
@@ -331,6 +332,7 @@ def main(argv=None):
     sc = sub.add_parser("script", help="write a starter browser script for a flow")
     sc.add_argument("flow_id")
     sc.add_argument("--out", required=True)
+    sc.add_argument("--force", action="store_true", help="overwrite the file even if it is not one Proof wrote")
     g = sc.add_mutually_exclusive_group()
     g.add_argument("--python", action="store_true")
     g.add_argument("--node", action="store_true")

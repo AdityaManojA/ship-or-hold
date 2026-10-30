@@ -900,6 +900,7 @@ def cmd_cases(a):
     canonical = _write_json(_cases_path(a.dir), doc)
     written = [canonical]
     if a.out and os.path.abspath(a.out) != os.path.abspath(canonical):
+        ledger.guard_out(a.out, a.dir, a.force, ours='"spec_sha256"')
         written.append(_write_json(os.path.abspath(a.out), doc))
     _write_endpoints(a.dir, a.spec, sha, spec, ops)
     _sync_coverage(a.dir, ops, cases)
@@ -1056,6 +1057,7 @@ def main(argv=None):
     c = sub.add_parser("cases", help="write a checklist of awkward-input cases per operation")
     c.add_argument("--spec", required=True)
     c.add_argument("--out", help="also write a copy of the case list here")
+    c.add_argument("--force", action="store_true", help="overwrite the file even if it is not one Proof wrote")
     c.set_defaults(func=cmd_cases)
 
     r = sub.add_parser("record-case", help="record a case pass or fail with its evidence")

@@ -41,6 +41,33 @@ claude plugin marketplace add AdityaManojA/ship-or-hold
 claude plugin install proof-skill@proof-skill
 ```
 
+### Keep it up to date
+
+To get new releases automatically, turn on auto-update for the marketplace: in a
+Claude Code session open `/plugin`, go to Marketplaces, select `proof-skill` and
+enable auto-update. Or add `autoUpdate` to the entry in `~/.claude/settings.json`:
+
+```json
+"extraKnownMarketplaces": {
+  "proof-skill": {
+    "source": { "source": "github", "repo": "AdityaManojA/ship-or-hold" },
+    "autoUpdate": true
+  }
+}
+```
+
+Claude Code then checks for a new version when it starts; restart to load it. To
+update by hand instead:
+
+```bash
+claude plugin marketplace update proof-skill
+claude plugin update proof-skill@proof-skill
+```
+
+If you installed before the repo was renamed and adding the marketplace fails with
+"its source doesn't match its extraKnownMarketplaces entry", change `repo` in that
+entry from `AdityaManojA/the-startup-skill` to `AdityaManojA/ship-or-hold`.
+
 Claude Code namespaces plugin skills, so installed as a plugin they show up as
 `/proof-skill:proof-plan` and so on. Copy the folders instead if you want plain
 `/proof-plan`:

@@ -30,6 +30,34 @@ class Load(unittest.TestCase):
     def tearDown(self):
         self.tp.__exit__(None, None, None)
 
+    def test_plan_refuses_hosts_you_have_not_authorised(self):
+        out = os.path.join(self.tp.base, "load")
+        rc, msg = run("--dir", self.d, "plan", "--target", "https://example.org/", "--out", out)
+        self.assertNotEqual(rc, 0)
+        self.assertIn("Not writing a load plan", msg)
+        self.assertFalse(os.path.exists(os.path.join(out, "load.js")))
+        ledger.write_target(self.d, {"name": "Shop", "kind": "web", "authorised": True, "required_skills": [],
+                                     "urls": ["https://staging.shop.example/"]})
+        rc, msg = run("--dir", self.d, "plan", "--target", "https://example.org/", "--out", out)
+        self.assertIn("not one of the target's hosts", msg)
+        rc, msg = run("--dir", self.d, "plan", "--target", "https://staging.shop.example/cart", "--out", out)
+        self.assertEqual(rc, 0, msg)
+
+    def test_plan_will_not_overwrite_a_project_file(self):
+        out = os.path.join(self.tp.base, "proj")
+        os.makedirs(out)
+        with open(os.path.join(out, "budget.json"), "w", encoding="utf-8") as fh:
+            fh.write('{"mine": true}')
+        rc, msg = run("--dir", self.d, "plan", "--target", "http://localhost:3000/", "--out", out)
+        self.assertNotEqual(rc, 0)
+        self.assertIn("--force", msg)
+        with open(os.path.join(out, "budget.json"), encoding="utf-8") as fh:
+            self.assertEqual(fh.read(), '{"mine": true}')
+        # A plan Proof wrote earlier is replaced without --force.
+        os.remove(os.path.join(out, "budget.json"))
+        self.assertEqual(run("--dir", self.d, "plan", "--target", "http://localhost:3000/", "--out", out)[0], 0)
+        self.assertEqual(run("--dir", self.d, "plan", "--target", "http://localhost:3000/", "--out", out)[0], 0)
+
     def test_plan_writes_budget_and_script(self):
         out = os.path.join(self.tp.base, "load")
         rc, _ = run("--dir", self.d, "plan", "--target", "http://localhost:3000/", "--vus", "10",
@@ -43,7 +71,7 @@ class Load(unittest.TestCase):
 
     def test_record_scores(self):
         out = os.path.join(self.tp.base, "load")
-        run("--dir", self.d, "plan", "--target", "http://x/", "--out", out)
+        run("--dir", self.d, "plan", "--target", "http://localhost:3000/", "--out", out)
         measured = os.path.join(self.tp.base, "m.json")
         with open(measured, "w", encoding="utf-8") as fh:
             json.dump({"p95_ms": 420, "p99_ms": 900, "error_rate": 0.002, "rps": 75}, fh)
@@ -56,7 +84,7 @@ class Load(unittest.TestCase):
 
     def test_record_over_budget(self):
         out = os.path.join(self.tp.base, "load")
-        run("--dir", self.d, "plan", "--target", "http://x/", "--out", out)
+        run("--dir", self.d, "plan", "--target", "http://localhost:3000/", "--out", out)
         measured = os.path.join(self.tp.base, "m.json")
         with open(measured, "w", encoding="utf-8") as fh:
             json.dump({"p95_ms": 1200, "p99_ms": 3000, "error_rate": 0.2, "rps": 5}, fh)
@@ -68,7 +96,7 @@ class Load(unittest.TestCase):
 
     def test_missing_metric_is_error(self):
         out = os.path.join(self.tp.base, "load")
-        run("--dir", self.d, "plan", "--target", "http://x/", "--out", out)
+        run("--dir", self.d, "plan", "--target", "http://localhost:3000/", "--out", out)
         measured = os.path.join(self.tp.base, "m.json")
         with open(measured, "w", encoding="utf-8") as fh:
             json.dump({"p95_ms": 420}, fh)  # missing the rest
@@ -78,7 +106,7 @@ class Load(unittest.TestCase):
 
     def test_from_k6(self):
         out = os.path.join(self.tp.base, "load")
-        run("--dir", self.d, "plan", "--target", "http://x/", "--out", out)
+        run("--dir", self.d, "plan", "--target", "http://localhost:3000/", "--out", out)
         summary = os.path.join(self.tp.base, "k6.json")
         with open(summary, "w", encoding="utf-8") as fh:
             json.dump({"metrics": {

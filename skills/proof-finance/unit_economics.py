@@ -173,6 +173,7 @@ TEMPLATE = {
 
 def cmd_main(a):
     if a.template:
+        ledger.guard_out(a.template, a.dir, a.force)
         with open(a.template, "w", encoding="utf-8") as fh:
             json.dump(TEMPLATE, fh, indent=2)
         print("%s wrote an example numbers file to %s. Replace every value with your own." % (ledger.OK, a.template))
@@ -187,6 +188,7 @@ def cmd_main(a):
     text = render(result)
     out = a.out or (os.path.join(ledger.root(a.dir), "finance.md") if a.record else None)
     if out:
+        ledger.guard_out(out, a.dir, a.force, ours="- unit economics")
         os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
         with open(out, "w", encoding="utf-8") as fh:
             fh.write(text)
@@ -221,6 +223,7 @@ def main(argv=None):
     ap.add_argument("numbers", nargs="?", help="the inputs JSON")
     ap.add_argument("--dir", default="proof")
     ap.add_argument("--out", help="where to write the report")
+    ap.add_argument("--force", action="store_true", help="overwrite the file even if it is not one Proof wrote")
     ap.add_argument("--record", action="store_true", help="write scores to the ledger")
     ap.add_argument("--template", help="write an example numbers file to this path and exit")
     a = ap.parse_args(argv)

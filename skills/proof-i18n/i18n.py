@@ -395,6 +395,16 @@ def pseudo_tree(obj, expand):
     return obj
 
 
+def _is_pseudo(path):
+    """True when path is a pseudo-locale an earlier run wrote (every string bracketed), so it may be replaced."""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            values = [v for _, v in flatten(json.load(fh)) if isinstance(v, str)]
+    except (OSError, ValueError, AttributeError, TypeError):
+        return False
+    return bool(values) and all(v.startswith("[") and v.endswith("]") for v in values)
+
+
 # ---------------------------------------------------------------- hardcoded
 
 _BLOCKS = re.compile(r"<(script|style)\b[^>]*>.*?</\1\s*>|<!--.*?-->", re.S | re.I)
@@ -528,6 +538,7 @@ def cmd_pseudo(a):
     out = pseudo_tree(obj, expand)
     folder = os.path.dirname(os.path.abspath(a.out))
     os.makedirs(folder, exist_ok=True)
+    ledger.guard_out(a.out, a.dir, a.force or _is_pseudo(a.out))
     with open(a.out, "w", encoding="utf-8") as fh:
         json.dump(out, fh, ensure_ascii=False, indent=2)
         fh.write("\n")
@@ -695,6 +706,7 @@ def main(argv=None):
     p = sub.add_parser("pseudo", help="write a pseudo-locale from a base JSON file")
     p.add_argument("base_json")
     p.add_argument("--out", required=True, help="where to write the pseudo-locale JSON")
+    p.add_argument("--force", action="store_true", help="overwrite the file even if it is not one Proof wrote")
     p.add_argument("--expand", default="0.35", help="padding ratio, default 0.35 (35%% longer)")
     p.set_defaults(func=cmd_pseudo)
 

@@ -79,6 +79,7 @@ def cmd_maestro(a):
         lines.append("- tapOn: %s" % _yaml_escape(step))
     lines.append("# expect: %s" % flow["expect"])
     lines.append("- takeScreenshot: %s" % ("evidence/%s/%s" % (SKILL, a.flow_id)))
+    ledger.guard_out(a.out, a.dir, a.force)
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     with open(a.out, "w", encoding="utf-8") as fh:
         fh.write("\n".join(lines) + "\n")
@@ -150,6 +151,7 @@ def main(argv=None):
     m = sub.add_parser("maestro", help="generate a Maestro YAML flow")
     m.add_argument("flow_id")
     m.add_argument("--out", required=True)
+    m.add_argument("--force", action="store_true", help="overwrite the file even if it is not one Proof wrote")
     m.add_argument("--app", help="the app id, e.g. com.example.app")
     m.set_defaults(func=cmd_maestro)
     r = sub.add_parser("result", help="record a flow pass or fail")

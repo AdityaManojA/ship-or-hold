@@ -298,11 +298,13 @@ def main(argv=None):
     ap.add_argument("--fail-on", choices=ledger.SEVERITIES[:-1], help="override target.json fail_on (default high)")
     ap.add_argument("--check", action="store_true", help="print the verdict only; exit 0 Ship, 1 Not yet, 2 Incomplete")
     ap.add_argument("--out", help="default: <dir>/report.md")
+    ap.add_argument("--force", action="store_true", help="overwrite the file even if it is not one Proof wrote")
     ap.add_argument("--json", action="store_true", help="print verdict.json to stdout instead of the summary")
     a = ap.parse_args(argv)
     ledger.console()
     r = compute(a.dir, a.fail_on)
     if a.sarif:
+        ledger.guard_out(a.sarif, a.dir, a.force, ours='"name": "Proof"')
         os.makedirs(os.path.dirname(os.path.abspath(a.sarif)), exist_ok=True)
         with open(a.sarif, "w", encoding="utf-8") as fh:
             json.dump(to_sarif(r, a.sarif_all), fh, indent=2)
@@ -316,6 +318,7 @@ def main(argv=None):
         print(json.dumps({k: v for k, v in r.items() if k not in ("findings", "coverage", "scores")}, indent=2, ensure_ascii=False))
         return EXIT[r["verdict"]]
     out = a.out or os.path.join(a.dir, "report.md")
+    ledger.guard_out(out, a.dir, a.force, ours="Proof report")
     if os.path.isdir(a.dir):
         with open(out, "w", encoding="utf-8") as fh:
             fh.write(render(r))

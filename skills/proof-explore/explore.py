@@ -82,6 +82,8 @@ def cmd_scaffold(a):
     os.makedirs(out, exist_ok=True)
     prof_path = os.path.join(out, "profile.json")
     brief_path = os.path.join(out, "brief.md")
+    ledger.guard_out(prof_path, a.dir, a.force, ours='"dimensions"')
+    ledger.guard_out(brief_path, a.dir, a.force, ours="== What you can see and do ==")
     with open(prof_path, "w", encoding="utf-8") as fh:
         json.dump(_profile(a.target, name), fh, ensure_ascii=False, indent=2)
     with open(brief_path, "w", encoding="utf-8") as fh:
@@ -180,6 +182,7 @@ def main(argv=None):
     s.add_argument("--target", required=True, help="what to explore, e.g. 'a web checkout'")
     s.add_argument("--name", help="run name (default explore-<target>)")
     s.add_argument("--out", help="output dir (default proof/explore)")
+    s.add_argument("--force", action="store_true", help="overwrite the file even if it is not one Proof wrote")
     s.set_defaults(func=cmd_scaffold)
     h = sub.add_parser("harvest", help="turn a swarm tally into candidate findings")
     h.add_argument("--results", required=True, help="path to a swarm results.json")
