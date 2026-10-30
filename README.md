@@ -13,11 +13,18 @@ never a silent pass.
 It covers the whole surface of a product: web and mobile testing, security and
 dependency and secret audits, performance, accessibility, SEO and AI-search
 readiness, mutation and load testing, LLM-feature safety, the finance behind the
-product, and a tamper-evident evidence pack at the end. **24 skills**, all driven by
+product, and a tamper-evident evidence pack at the end. **26 skills**, all driven by
 one shared ledger, each usable on its own.
 
 ```
 /proof-plan  ->  the testing skills you choose  ->  /proof-report  ->  /proof-audit-trail
+```
+
+Or test everything in one go:
+
+```
+/proof-plan  ->  /proof-full-check          (every applicable skill)
+/proof-plan  ->  /proof-full-check-no-seo   (the same, without SEO and AI-search)
 ```
 
 ## Install
@@ -73,7 +80,18 @@ or TruffleHog is installed, the matching skill uses it for stronger evidence; wh
 is not, the skill falls back to a slower built-in path. `/proof-doctor` tells you
 what is installed and what each missing tool would add.
 
-## The 24 skills
+## The 26 skills
+
+### Full checks
+
+- **`/proof-full-check`** - run every skill that applies to the target as one check.
+  Works out the skills for the target's kind (web, API, mobile, repo), makes all of
+  them required, and walks you through them in order, ending with the verdict.
+  `fullcheck.py plan [--has-llm] [--mobile android] [--skip proof-x]` ·
+  `fullcheck.py next` · `fullcheck.py status`
+- **`/proof-full-check-no-seo`** - the same full check without SEO and AI-search
+  (GEO), for internal tools, stealth builds and private betas.
+  `fullcheck.py plan --no-seo` · `fullcheck.py next` · `fullcheck.py status`
 
 ### Core
 
