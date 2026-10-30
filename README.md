@@ -394,6 +394,20 @@ Privacy, cookies, consent and legal
 - N/A - Cookie banner and consent: no cookies and no third-party services.
 - [ ] PENDING - The directors quote real people with attribution. The quotes are short, attributed and linked; whether your own use of a generated meeting is fair is your call, and the page states the directors are simulated and do not speak for anyone.
 
+## Demo (optional)
+
+This tests a small demo shop that ships with the repo, not your project. It is
+only for seeing what a run looks like before you point Proof at your own code.
+From a clone of this repo:
+
+```bash
+python3 examples/run_demo.py
+```
+
+It starts the demo shop with nine problems planted on purpose, runs Proof against
+it, catches all nine, and writes the verdict, an HTML report and a SARIF file. See
+`examples/README.md`.
+
 ## Credit
 
 Proof is original work. It draws on ideas from several open-source skill packs and
