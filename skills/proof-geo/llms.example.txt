@@ -1,0 +1,24 @@
+# Larkspur
+
+> Larkspur is a time-tracking app for small design studios. It turns calendar
+> events and git activity into timesheets, so designers bill accurately without
+> filling in a grid by hand.
+
+## Docs
+
+- [Getting started](https://larkspur.example/docs/start): install, connect a
+  calendar, and send your first invoice in ten minutes.
+- [How billing works](https://larkspur.example/docs/billing): rounding rules,
+  rates per client, and how time becomes an invoice.
+- [Integrations](https://larkspur.example/docs/integrations): the calendars, git
+  hosts and accounting tools Larkspur connects to.
+
+## About
+
+- [Pricing](https://larkspur.example/pricing): plans and what each one includes.
+- [Security](https://larkspur.example/security): where data is stored and how it
+  is protected.
+
+## Contact
+
+- [Support](https://larkspur.example/support): how to reach a human.
