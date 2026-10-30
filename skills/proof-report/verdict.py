@@ -290,6 +290,18 @@ def to_sarif(r, include_unverified=False):
                       "properties": {"verdict": r["verdict"]}}]}
 
 
+def write_html(d, r):
+    """Write <dir>/report.html next to report.md, so every run has a page to open."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("proof_htmlreport", os.path.join(HERE, "htmlreport.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    page = os.path.join(d, "report.html")
+    with open(page, "w", encoding="utf-8") as fh:
+        fh.write(mod.render_html(d, r))
+    return page
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--sarif", help="also write the findings as a SARIF 2.1.0 file to this path")
@@ -300,6 +312,7 @@ def main(argv=None):
     ap.add_argument("--out", help="default: <dir>/report.md")
     ap.add_argument("--force", action="store_true", help="overwrite the file even if it is not one Proof wrote")
     ap.add_argument("--json", action="store_true", help="print verdict.json to stdout instead of the summary")
+    ap.add_argument("--open", action="store_true", help="open the HTML report in the default browser")
     a = ap.parse_args(argv)
     ledger.console()
     r = compute(a.dir, a.fail_on)
@@ -325,7 +338,10 @@ def main(argv=None):
         with open(os.path.join(a.dir, "verdict.json"), "w", encoding="utf-8") as fh:
             json.dump({k: v for k, v in r.items() if k not in ("findings", "coverage", "scores")}, fh, indent=2, ensure_ascii=False)
             fh.write("\n")
-        print("Verdict: %s. Wrote %s" % (r["verdict"], out))
+        page = write_html(a.dir, r)
+        print("Verdict: %s. Wrote %s and %s" % (r["verdict"], out, page))
+        if a.open:
+            ledger.open_page(page, "the report")
     else:
         print("Verdict: %s. %s" % (r["verdict"], r["gaps"][0] if r["gaps"] else ""))
     return EXIT[r["verdict"]]

@@ -64,11 +64,19 @@ high or critical findings as they appear.
 
 ## Step 4: the verdict
 
-When `next` says everything is done, run `/proof-report` for the computed verdict,
-`/proof-board` to present it to the board of directors, then `/proof-audit-trail`
-to pack the run. Go straight on without asking: the board ends with
-`board.py tally --open`, which opens the meeting page in the user's browser by
-itself (in CI or with no screen it prints the path instead).
+Finish in this order, every time, without asking:
+
+1. `/proof-report`: `verdict.py` computes Ship, Not yet or Incomplete and writes
+   `proof/report.md` and `proof/report.html`.
+2. `/proof-board`, whatever the verdict. An Incomplete or Not yet run is exactly
+   what the board should hear: untested areas show as Not covered. Write the
+   briefs, convene the directors, `check`, then `board.py tally --open`, which opens
+   the meeting page in the user's browser. The page links to the full report.
+3. `/proof-audit-trail` packs the run with a hash for every file.
+
+The full check is not done until the meeting page has opened (in CI or with no
+screen, its path is printed instead). If the board cannot run, open the report
+with `verdict.py --open` so the user still sees a page.
 
 ## When you go public
 

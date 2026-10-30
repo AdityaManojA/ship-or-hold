@@ -24,7 +24,7 @@ What the user typed after `/proof-report`: `$ARGUMENTS`
 ## The tool
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/verdict.py"            # writes proof/report.md and proof/verdict.json
+python3 "${CLAUDE_SKILL_DIR}/verdict.py" --open     # writes report.md, report.html, verdict.json; opens the page
 python3 "${CLAUDE_SKILL_DIR}/verdict.py" --check    # prints the verdict; exit 0 Ship, 1 Not yet, 2 Incomplete
 python3 "${CLAUDE_SKILL_DIR}/verdict.py" --fail-on medium
 ```
@@ -76,7 +76,7 @@ python3 verdict.py --check || echo "not shippable yet"
 
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/verdict.py" --sarif proof/proof.sarif   # findings as SARIF 2.1.0
-python3 "${CLAUDE_SKILL_DIR}/htmlreport.py"                          # proof/report.html
+python3 "${CLAUDE_SKILL_DIR}/htmlreport.py" --out shared/report.html   # another copy of the page
 ```
 
 SARIF is the format code-scanning tools read. Upload it (for example with GitHub's

@@ -106,6 +106,8 @@ def render_html(d, r):
          "<h1>%s</h1>" % esc(name),
          '<div class="muted">Proof report, generated %s</div>' % esc(r.get("generated", "")),
          '<div class="verdict" style="background:%s">Verdict: %s</div>' % (COLOR[r["verdict"]], esc(r["verdict"]))]
+    if os.path.isfile(os.path.join(d, "board", "meeting.html")):
+        L.append('<p><a href="board/meeting.html">Watch the board meeting</a></p>')
     if r.get("fail_on"):
         L.append('<div class="muted">Blocks Ship: a verified finding at %s or above, or a score over budget.</div>'
                  % esc(r["fail_on"]))
@@ -170,6 +172,7 @@ def main(argv=None):
     ap.add_argument("--out", help="default: <dir>/report.html")
     ap.add_argument("--force", action="store_true", help="overwrite the file even if it is not one Proof wrote")
     ap.add_argument("--fail-on", choices=ledger.SEVERITIES[:-1])
+    ap.add_argument("--open", action="store_true", help="open the page in the default browser")
     a = ap.parse_args(argv)
     if not os.path.isdir(a.dir):
         print("error: no %s folder. Run /proof-plan first." % a.dir, file=sys.stderr)
@@ -180,6 +183,8 @@ def main(argv=None):
     with open(out, "w", encoding="utf-8") as fh:
         fh.write(render_html(a.dir, r))
     print("Verdict: %s. Wrote %s" % (r["verdict"], out))
+    if a.open:
+        ledger.open_page(out, "the report")
     return verdict.EXIT[r["verdict"]]
 
 

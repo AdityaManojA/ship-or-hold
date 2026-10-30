@@ -49,6 +49,27 @@ class Verdict(unittest.TestCase):
         self.base()
         self.assertEqual(self.v(), "Ship")
 
+    def test_every_run_writes_a_page_and_open_is_safe_in_ci(self):
+        self.base()
+        import contextlib
+        import io
+        old = os.environ.get("CI")
+        os.environ["CI"] = "true"  # never launch a browser from the test suite
+        try:
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                rc = verdict.main(["--dir", self.d, "--open"])
+        finally:
+            if old is None:
+                del os.environ["CI"]
+            else:
+                os.environ["CI"] = old
+        self.assertEqual(rc, 0)
+        page = os.path.join(self.d, "report.html")
+        self.assertTrue(os.path.isfile(page))
+        self.assertIn("Proof report</title>", open(page, encoding="utf-8").read())
+        self.assertIn("Open %s in a browser" % os.path.abspath(page), out.getvalue())
+
     def test_the_thesis_unverified_then_verified(self):
         """Flipping a finding's status is what changes the verdict, nothing else."""
         self.base()

@@ -30,6 +30,7 @@ import datetime
 import json
 import os
 import re
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SCHEMA_PATH = os.path.join(HERE, "evidence-schema.json")
@@ -145,6 +146,27 @@ def _validated(obj, kind):
 
 def root(d="proof"):
     return os.path.abspath(d)
+
+
+def open_page(path, what="the page"):
+    """Open a local page in the default browser, unless this is CI or a machine with no screen.
+
+    Returns True when a browser was asked to open it. Otherwise prints the path and how to open it.
+    """
+    import pathlib
+    import webbrowser
+    path = os.path.abspath(path)
+    headless = os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS") or (
+        sys.platform.startswith("linux") and not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")))
+    if not headless:
+        try:
+            if webbrowser.open(pathlib.Path(path).as_uri()):
+                print("%s opened %s in your browser: %s" % (OK, what, path))
+                return True
+        except webbrowser.Error:
+            pass
+    print("Open %s in a browser to see %s (double-click it, or: start / open / xdg-open)." % (path, what))
+    return False
 
 
 def guard_out(path, d="proof", force=False, ours=None):

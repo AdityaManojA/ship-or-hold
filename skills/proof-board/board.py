@@ -29,7 +29,6 @@ import html
 import importlib.util
 import json
 import os
-import pathlib
 import re
 import sys
 
@@ -1238,6 +1237,7 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
         e(label), e(label)) for label, _, _ in steps)
     body = "".join('<section class="step" data-dur="%d" aria-label="%s">%s</section>' % (dur, e(label), html_)
                    for label, dur, html_ in steps)
+    report_link = '<p class="fine"><a href="../report.html">Open the full Proof report</a></p>' if r.get("report_html") else ""
     return "\n".join([
         "<!doctype html>", '<html lang="en"><head><meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
@@ -1247,6 +1247,7 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
         '<header class="top"><div class="brand"><h1>%s</h1><span class="meta">Board meeting &middot; %s</span></div>'
         '<ol class="segments" aria-label="Meeting progress">%s</ol></header>' % (e(name), e(ledger.now()[:10]), segs),
         "<main>%s</main>" % body,
+        report_link,
         '<p class="fine">The directors are sub-agents applying the documented thinking of the people named, quoting them with '
         'sources. None is that person or speaks for them. The evidence and the computed decision are the record.</p>',
         "<script>%s</script></body></html>" % MEETING_JS,
@@ -1458,6 +1459,7 @@ def _build(d):
     seats = [s for s in load_seats() if s["id"] in meta["seats"]]
     r, refs = evidence(d)
     stale = fingerprint(r) != meta["fingerprint"]
+    r["report_html"] = os.path.isfile(os.path.join(ledger.root(d), "report.html"))
     good, bad = load_answers(d, meta, refs)
     triggered = vetoes(r, seats)
     dec = decide(r, seats, good, triggered)
@@ -1495,20 +1497,7 @@ def cmd_tally(a):
 
 
 def open_page(path):
-    """Open a page in the default browser, unless this is CI or a machine with no screen. Returns True if opened."""
-    path = os.path.abspath(path)
-    headless = os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS") or (
-        sys.platform.startswith("linux") and not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")))
-    if not headless:
-        import webbrowser
-        try:
-            if webbrowser.open(pathlib.Path(path).as_uri()):
-                print("%s opened %s in your browser" % (ledger.OK, path))
-                return True
-        except webbrowser.Error:
-            pass
-    print("Open %s in a browser to watch the meeting (double-click it, or: start / open / xdg-open)." % path)
-    return False
+    return ledger.open_page(path, "the board meeting")
 
 
 def cmd_meeting(a):
