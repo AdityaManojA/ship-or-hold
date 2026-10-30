@@ -124,7 +124,7 @@ shows you the meeting as it happens:
   `board.py tally` prints the whole meeting; `board.py play` paces it in a terminal.
 - **In the browser**, `proof/board/meeting.html` plays the same meeting on its own,
   item by item, and stops on the actions. Each step shows the short version and
-  the quotes; the full points sit behind a click. Opening one holds the meeting on
+  any quote that decided a call; the full points sit behind a click. Opening one holds the meeting on
   that step until it is closed, and the progress bar at the top jumps to any step.
   Nothing needs a click.
 
@@ -177,24 +177,21 @@ researched from their own talks, interviews, books and letters:
 | CPO | Tony Fadell | the product experience | none |
 | Legal | Brad Smith | privacy, trust, regulation | privacy |
 
-How a director speaks, taken from the demo meeting:
+How a director speaks, taken from the demo meeting. The CTO quotes because the
+words are the call; the CFO, on the same point, quotes nothing:
 
 ```
-CISO (Steve Katz lens):
-  - HIGH: A known-vulnerable dependency (larkspur-templates 1.4.1) ships in
-    production. An attacker who knows the advisory can use it against the
-    storefront and the customer data behind it.
-    evidence: proof-sec-deps/dep-larkspur-templates-demo-2026-0001
-    quoting Steve Katz: "But really, the biggest threat is the ever-increasing
-      expertise of the hackers." (SecurityWeek, 'CISO Conversations: Steve Katz,
-      the World's First CISO', 2021-12-01)
 CTO (Werner Vogels lens):
-  - HIGH: larkspur-templates 1.4.1 has a known vulnerability. A flaw in a shared
-    dependency affects every request path that uses it.
-    quoting Werner Vogels: "We've developed the fundamental skill of managing the
-      "blast radius" of a failure occurrence such that the overall health of the
-      system can be maintained." (All Things Distributed, '10 Lessons from 10 Years
-      of Amazon Web Services', 2016-03-11)
+  - HIGH: The signup form posts to a plain HTTP endpoint, so customer personal
+    data travels unencrypted.
+    evidence: proof-privacy/privacy-insecure-forms-form-to-http-localhost-signup-posts-o
+    quoting Werner Vogels: "Make use of it. Dance like nobody is watching. Encrypt
+      like everyone is." (SDxCentral, 'Amazon's Werner Vogels: Dance Like Nobody's
+      Watching. Encrypt Like Everyone Is', 2019-03-27)
+CFO (Ruth Porat lens):
+  - HIGH: The signup form posts personal data over plain HTTP. Every signup is a
+    liability rather than revenue until this is fixed.
+    evidence: proof-privacy/privacy-insecure-forms-form-to-http-localhost-signup-posts-o
 ```
 
 Sixty verified quotes back the nine lenses, gathered from the people's own blogs,
@@ -208,6 +205,10 @@ The rules that keep this honest:
 - Directors quote only the verbatim, sourced quotes in
   `skills/proof-board/personas.json`. `check` rejects any quote id that is not in
   that seat's list, and the meeting page links every quote to its source.
+- Quotes are rare on purpose. A director may quote only when the person's words are
+  the reason for a high-severity call backed by evidence, at most once per answer.
+  `check` sends back any answer that quotes on a medium or low point, quotes twice,
+  or quotes for colour. Most directors quote nothing.
 - A director applies a person's thinking; it never writes as that person or claims
   they would endorse anything.
 - Every high-severity point must cite a finding or score from the ledger; invented

@@ -267,9 +267,26 @@ class Board(unittest.TestCase):
             rc, out = run("--dir", self.d, "check")
             self.assertEqual(rc, 1)
             self.assertIn("not one of this seat's researched quotes", out)
-            good = answer("cfo", "go", risks=[{"risk": "spend discipline", "severity": "low", "evidence": [],
+            f = ledger.new_finding("proof-sec-web", "Account takeover", "high", evidence=["evidence/proof-web-e2e/c.png"])
+            ledger.write_finding(self.d, f)
+            ledger.verify(self.d, "proof-sec-web", f["id"], by="evidence-file")
+            run("--dir", self.d, "brief")
+            ref = "proof-sec-web/" + f["id"]
+            # Quoting for colour is refused: on a low point, more than once, or as a loose quote.
+            for risks, extra, msg in (
+                    ([{"risk": "spend discipline", "severity": "low", "evidence": [], "quote": "tp-cost"}], {},
+                     "below high severity"),
+                    ([{"risk": "a", "severity": "high", "evidence": [ref], "quote": "tp-cost"},
+                      {"risk": "b", "severity": "high", "evidence": [ref], "quote": "tp-cost"}], {}, "at most one"),
+                    ([], {"quotes_used": [{"id": "tp-cost", "why": "Cost matters here."}]}, "quotes_used is not accepted")):
+                bad = answer("cfo", "go", risks=risks)
+                bad.update(extra)
+                self.write_all("go", cfo=bad)
+                rc, out = run("--dir", self.d, "check")
+                self.assertEqual(rc, 1, msg)
+                self.assertIn(msg, out)
+            good = answer("cfo", "go", risks=[{"risk": "spend discipline", "severity": "high", "evidence": [ref],
                                                "quote": "tp-cost"}])
-            good["quotes_used"] = [{"id": "tp-cost", "why": "Cost matters here."}]
             self.write_all("go", cfo=good)
             rc, out = run("--dir", self.d, "tally")
             self.assertIn('quoting Test Person: "Every dollar has to earn its place."', out)

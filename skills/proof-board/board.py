@@ -225,10 +225,7 @@ SCHEMA = """{
   "risks": [
     {"risk": "what could go wrong", "severity": "high" or "medium" or "low",
      "evidence": ["refs exactly as written in square brackets in the presentation, e.g. proof-sec-web/some-id"],
-     "quote": "optional: the id of one quote from your lens that this point rests on, e.g. q-id, or empty"}
-  ],
-  "quotes_used": [
-    {"id": "a quote id from your lens", "why": "one sentence: how it applies to this product"}
+     "quote": "almost always empty; see the quoting rule in your brief"}
   ],
   "conditions": [
     {"action": "what must happen", "owner": "a seat id (ceo, cto, ciso, cfo, cmo, sales, coo, cpo, legal)",
@@ -278,9 +275,11 @@ def lens_section(persona):
         for q in persona["quotes"]:
             L.append('- [%s] "%s" (%s, %s)' % (q["id"], q["text"], q.get("source", ""), q.get("date", "")))
         L.append("")
-        L.append("When one of these quotes is the reason for a point, put its id in that risk's \"quote\" field. "
-                 "Use \"quotes_used\" for quotes that shape your overall view. Use them where they genuinely "
-                 "apply to this evidence, not as decoration.")
+        L.append("Quoting rule: most answers quote nothing. Quote only when %s's exact words are the reason "
+                 "for a high-severity call that cites evidence, so the board would weigh it differently without "
+                 "the quote. Never quote for colour, to open or close, or because a quote is loosely related. "
+                 "At most one quote in your whole answer: put its id in that risk's \"quote\" field."
+                 % persona["name"].split()[-1])
         L.append("")
     return L
 
@@ -357,11 +356,14 @@ def validate_answer(obj, seat_id, refs, quote_ids=None):
         qid = rk.get("quote")
         if qid and qid not in quote_ids:
             problems.append("risk %d quotes %r, which is not one of this seat's researched quotes" % (i + 1, qid))
-    if not isinstance(obj.get("quotes_used", []), list):
-        problems.append("quotes_used must be a list")
-    for i, qu in enumerate(obj.get("quotes_used") or []):
-        if not isinstance(qu, dict) or qu.get("id") not in quote_ids:
-            problems.append("quotes_used %d is not one of this seat's researched quotes" % (i + 1))
+        elif qid and (rk.get("severity") != "high" or not ev):
+            problems.append("risk %d quotes on a %s point without evidence or below high severity; quote only "
+                            "when the words decide a high, evidenced call" % (i + 1, rk.get("severity")))
+    quoted = [rk for rk in obj.get("risks") or [] if isinstance(rk, dict) and rk.get("quote")]
+    if len(quoted) > 1:
+        problems.append("%d quotes; use at most one, on the call it decides" % len(quoted))
+    if obj.get("quotes_used"):
+        problems.append("quotes_used is not accepted; attach the one quote that decides a high risk to that risk, or none")
     for i, cd in enumerate(obj.get("conditions") or []):
         if not isinstance(cd, dict) or not cd.get("action"):
             problems.append("condition %d needs an 'action'" % (i + 1))
@@ -920,36 +922,23 @@ def _quote_html(q, persona_name):
     return '<blockquote>&ldquo;%s&rdquo;<footer>%s &middot; %s</footer></blockquote>' % (e(q["text"]), e(persona_name), src)
 
 
-def _speech(seat, persona, risks, quotes_used, suffix):
-    """A director: the short form of each point and every quote they used; the full points in a dropdown."""
+def _speech(seat, persona, risks, suffix):
+    """A director: the short form of their top points, the quote right under the one call it decides, if any;
+    the full points in a dropdown."""
     qmap = dict((q["id"], q) for q in (persona or {}).get("quotes", []))
     pname = (persona or {}).get("name")
     out = ['<div class="speaker reveal"><div class="av">%s</div><div>' % avatar_svg(seat["id"], 52, suffix),
            '<div class="name">%s%s</div>' % (e(seat["short"]), ("<small>%s lens</small>" % e(pname)) if pname else "")]
-    quotes, shown = [], set()
     rank = dict((s, k) for k, s in enumerate(ledger.SEVERITIES))
-    for k, rk in enumerate(sorted(risks, key=lambda x: rank.get(x["severity"], 9))):
-        if k < 2:
-            out.append('<p class="say"><span class="sev %s">%s</span>%s</p>' % (e(rk["severity"]), e(rk["severity"]), e(_short(rk["risk"]))))
-        q = qmap.get(rk.get("quote"))
-        if q and q["id"] not in shown:
-            quotes.append(_quote_html(q, pname))
-            shown.add(q["id"])
-    for qu in quotes_used or []:
-        q = qmap.get(qu.get("id"))
-        if q and q["id"] not in shown:
-            if not risks:
-                out.append('<p class="say">%s</p>' % e(_short(qu.get("why", ""))))
-            quotes.append(_quote_html(q, pname))
-            shown.add(q["id"])
-    out.extend(quotes)
+    ordered = sorted(risks, key=lambda x: (not x.get("quote"), rank.get(x["severity"], 9)))
+    for rk in ordered[:2]:
+        out.append('<p class="say"><span class="sev %s">%s</span>%s</p>' % (e(rk["severity"]), e(rk["severity"]), e(_short(rk["risk"]))))
+        if rk.get("quote") in qmap:
+            out.append(_quote_html(qmap[rk["quote"]], pname))
     more = []
     for rk in risks:
         refs = ", ".join(_ref_link(x) for x in rk.get("evidence") or []) or "judgement call"
         more.append("<p>%s<br>%s</p>" % (e(rk["risk"]), refs))
-    for qu in quotes_used or []:
-        if qu.get("why") and risks:
-            more.append("<p>%s</p>" % e(qu["why"]))
     if more:
         out.append('<details><summary>Full points</summary><div class="more">%s</div></details>' % "".join(more))
     out.append("</div></div>")
@@ -1031,29 +1020,19 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
             S.append('<details><summary>Everything the team showed</summary><div class="more">%s</div></details>' % "".join(more))
         S.append("</div>")
         for k, sp in enumerate(it["speakers"]):
-            S.append(_speech(seat_by[sp["seat"]], personas.get(sp["seat"]), sp["risks"], [], "i%d%d" % (i, k)))
+            S.append(_speech(seat_by[sp["seat"]], personas.get(sp["seat"]), sp["risks"], "i%d%d" % (i, k)))
         if not it["speakers"]:
             S.append('<p class="small reveal">No director raised a point here.</p>')
         S.append('<p class="outcome %s reveal"><b>%s</b> &middot; %s</p>' % (
             oclass[it["outcome"]], e(it["outcome"]), e(it["reasons"][0] if it["reasons"] else "")))
         steps.append((it["title"], _dur(len(it["speakers"])), "".join(S)))
 
-    # Points not tied to one audit, and quotes not yet shown
-    shown_by = {}
-    for it in items:
-        for sp in it["speakers"]:
-            for rk in sp["risks"]:
-                if rk.get("quote"):
-                    shown_by.setdefault(sp["seat"], set()).add(rk["quote"])
+    # Points not tied to one audit
     extra, n_extra = [], 0
     for k, seat in enumerate(seats):
-        a = answers.get(seat["id"])
-        if not a:
-            continue
         loose = next((g["risks"] for g in general if g["seat"] == seat["id"]), [])
-        used = [q for q in a.get("quotes_used") or [] if q.get("id") not in shown_by.get(seat["id"], set())]
-        if loose or used:
-            extra.append(_speech(seat, personas.get(seat["id"]), loose, used, "g%d" % k))
+        if loose and seat["id"] in answers:
+            extra.append(_speech(seat, personas.get(seat["id"]), loose, "g%d" % k))
             n_extra += 1
     if extra:
         steps.append(("Other points", _dur(n_extra, 5000),
@@ -1184,7 +1163,7 @@ def transcript(r, seats, answers, dec, qa, items, general, untested, personas=No
     if untested:
         L.append(W("Not tested, not discussed: %s." % ", ".join(untested)))
 
-    def speak(seat_id, risks, used=()):
+    def speak(seat_id, risks):
         seat = seat_by[seat_id]
         p = personas.get(seat_id) or {}
         qmap = dict((q["id"], q) for q in p.get("quotes", []))
@@ -1198,11 +1177,6 @@ def transcript(r, seats, answers, dec, qa, items, general, untested, personas=No
             if q:
                 out.append(W('quoting %s: "%s" (%s%s)' % (p["name"], q["text"], q.get("source", ""),
                                                           (", " + q["date"]) if q.get("date") else ""), "      "))
-        for qu in used:
-            q = qmap.get(qu.get("id"))
-            if q:
-                out.append(W('%s As %s put it: "%s" (%s%s)' % (qu.get("why", ""), p["name"], q["text"], q.get("source", ""),
-                                                             (", " + q["date"]) if q.get("date") else ""), "    "))
         return out
 
     for i, it in enumerate(items, 1):
@@ -1222,21 +1196,11 @@ def transcript(r, seats, answers, dec, qa, items, general, untested, personas=No
             for sp in it["speakers"]:
                 L += speak(sp["seat"], sp["risks"])
         L.append(W("Outcome: %s. %s" % (it["outcome"].upper(), " ".join(it["reasons"]))))
-    shown_by = {}
-    for it in items:
-        for sp in it["speakers"]:
-            for rk in sp["risks"]:
-                if rk.get("quote"):
-                    shown_by.setdefault(sp["seat"], set()).add(rk["quote"])
     extra = []
     for seat in seats:
-        a = answers.get(seat["id"])
-        if not a:
-            continue
         loose = next((g["risks"] for g in general if g["seat"] == seat["id"]), [])
-        used = [q for q in a.get("quotes_used") or [] if q.get("id") not in shown_by.get(seat["id"], set())]
-        if loose or used:
-            extra += speak(seat["id"], loose, used)
+        if loose and seat["id"] in answers:
+            extra += speak(seat["id"], loose)
     if extra:
         L += ["", "-" * width, "OTHER POINTS", "-" * width] + extra
     qs = []

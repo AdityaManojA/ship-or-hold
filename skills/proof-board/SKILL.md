@@ -58,6 +58,11 @@ verbatim quotes in `personas.json`, every one with its source and date. A direct
 never writes as the person, never alters or extends a quote, and `check` rejects
 any quote id that is not in that seat's researched list.
 
+Quotes are rare on purpose. A director quotes only when the person's exact words
+are the reason for a high-severity call that cites evidence, and at most once in
+the whole answer. Never for colour, to open or close, or because a quote is loosely
+related. Most answers quote nothing.
+
 ## Step 1: evidence first
 
 The board judges the ledger, so the testing skills (or `/proof-full-check`) and
@@ -84,7 +89,8 @@ Send ONE message with one Agent tool call per director brief, all in parallel:
 - `prompt`: `Read <brief path> and follow it exactly. It is your whole brief.`
 
 Then `board.py check`. It rejects a high-severity risk that cites nothing, a
-reference not in the evidence, and a quote id outside the seat's research. Send the
+reference not in the evidence, a quote id outside the seat's research, a quote on a
+medium or low point or without evidence, and more than one quote. Send the
 director its problems and have it fix its own file. Never write a director's answer.
 
 ## Step 4: answer the board's questions
@@ -109,8 +115,8 @@ as it comes, step by step, without waiting for the user**:
 2. **Each agenda item** (one per audit area: user flows, reliability, security,
    infrastructure, privacy and legal, reach, AI, code health, finance, launch
    readiness): what the team showed; each director who spoke, with their point, the
-   evidence, and the quote they rested it on ("Katz's view: ... He said: '...'
-   (source, year)"); and the computed outcome: Blocker, Concerns, Clear or Not
+   evidence, and, only where it decided a high-severity call, the one quote it
+   rested on ("Katz's view: ... He said: '...' (source, year)"); and the computed outcome: Blocker, Concerns, Clear or Not
    covered.
 3. **Other points, questions and answers, the vote, the decision, the top actions.**
 
