@@ -105,6 +105,11 @@ class Board(unittest.TestCase):
         self.write_all("go", **over)
         dec, _ = self.decision()
         self.assertEqual(dec["decision"], "Hold")
+        with open(os.path.join(self.d, "board", "meeting.html"), encoding="utf-8") as fh:
+            page = fh.read()
+        self.assertIn("HOLD!", page)
+        self.assertIn("Do not proceed.", page)
+        self.assertNotIn('class="tick"', page)
 
     def test_ledger_veto_overrides_votes(self):
         f = ledger.new_finding("proof-sec-web", "Account takeover via reset token", "critical",
@@ -190,8 +195,9 @@ class Board(unittest.TestCase):
         self.decision()
         with open(os.path.join(self.d, "board", "meeting.html"), encoding="utf-8") as fh:
             page = fh.read()
-        for part in ("Opening", "Agenda and rules", "Product and user flows", "The board asks",
-                     "The vote", "The decision", "Actions", "Full points", "<details", "Watch again"):
+        for part in ("Opening", "At the table", "Rules of the meeting", "Product and user flows", "The board asks",
+                     "The vote", "The decision", "Actions", "Full points", "<details", "Watch again",
+                     'class="flip"', "Cleared to launch.", 'class="tick"'):
             self.assertIn(part, page)
         for gone in ("Pause", "Live view", "Full transcript"):
             self.assertNotIn(gone, page)

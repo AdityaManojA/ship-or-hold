@@ -792,10 +792,6 @@ h2{font:600 clamp(30px,5vw,46px)/1.05 var(--display);letter-spacing:-.005em;marg
 .stats{display:flex;flex-wrap:wrap;gap:26px;margin:6px 0 22px}
 .stat b{display:block;font:600 34px/1 var(--display)}
 .stat span{font:500 12px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-.table{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:14px 10px;margin:8px 0 20px}
-.seat{text-align:center}
-.seat .who{font:600 13px var(--display);letter-spacing:.04em;margin-top:6px}
-.seat .lens{font:400 12px var(--display);color:var(--muted)}
 .av{display:inline-flex;border-radius:50%;background:var(--quote);overflow:hidden;flex:none;align-self:start}
 .av svg{display:block}
 .team{border-top:2px solid var(--ink);padding-top:12px;margin:4px 0 20px}
@@ -821,16 +817,7 @@ details .more{margin-top:8px;font-size:16px;color:var(--soft)}
 .outcome{margin-top:16px;font:500 15px var(--display);letter-spacing:.02em;color:var(--soft)}
 .outcome b{text-transform:uppercase;letter-spacing:.08em}
 .outcome.blocker b{color:var(--blocker)}.outcome.concerns b{color:var(--concerns)}.outcome.clear b{color:var(--clear)}
-.ballots{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin:8px 0}
-.ballot{background:var(--panel);border:1px solid var(--line);padding:12px;text-align:center}
-.ballot .who{font:600 13px var(--display);margin-top:6px}
-.call{font:600 12px var(--display);letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
-.call.go{color:var(--clear)}.call.go_with_conditions{color:var(--concerns)}.call.hold{color:var(--blocker)}.call.none{color:var(--none)}
-.tally{display:flex;height:6px;background:var(--line);margin:18px 0 6px}
-.tally span{display:block;height:100%}
 .small{font:400 14px var(--display);color:var(--muted);letter-spacing:.01em}
-.decision .word{font:700 clamp(56px,11vw,104px)/.95 var(--display);letter-spacing:-.01em;margin:6px 0 12px}
-.decision.hold .word{color:var(--blocker)}.decision.go .word{color:var(--clear)}.decision.go_with_conditions .word{color:var(--concerns)}
 .areas{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
 .areas span{font:500 13px var(--display);padding:4px 10px;border:1px solid var(--line2)}
 .areas span b{margin-left:6px}
@@ -838,11 +825,98 @@ details .more{margin-top:8px;font-size:16px;color:var(--soft)}
 .actions input{margin-top:6px;accent-color:var(--accent)}
 .actions label.done span{text-decoration:line-through;color:var(--muted)}
 .actions .owner{font:600 12px var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:16px 0 4px}
-.qa{padding:10px 0;border-top:1px solid var(--line)}
-.qa p{margin:2px 0}
 .replay{all:unset;cursor:pointer;font:600 13px var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-top:28px;display:inline-block}
 .fine{max-width:860px;margin:0 auto;padding:0 clamp(16px,4vw,48px) 40px;font:400 12px/1.5 var(--display);color:var(--muted)}
-@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.segments li.now .bar i{animation:none}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes popin{0%{opacity:0;transform:scale(.6)}70%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:none}}
+@keyframes slidel{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+@keyframes slider{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes turn{0%{transform:rotateY(0)}100%{transform:rotateY(180deg)}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes slam{0%{opacity:0;transform:scale(4) rotate(-16deg)}55%{opacity:1;transform:scale(.9) rotate(-7deg)}72%{transform:scale(1.06) rotate(-7deg)}100%{opacity:1;transform:scale(1) rotate(-7deg)}}
+@keyframes bloom{0%{opacity:0;transform:scale(.2)}60%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+@keyframes shake{0%,100%{transform:none}15%{transform:translate(-10px,4px)}30%{transform:translate(9px,-5px)}45%{transform:translate(-7px,3px)}60%{transform:translate(5px,-2px)}75%{transform:translate(-3px,1px)}}
+@keyframes ring{from{opacity:.7;transform:translate(-50%,-50%) scale(.3)}to{opacity:0;transform:translate(-50%,-50%) scale(2.6)}}
+@keyframes ray{0%{opacity:0;transform:rotate(var(--r)) translateY(-40px) scaleY(.2)}40%{opacity:1}100%{opacity:0;transform:rotate(var(--r)) translateY(-190px) scaleY(1)}}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes flashbg{0%{background:var(--panel)}12%{background:var(--flash)}100%{background:var(--tint)}}
+.step.on .late{animation:rise .5s 2s both}
+.step.on .pop{animation:popin .5s calc(.5s + var(--i,0)*.12s) both}
+.opening{padding:10px 0 4px}
+.hero{font:700 clamp(36px,7vw,64px)/1 var(--display);letter-spacing:-.01em;display:block;margin:10px 0 18px}
+.hero span{display:block;font:400 .45em/1.3 var(--text);font-style:italic;color:var(--soft);letter-spacing:0;margin-top:6px}
+.going-in{display:flex;align-items:baseline;gap:12px;margin:0 0 14px}
+.vword{font:700 22px var(--display);letter-spacing:.06em;text-transform:uppercase}
+.vword.hold{color:var(--blocker)}.vword.go{color:var(--clear)}.vword.go_with_conditions{color:var(--concerns)}
+.label-line{display:flex;align-items:center;gap:12px;font:600 12px var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:26px 0 12px}
+.label-line::after{content:"";flex:1;height:1px;background:var(--line2)}
+.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.person{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);padding:10px 12px}
+.step.on .person{animation:rise .5s calc(.9s + var(--i)*.14s) both}
+.person .role{font:600 11px var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.person .full{font:600 18px/1.2 var(--display)}
+.person .from{font:400 13px/1.35 var(--display);color:var(--muted)}
+.agenda{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:8px}
+.agenda li{font:500 14px var(--display);border:1px solid var(--line2);padding:6px 12px;background:var(--panel)}
+.agenda li span{color:var(--accent);font-weight:700;margin-right:8px}
+.step.on .agenda li{animation:popin .45s calc(2.2s + var(--i)*.12s) both}
+.thread{display:flex;flex-direction:column;gap:10px;margin:8px 0 16px}
+.ask,.reply{display:flex;gap:10px;align-items:flex-end;max-width:88%}
+.reply{align-self:flex-end;flex-direction:row-reverse}
+.bubble{background:var(--panel);border:1px solid var(--line);padding:10px 14px;font-size:16px;line-height:1.5}
+.bubble b{display:block;font:600 12px var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.reply .bubble{background:var(--ink);color:var(--canvas);border-color:var(--ink)}
+.reply .bubble b{color:inherit;opacity:.7}
+.reply.none .bubble{background:transparent;color:var(--muted);border-style:dashed;border-color:var(--line2)}
+.step.on .ask{animation:slidel .5s calc(.6s + var(--i)*1.1s) both}
+.step.on .reply{animation:slider .5s calc(.6s + var(--i)*1.1s) both}
+.ballots{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin:8px 0;perspective:900px}
+.ballot{height:132px}
+.flip{position:relative;height:100%;transform-style:preserve-3d}
+.step.on .flip{animation:turn .7s cubic-bezier(.3,1.4,.5,1) calc(.5s + var(--i)*.45s) both}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;border:1px solid var(--line);background:var(--panel);text-align:center;padding:8px}
+.face .who{font:600 14px var(--display);letter-spacing:.04em}
+.front{transform:rotateY(180deg);color:#fff;border:0;background:var(--none)}
+.front.go{background:var(--clear)}.front.go_with_conditions{background:var(--concerns)}.front.hold{background:var(--blocker)}
+.front .call{font:700 19px/1.1 var(--display);letter-spacing:.06em;text-transform:uppercase}
+.front .small{color:rgba(255,255,255,.85)}
+.tally{display:flex;height:10px;background:var(--line);margin:18px 0 10px;transform-origin:left}
+.tally span{display:block;height:100%}
+.step.on .tally{animation:grow .9s ease-out calc(.9s + var(--lag)*.45s) both}
+.counts{display:flex;gap:28px;flex-wrap:wrap}
+.step.on .counts{animation:rise .5s calc(1.5s + var(--lag)*.45s) both}
+.step.on details.late[style]{animation-delay:calc(2s + var(--lag)*.45s)}
+.count b{display:block;font:700 36px/1 var(--display)}
+.count span{font:500 12px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.count.go b{color:var(--clear)}.count.go_with_conditions b{color:var(--concerns)}.count.hold b{color:var(--blocker)}
+.stage{--tint:var(--panel);--flash:var(--panel);--c:var(--ink);position:relative;overflow:hidden;min-height:clamp(260px,44vh,420px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;margin:10px 0 22px;border:1px solid var(--line);background:var(--tint)}
+.stage.hold{--tint:#fbe9e6;--flash:#f4b8ae;--c:var(--blocker)}
+.stage.go{--tint:#e5f3eb;--flash:#b5e0c8;--c:var(--clear)}
+.stage.go_with_conditions{--tint:#fbf0dc;--flash:#f3d9a4;--c:var(--concerns)}
+.step.on .stage{animation:flashbg 1.6s ease-out .2s both}
+.step.on .stage.hold{animation:flashbg 1.6s ease-out .2s both,shake .55s ease-out .75s}
+.stamp{position:relative;z-index:2;font:800 clamp(72px,16vw,150px)/1 var(--display);letter-spacing:.02em;color:var(--c);
+  border:8px double var(--c);padding:.02em .24em .06em;border-radius:6px}
+.stage.hold .stamp{transform:rotate(-7deg)}
+.step.on .stage.hold .stamp{animation:slam .6s cubic-bezier(.2,.8,.3,1.2) .3s both}
+.step.on .stage.go .stamp,.step.on .stage.go_with_conditions .stamp{animation:bloom .7s cubic-bezier(.2,.9,.3,1.3) .4s both}
+.stage:not(.hold) .stamp{border:0;padding:0}
+.sub{position:relative;z-index:2;font:600 clamp(18px,3vw,26px) var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--c);margin-top:18px}
+.step.on .sub{animation:rise .5s 1.1s both}
+.rings i{position:absolute;left:50%;top:50%;width:260px;height:260px;border:3px solid var(--c);border-radius:50%;opacity:0}
+.step.on .rings i{animation:ring 1.6s ease-out calc(.75s + var(--k,0)*.35s) 2 both}
+.rings i:nth-child(2){--k:1}.rings i:nth-child(3){--k:2}
+.rays i{position:absolute;left:50%;top:50%;width:4px;height:60px;margin-left:-2px;background:var(--c);transform-origin:50% 0;opacity:0}
+.step.on .rays i{animation:ray 1.1s ease-out .7s both}
+.tick{width:64px;height:64px;position:relative;z-index:2;margin-bottom:6px}
+.tick path{fill:none;stroke:var(--c);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60}
+.step.on .tick path{animation:draw .5s ease-out 1s forwards}
+@media (prefers-color-scheme:dark){.stage.hold{--tint:#2b1513;--flash:#5e1d17}.stage.go{--tint:#11251a;--flash:#1d4a31}
+  .stage.go_with_conditions{--tint:#2a2112;--flash:#5a4214}}
+@media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.segments li.now .bar i{animation:none}
+  .step.on *{animation:none!important}.flip{transform:rotateY(180deg)}.tick path{stroke-dashoffset:0}.rings,.rays{display:none}}
 @media print{.top{position:static}.step{display:block!important;margin-bottom:40px}.reveal{opacity:1!important;transform:none!important}
   details{display:block}details .more{display:block}}
 """
@@ -962,28 +1036,33 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
     steps = []  # (label, dur, html)
 
     # Opening: who is presenting, the numbers, who is at the table
-    S = ['<div class="kicker">Opening</div><h2>The team presents</h2>',
-         '<p class="lede reveal">%s goes in with a Proof verdict of <b>%s</b>. %d area%s on the agenda.</p>' % (
-             e(name), e(r["verdict"]), len(items), "" if len(items) == 1 else "s"),
-         '<div class="stats reveal">']
-    for lab, n in (("high or critical", sev["critical"] + sev["high"]), ("medium", sev["medium"]), ("low", sev["low"])):
-        S.append('<div class="stat"><b>%d</b><span>%s</span></div>' % (n, lab))
-    S.append('<div class="stat"><b>%d/%d</b><span>scores in budget</span></div></div>' % (passing, len(metrics)))
-    S.append('<div class="table reveal">')
-    for seat in seats:
+    vcls = {"Ship": "go", "Not yet": "hold"}.get(r["verdict"], "go_with_conditions")
+    S = ['<div class="opening"><div class="kicker">Board meeting &middot; Opening</div>',
+         '<h2 class="hero">%s <span>presents to the board</span></h2>' % e(name),
+         '<div class="going-in"><span class="small">Proof verdict going in</span><b class="vword %s">%s</b></div>' % (vcls, e(r["verdict"])),
+         '<div class="stats">']
+    for k, (lab, n) in enumerate((("high or critical", sev["critical"] + sev["high"]), ("medium", sev["medium"]),
+                                  ("low", sev["low"]))):
+        S.append('<div class="stat pop" style="--i:%d"><b>%d</b><span>%s</span></div>' % (k, n, lab))
+    S.append('<div class="stat pop" style="--i:3"><b>%d/%d</b><span>scores in budget</span></div></div></div>' % (passing, len(metrics)))
+    S.append('<div class="label-line">At the table</div><div class="roster">')
+    for k, seat in enumerate(seats):
         p = personas.get(seat["id"])
-        S.append('<div class="seat"><div class="av">%s</div><div class="who">%s</div><div class="lens">%s</div></div>' % (
-            avatar_svg(seat["id"], 60, "o"), e(seat["short"]), e(p["name"].split()[-1]) if p else ""))
-    S.append("</div>")
-    more = ["<p><b>Agenda:</b> %s.</p>" % e("; ".join(it["title"] for it in items))]
+        S.append('<div class="person" style="--i:%d"><div class="av">%s</div><div><div class="role">%s</div>'
+                 '<div class="full">%s</div><div class="from">%s</div></div></div>' % (
+                     k, avatar_svg(seat["id"], 56, "o"), e(seat["title"]), e(p["name"]) if p else e(seat["short"]),
+                     e(p.get("known_for", "")) if p else ""))
+    S.append('</div><div class="label-line">Agenda</div><ol class="agenda">%s</ol>' % "".join(
+        '<li style="--i:%d"><span>%02d</span>%s</li>' % (k, k + 1, e(it["title"])) for k, it in enumerate(items)))
+    more = []
     if untested:
         more.append("<p><b>Not tested, so not discussed:</b> %s.</p>" % e(", ".join(untested)))
     if t.get("done_means"):
         more.append("<p><b>The team's bar for done:</b> %s</p>" % e(t["done_means"]))
     more.append("<p><b>Vetoes:</b> %s.</p>" % e("; ".join("%s over %s" % (s["short"], ", ".join(x.replace("proof-", "") for x in s["veto"]))
                                                               for s in seats if s["veto"])))
-    S.append('<details class="reveal"><summary>Agenda and rules</summary><div class="more">%s</div></details>' % "".join(more))
-    steps.append(("Opening", _dur(0, 7000), "".join(S)))
+    S.append('<details class="late"><summary>Rules of the meeting</summary><div class="more">%s</div></details>' % "".join(more))
+    steps.append(("Opening", 4000 + 450 * len(seats) + 400 * len(items), "".join(S)))
 
     # One step per audit area
     for i, it in enumerate(items, 1):
@@ -1045,50 +1124,79 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
             ans = qa.get(seat["id"], {}).get(str(i))
             qs.append((seat, q, ans))
     answered = [x for x in qs if x[2]]
+    shown_q = (answered + [x for x in qs if not x[2]])[:3]
     S = ['<div class="kicker">Questions</div><h2>The board asks</h2>',
-         '<p class="lede reveal">%d question%s, %d answered by the team.</p>' % (len(qs), "" if len(qs) == 1 else "s", len(answered))]
-    for seat, q, ans in answered[:3]:
-        S.append('<div class="qa reveal"><p><b>%s:</b> %s</p><p class="small">Team: %s</p></div>' % (e(seat["short"]), e(q), e(ans)))
-    rest = [x for x in qs if x not in answered[:3]]
+         '<p class="lede reveal">%d question%s, %d answered by the team.</p><div class="thread">' % (
+             len(qs), "" if len(qs) == 1 else "s", len(answered))]
+    for k, (seat, q, ans) in enumerate(shown_q):
+        p = personas.get(seat["id"])
+        S.append('<div class="ask" style="--i:%d"><div class="av">%s</div><div class="bubble"><b>%s</b>%s</div></div>' % (
+            2 * k, avatar_svg(seat["id"], 40, "q%d" % k), e(p["name"] if p else seat["short"]) + " &middot; " + e(seat["short"]), e(q)))
+        S.append('<div class="reply%s" style="--i:%d"><div class="bubble"><b>The team</b>%s</div></div>' % (
+            "" if ans else " none", 2 * k + 1, e(ans or "No answer recorded.")))
+    S.append("</div>")
+    rest = [x for x in qs if x not in shown_q]
     if rest:
-        S.append('<details class="reveal"><summary>All questions</summary><div class="more">%s</div></details>' % "".join(
+        S.append('<details class="late"><summary>All %d questions</summary><div class="more">%s</div></details>' % (len(qs), "".join(
             "<p><b>%s:</b> %s<br><span class=\"small\">%s</span></p>" % (e(s["short"]), e(q), e("Team: " + a) if a else "No answer recorded")
-            for s, q, a in rest))
-    steps.append(("Questions", 7000, "".join(S)))
+            for s, q, a in rest)))
+    steps.append(("Questions", 3500 + 2400 * len(shown_q), "".join(S)))
 
     # The vote
     nv = dict((k, len(v)) for k, v in dec["votes"].items())
     tot = max(1, sum(nv.values()) + len(dec["missing"]))
+    # Ballots turn over one at a time; the tally fills once the last one is face up.
     S = ['<div class="kicker">The vote</div><h2>The board votes</h2><div class="ballots">']
     for k, seat in enumerate(seats):
         a = answers.get(seat["id"])
         vote = a["vote"] if a else "none"
-        S.append('<div class="ballot reveal"><div class="av">%s</div><div class="who">%s</div><div class="call %s">%s</div></div>' % (
-            avatar_svg(seat["id"], 44, "v%d" % k), e(seat["short"]), vote, e(VOTE_LABEL.get(vote, "No answer"))))
-    S.append('</div><div class="tally reveal">')
+        p = personas.get(seat["id"])
+        S.append('<div class="ballot" style="--i:%d"><div class="flip">'
+                 '<div class="face back"><div class="av">%s</div><div class="who">%s</div><div class="small">votes</div></div>'
+                 '<div class="face front %s"><div class="who">%s</div><div class="call">%s</div><div class="small">%s</div></div>'
+                 '</div></div>' % (k, avatar_svg(seat["id"], 44, "v%d" % k), e(seat["short"]), vote, e(seat["short"]),
+                                   e(VOTE_LABEL.get(vote, "No answer")), e(p["name"]) if p else ""))
+    lag = "--lag:%d" % len(seats)
+    S.append('</div><div class="tally" style="%s">' % lag)
     for key, var in (("go", "--clear"), ("go_with_conditions", "--concerns"), ("hold", "--blocker")):
         if nv[key]:
             S.append('<span style="width:%.1f%%;background:var(%s)"></span>' % (100.0 * nv[key] / tot, var))
     if dec["missing"]:
         S.append('<span style="width:%.1f%%;background:var(--none)"></span>' % (100.0 * len(dec["missing"]) / tot))
-    S.append('</div><p class="small reveal">%d go &middot; %d go with conditions &middot; %d hold%s</p>' % (
-        nv["go"], nv["go_with_conditions"], nv["hold"], (" &middot; %d no answer" % len(dec["missing"])) if dec["missing"] else ""))
-    S.append('<details class="reveal"><summary>What each director said</summary><div class="more">%s</div></details>' % "".join(
-        "<p><b>%s:</b> %s</p>" % (e(s["short"]), e(answers[s["id"]]["summary"])) for s in seats if s["id"] in answers))
-    steps.append(("The vote", 9000, "".join(S)))
+    S.append('</div><div class="counts" style="%s">' % lag)
+    for key, label in (("go", "go"), ("go_with_conditions", "with conditions"), ("hold", "hold")):
+        S.append('<div class="count %s"><b>%d</b><span>%s</span></div>' % (key, nv[key], label))
+    if dec["missing"]:
+        S.append('<div class="count none"><b>%d</b><span>no answer</span></div>' % len(dec["missing"]))
+    S.append("</div>")
+    S.append('<details class="late" style="%s"><summary>What each director said</summary><div class="more">%s</div></details>' % (
+        lag, "".join("<p><b>%s:</b> %s</p>" % (e(s["short"]), e(answers[s["id"]]["summary"])) for s in seats if s["id"] in answers)))
+    steps.append(("The vote", 4500 + 450 * len(seats), "".join(S)))
 
-    # The decision
+    # The decision lands like a stamp; Hold shakes the stage, Go draws a tick.
     dcls = {GO: "go", GO_COND: "go_with_conditions", HOLD: "hold"}[dec["decision"]]
-    S = ['<div class="kicker">The decision</div><div class="decision %s"><div class="word reveal">%s</div>' % (dcls, e(dec["decision"])),
-         '<p class="lede reveal">%s</p></div>' % e(_short(dec["reasons"][0], 160) if dec["reasons"] else ""),
-         '<div class="areas reveal">%s</div>' % "".join('<span>%s<b class="sev %s">%s</b></span>' % (
-             e(it["title"]), "high" if it["outcome"] == BLOCKER else ("medium" if it["outcome"] == CONCERNS else "low"),
-             e(it["outcome"])) for it in items)]
+    n_block = sum(1 for c in dec["conditions"] if c["from"] == "evidence")
+    stamp, sub = {
+        "hold": ("HOLD!", "Do not proceed."),
+        "go": ("GO", "Cleared to launch."),
+        "go_with_conditions": ("GO", "With conditions: %d to meet first." % len(dec["conditions"])),
+    }[dcls]
+    S = ['<div class="kicker">The decision</div><div class="stage %s" role="img" aria-label="%s. %s">' % (dcls, e(dec["decision"]), e(sub)),
+         '<div class="rings"><i></i><i></i><i></i></div>']
+    if dcls != "hold":
+        S.append('<div class="rays">%s</div>' % "".join('<i style="--r:%ddeg"></i>' % (k * 30) for k in range(12)))
+        S.append('<svg class="tick" viewBox="0 0 52 52" aria-hidden="true"><path d="M14 27 l8 8 l16 -18"/></svg>')
+    S.append('<div class="stamp">%s</div><div class="sub">%s</div></div>' % (e(stamp), e(sub)))
+    S.append('<p class="lede late">%s</p>' % e(_short(dec["reasons"][0], 160) if dec["reasons"] else ""))
+    S.append('<div class="areas late">%s</div>' % "".join('<span>%s<b class="sev %s">%s</b></span>' % (
+        e(it["title"]), "high" if it["outcome"] == BLOCKER else ("medium" if it["outcome"] == CONCERNS else "low"),
+        e(it["outcome"])) for it in items))
     if len(dec["reasons"]) > 1:
-        S.append('<details class="reveal"><summary>Every reason</summary><div class="more">%s</div></details>' % "".join(
+        S.append('<details class="late"><summary>Every reason</summary><div class="more">%s</div></details>' % "".join(
             "<p>%s</p>" % e(x) for x in dec["reasons"]))
-    S.append('<p class="small reveal">Computed from the evidence and the votes, not written by hand.</p>')
-    steps.append(("Decision", 8000, "".join(S)))
+    S.append('<p class="small late">Computed from the evidence and the votes, not written by hand%s.</p>' % (
+        " &middot; %d blocker%s from the evidence" % (n_block, "" if n_block == 1 else "s") if n_block else ""))
+    steps.append(("Decision", 9000, "".join(S)))
 
     # Actions
     groups = [("From the evidence", [c for c in dec["conditions"] if c["from"] == "evidence"])]

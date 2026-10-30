@@ -123,7 +123,10 @@ shows you the meeting as it happens:
   based it on, the outcome of that item, then the vote, the decision and the actions.
   `board.py tally` prints the whole meeting; `board.py play` paces it in a terminal.
 - **In the browser**, `proof/board/meeting.html` plays the same meeting on its own,
-  item by item, and stops on the actions. Each step shows the short version and
+  item by item, and stops on the actions. The opening introduces each director by
+  full name, role and where they made their name; the questions play as an
+  exchange; the ballots turn over one by one; and the decision lands as a stamp
+  (a shaking HOLD! "Do not proceed.", or a GO with a drawn tick). Each step shows the short version and
   any quote that decided a call; the full points sit behind a click. Opening one holds the meeting on
   that step until it is closed, and the progress bar at the top jumps to any step.
   Nothing needs a click.
@@ -359,7 +362,8 @@ Build and handoff
 - [x] DONE - No dependencies added: standard-library Python writes the page; the page is one HTML file with inline CSS and JavaScript, no fonts or libraries fetched. Type uses fonts already on the system (Bahnschrift and Sitka on Windows, DIN and Charter on macOS) with plain fallbacks.
 - [x] DONE - Assets: the director avatars are inline SVG drawn for this project; no third-party images. Quotes are attributed with their source and link.
 - [x] DONE - Autoplay from the opening through every agenda item to the actions, and the action checklist, were checked in a browser on the demo meeting.
-- [ ] PENDING - The reduced-motion path (no fades, no progress animation) is implemented but was not tested with the setting turned on.
+- [x] DONE - The opening roster, question exchange, ballot flips and the Hold and Go decision animations were checked in a browser; all are CSS only, with no animation loop.
+- [ ] PENDING - The reduced-motion path (every animation off, ballots shown face up) is implemented but was not tested with the setting turned on.
 - [x] DONE - Layout checked at desktop width and a 375px phone width (step labels collapse to the current one).
 - [ ] PENDING - Keyboard and screen-reader pass: the progress steps and dropdowns are native buttons and details elements and focus is visible, but no full assistive-technology test has been run.
 - [ ] PENDING - No measured performance figures; the page runs no animation loop and only fades text in, but nothing was profiled on low-end devices.
