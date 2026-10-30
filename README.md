@@ -174,7 +174,7 @@ the verdict in the job summary, verified findings as code scanning alerts, and a
 failed check unless the verdict is Ship:
 
 ```yaml
-- uses: AdityaManojA/the-startup-skill@main
+- uses: AdityaManojA/the-startup-skill@v1
   with:
     dir: proof
     fail-on: high
