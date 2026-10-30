@@ -6,7 +6,7 @@ description: >-
   the verdict waits for every one, then walks through them in order: user flows,
   API, security, secrets, dependencies, infra, privacy, performance,
   accessibility, browser compatibility, visual regression, translations, emails,
-  load, test strength, exploratory testing, bloat, slop, mobile, AI safety, SEO,
+  load, exploratory testing, bloat, slop, mobile, AI safety, SEO,
   AI-search citability, unit economics and launch readiness, ending with the
   computed verdict. Use when the
   user says "full check", "test everything", "run all the tests", "complete
@@ -51,10 +51,14 @@ python3 "${CLAUDE_SKILL_DIR}/fullcheck.py" plan --skip proof-finance
 ```
 
 It picks the skills that fit the target's kind (a web app gets the web skills, an
-API gets the API and security skills, a repo gets secrets, dependencies, test
-strength, bloat and slop), writes them into `target.json` as required, and prints the run
+API gets the API and security skills, a repo gets secrets, dependencies, infra,
+bloat and slop), writes them into `target.json` as required, and prints the run
 order. The AI safety skill is only included with `--has-llm`; leave out anything
 that does not apply with `--skip`.
+
+Mutation testing (`/proof-mutation`) is never part of a full check: it runs the
+test suite once per change and not every project needs it. Run it on its own when
+you want to measure how strong the tests are.
 
 ## Step 3: work through them
 
@@ -76,7 +80,9 @@ When `next` says everything is done, run `/proof-report`. It computes Ship, Not 
 or Incomplete from all the evidence. Then present it to the board with
 `/proof-board`: nine directors (CEO, CTO, CISO, CFO, CMO, Sales, COO, CPO, Legal)
 judge the evidence and the board's Go / Go with conditions / Hold decision comes out
-as an interactive meeting page. Finally `/proof-audit-trail` packs the run with a
+as an interactive meeting page. Go straight on without asking: the board ends with
+`board.py tally --open`, which opens the meeting page in the user's browser by
+itself (in CI or with no screen it prints the path instead). Finally `/proof-audit-trail` packs the run with a
 hash for every file.
 
 ## Honest limits

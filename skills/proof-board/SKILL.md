@@ -31,7 +31,7 @@ What the user typed after `/proof-board`: `$ARGUMENTS`
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/board.py" brief      # the presentation and one brief per director
 python3 "${CLAUDE_SKILL_DIR}/board.py" check      # validate the directors' answers
-python3 "${CLAUDE_SKILL_DIR}/board.py" tally      # the decision, printed as the full meeting
+python3 "${CLAUDE_SKILL_DIR}/board.py" tally --open   # the decision, printed as the full meeting; opens the page
 python3 "${CLAUDE_SKILL_DIR}/board.py" play       # the same meeting, paced, in a terminal
 ```
 
@@ -105,7 +105,7 @@ python3 "${CLAUDE_SKILL_DIR}/board.py" answer cfo 1 "Payback is month 8 at plan 
 ## Step 5: the meeting runs itself
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/board.py" tally
+python3 "${CLAUDE_SKILL_DIR}/board.py" tally --open
 ```
 
 `tally` computes the decision and prints the whole meeting. **Show it in the chat
@@ -130,8 +130,9 @@ The decision is computed:
   director voted for or raised conditions.
 - **Go** when the verdict is Ship and every director who answered voted go.
 
-It also writes `proof/board/meeting.html`. Open it for the user (built-in browser, or
-send the file): it plays the same meeting on its own, step by step, with a timeline
+It also writes `proof/board/meeting.html`, and `--open` opens it in the user's
+default browser (skipped in CI or with no screen, where it prints the path instead).
+In an app with a built-in browser pane you can show it there too: it plays the same meeting on its own, step by step, with a timeline
 of the agenda, each item's outcome appearing as it is reached, the directors'
 quotes with links to their sources, the vote, the decision and an action checklist.
 Each step shows short points and the quotes; the full text is in a dropdown, and

@@ -29,6 +29,7 @@ import html
 import importlib.util
 import json
 import os
+import pathlib
 import re
 import sys
 
@@ -1488,12 +1489,33 @@ def cmd_tally(a):
         len(dec["votes"]["go"]), len(dec["votes"]["go_with_conditions"]), len(dec["votes"]["hold"]), len(dec["missing"])))
     print("%d action(s). Minutes: %s  Meeting: %s" % (
         len(dec["conditions"]), os.path.join(bdir, "minutes.md"), os.path.join(bdir, "meeting.html")))
+    if a.open:
+        open_page(os.path.join(bdir, "meeting.html"))
     return {GO: 0, GO_COND: 0, HOLD: 1}[dec["decision"]]
+
+
+def open_page(path):
+    """Open a page in the default browser, unless this is CI or a machine with no screen. Returns True if opened."""
+    path = os.path.abspath(path)
+    headless = os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS") or (
+        sys.platform.startswith("linux") and not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")))
+    if not headless:
+        import webbrowser
+        try:
+            if webbrowser.open(pathlib.Path(path).as_uri()):
+                print("%s opened %s in your browser" % (ledger.OK, path))
+                return True
+        except webbrowser.Error:
+            pass
+    print("Open %s in a browser to watch the meeting (double-click it, or: start / open / xdg-open)." % path)
+    return False
 
 
 def cmd_meeting(a):
     _, _, _, bdir, _ = _build(a.dir)
     print("%s wrote %s" % (ledger.OK, os.path.join(bdir, "meeting.html")))
+    if a.open:
+        open_page(os.path.join(bdir, "meeting.html"))
     return 0
 
 
@@ -1544,8 +1566,11 @@ def main(argv=None):
     an.set_defaults(func=cmd_answer)
     t = sub.add_parser("tally", help="compute the decision, print the meeting, write minutes and the meeting page")
     t.add_argument("--quiet", action="store_true", help="print only the decision, not the whole meeting")
+    t.add_argument("--open", action="store_true", help="open the meeting page in the default browser")
     t.set_defaults(func=cmd_tally)
-    sub.add_parser("meeting", help="rebuild the meeting page").set_defaults(func=cmd_meeting)
+    m = sub.add_parser("meeting", help="rebuild the meeting page")
+    m.add_argument("--open", action="store_true", help="open it in the default browser")
+    m.set_defaults(func=cmd_meeting)
     pl = sub.add_parser("play", help="play the meeting in the terminal, paced, with no input needed")
     pl.add_argument("--speed", type=float, default=1.0, help="2 is twice as fast; 0 prints at once")
     pl.set_defaults(func=cmd_play)

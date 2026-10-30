@@ -52,7 +52,7 @@ class FullCheck(unittest.TestCase):
 
     def test_select_repo_kind(self):
         got = {s for s, _ in fc.select("repo", installed=ALL)}
-        self.assertEqual(got, {"proof-sec-secrets", "proof-sec-deps", "proof-infra", "proof-mutation", "proof-restraint", "proof-slop"})
+        self.assertEqual(got, {"proof-sec-secrets", "proof-sec-deps", "proof-infra", "proof-restraint", "proof-slop"})
 
     def test_select_skips_uninstalled(self):
         got = [s for s, _ in fc.select("web", installed={"proof-web-e2e"})]

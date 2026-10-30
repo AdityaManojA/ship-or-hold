@@ -159,14 +159,15 @@ shows you the meeting as it happens:
   audit area with what the team showed, what each director said and the quote they
   based it on, the outcome of that item, then the vote, the decision and the actions.
   `board.py tally` prints the whole meeting; `board.py play` paces it in a terminal.
-- **In the browser**, `proof/board/meeting.html` plays the same meeting on its own,
-  item by item, and stops on the actions. The opening introduces each director by
+- **In the browser**, `proof/board/meeting.html` opens by itself at the end of the
+  meeting (`board.py tally --open`) and plays the same meeting on its own, item by item, and stops on the actions. The opening introduces each director by
   full name, role and where they made their name; the questions play as an
   exchange; the ballots turn over one by one; and the decision lands as a stamp
   (a shaking HOLD! "Do not proceed.", or a GO with a drawn tick). Each step shows the short version and
   any quote that decided a call; the full points sit behind a click. Opening one holds the meeting on
   that step until it is closed, and the progress bar at the top jumps to any step.
-  Nothing needs a click.
+  Nothing needs a click. In CI, or on a machine with no screen, it is not opened;
+  open the file yourself (double-click it, or `start`, `open` or `xdg-open` it).
 
 The only time Proof stops to ask is at `/proof-plan`, to confirm you own the target or
 have permission to test it.
@@ -329,6 +330,13 @@ required passed on the build you tested, not that no bug exists.
 **Only test what you are allowed to test.** The security and load skills act only
 against a target marked as authorised in `target.json`, and refuse a live
 third-party target. Checks are non-destructive.
+
+**Your project is left as it was.** Proof writes into its own `proof/` folder.
+Where a tool writes elsewhere (a starter script, a template, a report copy), it
+refuses to replace a file it did not write unless you pass `--force`. Mutation
+testing works on a temporary copy of the project, never your files. A load plan is
+only written for a local address or a host `target.json` lists as authorised. The
+scanners only read, and nothing is sent anywhere.
 
 **The swarm is simulated, not real users.** It is good at surfacing confusing
 moments and odd inputs. It is not a measure of how real people behave. Nothing it

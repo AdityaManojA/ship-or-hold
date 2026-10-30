@@ -34,11 +34,20 @@ score through the ledger.
 
 ## Before you run it
 
-The tool edits source files in place for the length of one test run and restores
-them in a `finally` block, but a crash at the wrong moment could leave a file
-changed. **Run it on a clean working tree you can restore from git.** It also
-refuses to start unless the tests pass first: a mutation score only means something
-when the baseline is green.
+Your files are never edited. The tool copies the project (the git top level above
+`--src`, or `--root`) to a temporary folder, leaving out `.git` and the `proof/`
+folder and linking `node_modules` and virtual environments instead of copying them,
+then mutates and tests the copy and deletes it at the end. Paths in the test
+command that point into the project are pointed at the copy.
+
+`--in-place` edits the real files instead, for a project that cannot be copied.
+Before each change it writes the original to a restore journal under `proof/`, and
+the next run puts back anything a crash left changed. Use it only on a clean
+working tree you can restore from git.
+
+It refuses to start unless the tests pass first: a mutation score only means
+something when the baseline is green. It is not part of `/proof-full-check`; run it
+on its own when you want it.
 
 ## Step 1: see the sites
 

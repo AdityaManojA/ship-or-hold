@@ -3,7 +3,7 @@ name: proof-full-check-no-seo
 description: >-
   Runs the whole Proof pack as one full check, but without the SEO and AI-search
   (GEO) skills. Every other applicable skill is required: user flows, API,
-  security, secrets, dependencies, performance, accessibility, load, test strength,
+  security, secrets, dependencies, performance, accessibility, load,
   exploratory testing, bloat, slop, mobile, AI safety and unit economics, ending with the
   computed verdict. For products that do not need to be found yet: internal tools,
   builds in stealth, private betas. Use when the user says "full check without
@@ -66,7 +66,9 @@ high or critical findings as they appear.
 
 When `next` says everything is done, run `/proof-report` for the computed verdict,
 `/proof-board` to present it to the board of directors, then `/proof-audit-trail`
-to pack the run.
+to pack the run. Go straight on without asking: the board ends with
+`board.py tally --open`, which opens the meeting page in the user's browser by
+itself (in CI or with no screen it prints the path instead).
 
 ## When you go public
 
