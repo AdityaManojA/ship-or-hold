@@ -25,15 +25,15 @@ one shared ledger, each usable on its own.
 As a plugin in Claude Code:
 
 ```
-/plugin marketplace add <your-fork>/proof-skill
+/plugin marketplace add AdityaManojA/the-startup-skill
 /plugin install proof-skill@proof-skill
 ```
 
 Or copy the skills into your Claude skills folder:
 
 ```bash
-git clone <your-fork>/proof-skill.git
-cp -r proof-skill/skills/proof-* ~/.claude/skills/
+git clone https://github.com/AdityaManojA/the-startup-skill.git
+cp -r the-startup-skill/skills/proof-* ~/.claude/skills/
 ```
 
 Project-local instead of global: copy the same folders into your repo's
