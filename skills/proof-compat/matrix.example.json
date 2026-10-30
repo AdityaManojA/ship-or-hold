@@ -1,0 +1,15 @@
+{
+  "targets": [
+    {"id": "home", "title": "Home page loads and the main menu opens", "critical": false},
+    {"id": "sign-in", "title": "Sign in with email and password", "critical": true},
+    {"id": "checkout", "title": "Checkout from cart to confirmation", "critical": true}
+  ],
+  "environments": [
+    {"id": "chrome-desktop", "browser": "Chrome", "version": "latest stable on the day of the run", "viewport": "1440x900", "os": "Windows"},
+    {"id": "firefox-desktop", "browser": "Firefox", "version": "latest stable on the day of the run", "viewport": "1440x900", "os": "Windows"},
+    {"id": "safari-desktop", "browser": "Safari", "version": "latest stable on the day of the run", "viewport": "1440x900", "os": "macOS"},
+    {"id": "edge-desktop", "browser": "Edge", "version": "latest stable on the day of the run", "viewport": "1440x900", "os": "Windows"},
+    {"id": "chrome-android", "browser": "Chrome", "version": "latest stable on the day of the run", "viewport": "412x915", "os": "Android"},
+    {"id": "safari-ios", "browser": "Safari", "version": "latest stable on the day of the run", "viewport": "390x844", "os": "iOS"}
+  ]
+}

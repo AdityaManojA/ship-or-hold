@@ -17,3 +17,23 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: python -I -m unittest discover -s tests -v
+
+  demo-action:
+    # Runs Proof against the planted-bug demo shop, then the repo's own GitHub
+    # Action on the result. The demo has problems on purpose, so the verdict
+    # must come out as Not yet.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -I examples/run_demo.py --out demo-proof
+      - id: proof
+        uses: ./
+        with:
+          dir: demo-proof
+          sarif: "false"
+          fail: "false"
+      - name: Expect Not yet
+        run: test "${{ steps.proof.outputs.verdict }}" = "Not yet"

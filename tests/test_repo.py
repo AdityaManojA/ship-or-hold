@@ -109,7 +109,9 @@ class Repo(unittest.TestCase):
                    "pathlib", "typing", "zipfile", "plistlib", "xml", "csv", "statistics",
                    "ledger", "num", "validate", "urllib", "html", "textwrap", "difflib",
                    "base64", "binascii", "unicodedata", "fnmatch", "string", "ast",
-                   "tokenize", "plistlib"}
+                   "tokenize", "plistlib", "zlib", "struct", "email", "mimetypes", "threading",
+                   "uuid", "calendar", "copy", "functools", "operator", "heapq", "bisect",
+                   "decimal", "fractions", "locale", "gzip", "http", "configparser", "shlex"}
         for d in skill_dirs():
             for name in os.listdir(os.path.join(SKILLS_DIR, d)):
                 if not name.endswith(".py"):

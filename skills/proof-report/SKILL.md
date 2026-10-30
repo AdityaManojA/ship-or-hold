@@ -72,6 +72,34 @@ gate on it:
 python3 verdict.py --check || echo "not shippable yet"
 ```
 
+## Step 4: other formats
+
+```bash
+python3 "${CLAUDE_SKILL_DIR}/verdict.py" --sarif proof/proof.sarif   # findings as SARIF 2.1.0
+python3 "${CLAUDE_SKILL_DIR}/htmlreport.py"                          # proof/report.html
+```
+
+SARIF is the format code-scanning tools read. Upload it (for example with GitHub's
+upload-sarif action) and verified findings appear as alerts on pull requests, each
+with a severity score from 0 to 10. Only verified findings go in unless you add
+`--sarif-all`.
+
+The HTML report is one self-contained page with the screenshots embedded, for
+sending to a client, a manager or a reviewer.
+
+## Step 5: compare runs
+
+```bash
+python3 "${CLAUDE_SKILL_DIR}/rundiff.py" save --label "before fix"
+# fix things, re-run the skills
+python3 "${CLAUDE_SKILL_DIR}/rundiff.py" save --label "after fix"
+python3 "${CLAUDE_SKILL_DIR}/rundiff.py" compare
+```
+
+`compare` lines up the last two snapshots: the verdict change, findings fixed and
+newly found, severity changes, and every score that moved, with the percentage
+("lcp: 3 -> 2 s (-33.3%) now within budget").
+
 ## Honest limits
 
 The report is only as good as the evidence under it. A verified finding rests on the

@@ -1,0 +1,75 @@
+name: Proof verdict
+description: >-
+  Validate a Proof evidence ledger, compute the Ship / Not yet / Incomplete verdict,
+  publish the report to the job summary, optionally upload findings as SARIF code
+  scanning alerts, and fail the job unless the verdict is Ship.
+author: Aditya Manoj
+branding:
+  icon: check-circle
+  color: green
+
+inputs:
+  dir:
+    description: Path to the proof/ folder the skills wrote.
+    default: proof
+  fail-on:
+    description: Lowest verified severity that blocks Ship (critical, high, medium, low). Empty keeps target.json's setting.
+    default: ""
+  sarif:
+    description: Upload verified findings as code scanning alerts (needs security-events write permission).
+    default: "true"
+  html:
+    description: Write report.html next to report.md.
+    default: "true"
+  fail:
+    description: Fail the job when the verdict is not Ship.
+    default: "true"
+
+outputs:
+  verdict:
+    description: Ship, Not yet or Incomplete.
+    value: ${{ steps.verdict.outputs.verdict }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Validate the ledger
+      shell: bash
+      run: python "${{ github.action_path }}/skills/proof-core/validate.py" --dir "${{ inputs.dir }}" || true
+
+    - name: Compute the verdict
+      id: verdict
+      shell: bash
+      run: |
+        FAIL_ON=()
+        if [ -n "${{ inputs.fail-on }}" ]; then FAIL_ON=(--fail-on "${{ inputs.fail-on }}"); fi
+        set +e
+        python "${{ github.action_path }}/skills/proof-report/verdict.py" --dir "${{ inputs.dir }}" \
+          --sarif "${{ inputs.dir }}/proof.sarif" "${FAIL_ON[@]}"
+        code=$?
+        set -e
+        case $code in 0) v="Ship";; 1) v="Not yet";; *) v="Incomplete";; esac
+        echo "verdict=$v" >> "$GITHUB_OUTPUT"
+        if [ -f "${{ inputs.dir }}/report.md" ]; then cat "${{ inputs.dir }}/report.md" >> "$GITHUB_STEP_SUMMARY"; fi
+        if [ "${{ inputs.html }}" = "true" ]; then
+          python "${{ github.action_path }}/skills/proof-report/htmlreport.py" --dir "${{ inputs.dir }}" "${FAIL_ON[@]}" || true
+        fi
+
+    - name: Upload findings as code scanning alerts
+      if: ${{ inputs.sarif == 'true' && hashFiles(format('{0}/proof.sarif', inputs.dir)) != '' }}
+      uses: github/codeql-action/upload-sarif@v3
+      continue-on-error: true
+      with:
+        sarif_file: ${{ inputs.dir }}/proof.sarif
+        category: proof
+
+    - name: Gate on the verdict
+      if: ${{ inputs.fail == 'true' }}
+      shell: bash
+      run: |
+        echo "Verdict: ${{ steps.verdict.outputs.verdict }}"
+        if [ "${{ steps.verdict.outputs.verdict }}" != "Ship" ]; then exit 1; fi

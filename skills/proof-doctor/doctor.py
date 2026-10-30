@@ -36,7 +36,7 @@ TOOLS = [
      "diff-scoped review and history scanning", "Git"),
     ("docker", "docker", ["--version"], ["proof-mobile-audit", "proof-sec-web"],
      "tools that only ship as containers", "Docker"),
-    ("playwright", None, None, ["proof-web-e2e"],
+    ("playwright", None, None, ["proof-web-e2e", "proof-compat", "proof-visual"],
      "scripted browser runs; falls back to the built-in browser tools", "Playwright (pip install playwright, or npm i -D @playwright/test)"),
     ("lighthouse", "lighthouse", None, ["proof-web-perf", "proof-seo", "proof-a11y"],
      "measured performance, SEO and a11y scores; falls back to coarser checks", "Lighthouse (npm i -g lighthouse)"),
@@ -55,9 +55,13 @@ TOOLS = [
     ("promptfoo", "promptfoo", None, ["proof-ai"], "LLM evaluation and red-team runs; falls back to the swarm", "promptfoo (npm i -g promptfoo)"),
     ("mutmut", None, None, ["proof-mutation"], "Python mutation testing; falls back to the built-in AST mutator", "mutmut (pip install mutmut)"),
     ("stryker", "stryker", None, ["proof-mutation"], "JavaScript mutation testing", "Stryker (npm i -D @stryker-mutator/core)"),
+    ("garak", None, None, ["proof-ai"], "LLM vulnerability probes; falls back to the deck and the swarm", "garak (pip install garak)"),
+    ("trivy", "trivy", ["--version"], ["proof-infra", "proof-sec-deps"],
+     "deeper config and dependency scanning; falls back to the built-in rules", "Trivy"),
+    ("checkov", "checkov", None, ["proof-infra"], "policy checks for Terraform, Kubernetes and more", "Checkov (pip install checkov)"),
 ]
 
-PY_IMPORT = {"playwright": "playwright", "schemathesis": "schemathesis", "mutmut": "mutmut"}
+PY_IMPORT = {"playwright": "playwright", "schemathesis": "schemathesis", "mutmut": "mutmut", "garak": "garak"}
 
 
 def _run(argv):

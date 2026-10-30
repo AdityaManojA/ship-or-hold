@@ -64,6 +64,23 @@ python3 "${CLAUDE_SKILL_DIR}/redteam.py" na excessive-agency --note "the feature
 A category passes only with a transcript behind it; a failure writes a finding you
 verify from the transcript.
 
+## Automated evaluations
+
+For scale, run an evaluation tool against your own feature and import its report.
+Each failed test becomes a finding with the raw report as evidence, and the pass
+rate becomes a score with a budget, so it counts in the verdict:
+
+```bash
+promptfoo eval -o promptfoo.json
+python3 "${CLAUDE_SKILL_DIR}/eval_import.py" promptfoo promptfoo.json --min-pass 0.95
+
+# a garak report (.jsonl)
+python3 "${CLAUDE_SKILL_DIR}/eval_import.py" garak garak.report.jsonl --min-pass 0.95
+```
+
+Failures arrive unverified; read the transcript in the report, then verify or
+reject. `/proof-doctor --for proof-ai` shows which of these tools are installed.
+
 ## Honest limits
 
 Model behaviour is non-deterministic: a category that held up once can fail on a

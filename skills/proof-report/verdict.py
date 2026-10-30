@@ -26,6 +26,7 @@ verified findings and scores are evidence like any other and do count.
 import argparse
 import json
 import os
+import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -242,8 +243,57 @@ def render(r):
     return "\n".join(L) + "\n"
 
 
+# ------------------------------------------------------------------ SARIF
+
+SARIF_LEVEL = {"critical": "error", "high": "error", "medium": "warning", "low": "note", "info": "note"}
+# A CVSS-style 0-10 number per severity, which code-scanning tools use to rank alerts.
+SECURITY_SEVERITY = {"critical": "9.5", "high": "7.5", "medium": "5.0", "low": "2.5", "info": "0.0"}
+_LOC = re.compile(r"^([^\s:]+\.[A-Za-z0-9]+):(\d+)$")
+
+
+def to_sarif(r, include_unverified=False):
+    """The findings as a SARIF 2.1.0 log. Only verified findings unless asked otherwise."""
+    rules, results, seen = [], [], set()
+    for f in r["findings"]:
+        if f["status"] == "false_positive":
+            continue
+        if f["status"] != "verified" and not include_unverified:
+            continue
+        rule_id = "%s/%s" % (f["skill"], f.get("category") or "finding")
+        if rule_id not in seen:
+            seen.add(rule_id)
+            rules.append({"id": rule_id, "name": rule_id.replace("/", "-"),
+                          "shortDescription": {"text": "%s: %s" % (f["skill"], f.get("category") or "finding")},
+                          "properties": {"security-severity": SECURITY_SEVERITY[f["severity"]],
+                                         "tags": [f["skill"]]}})
+        loc = f.get("location") or ""
+        m = _LOC.match(loc)
+        if m:
+            physical = {"artifactLocation": {"uri": m.group(1).replace("\\", "/")},
+                        "region": {"startLine": int(m.group(2))}}
+        else:
+            physical = {"artifactLocation": {"uri": "proof/findings/%s/%s.json" % (f["skill"], f["id"])}}
+        text = f["title"]
+        if f.get("fix"):
+            text += " Fix: " + f["fix"]
+        results.append({
+            "ruleId": rule_id, "level": SARIF_LEVEL[f["severity"]], "message": {"text": text},
+            "locations": [{"physicalLocation": physical}],
+            "properties": {"severity": f["severity"], "status": f["status"],
+                           "security-severity": SECURITY_SEVERITY[f["severity"]],
+                           "evidence": f.get("evidence", []), "repro": f.get("repro") or ""},
+        })
+    return {"version": "2.1.0",
+            "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+            "runs": [{"tool": {"driver": {"name": "Proof", "rules": rules}},
+                      "results": results,
+                      "properties": {"verdict": r["verdict"]}}]}
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("--sarif", help="also write the findings as a SARIF 2.1.0 file to this path")
+    ap.add_argument("--sarif-all", action="store_true", help="include unverified findings in the SARIF file")
     ap.add_argument("--dir", default="proof")
     ap.add_argument("--fail-on", choices=ledger.SEVERITIES[:-1], help="override target.json fail_on (default high)")
     ap.add_argument("--check", action="store_true", help="print the verdict only; exit 0 Ship, 1 Not yet, 2 Incomplete")
@@ -252,6 +302,11 @@ def main(argv=None):
     a = ap.parse_args(argv)
     ledger.console()
     r = compute(a.dir, a.fail_on)
+    if a.sarif:
+        os.makedirs(os.path.dirname(os.path.abspath(a.sarif)), exist_ok=True)
+        with open(a.sarif, "w", encoding="utf-8") as fh:
+            json.dump(to_sarif(r, a.sarif_all), fh, indent=2)
+        print("Wrote SARIF to %s" % a.sarif)
     if a.check:
         print("Verdict: %s" % r["verdict"])
         for c in r["checks"]:

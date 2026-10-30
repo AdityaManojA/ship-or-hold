@@ -1,0 +1,14 @@
+{
+  "advisories": [
+    {
+      "id": "DEMO-2026-0001",
+      "ecosystem": "pip",
+      "package": "larkspur-templates",
+      "vulnerable": "<1.4.3",
+      "severity": "high",
+      "title": "Template injection in larkspur-templates before 1.4.3 (demo advisory)",
+      "fixed": "1.4.3",
+      "reference": "demo advisory for the Proof example"
+    }
+  ]
+}

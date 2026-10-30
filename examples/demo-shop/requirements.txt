@@ -1,0 +1,2 @@
+larkspur-templates==1.4.1
+larkspur-forms==2.0.0

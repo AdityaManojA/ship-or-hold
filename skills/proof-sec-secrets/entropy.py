@@ -28,7 +28,7 @@ SKILL = "proof-sec-secrets"
 
 # Directories and files never worth scanning.
 SKIP_DIRS = {".git", "node_modules", "__pycache__", ".venv", "venv", "dist", "build",
-             ".next", ".nuxt", "vendor", ".mypy_cache", ".pytest_cache", "coverage"}
+             ".next", ".nuxt", "vendor", ".mypy_cache", ".pytest_cache", "coverage", "proof"}
 SKIP_EXT = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".pdf", ".zip", ".gz",
             ".tar", ".mp4", ".mov", ".woff", ".woff2", ".ttf", ".eot", ".lock", ".min.js"}
 MAX_BYTES = 2 * 1024 * 1024

@@ -132,6 +132,15 @@ low. Read each reported rule before recording it; engines report a few things th
 are not barriers in context, and those are rejected with `finding reject`, not
 silently dropped.
 
+For axe there is a shortcut that runs it and imports every violation in one go (one
+finding per rule, affected elements in the repro, report as evidence; add
+`--verify` once you have read them):
+
+```bash
+python3 "${CLAUDE_SKILL_DIR}/axe_import.py" run http://localhost:3000/checkout
+python3 "${CLAUDE_SKILL_DIR}/axe_import.py" import proof/evidence/proof-a11y/axe-home.json
+```
+
 With no engine installed, say so in the ledger and move on:
 
 ```bash

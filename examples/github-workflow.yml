@@ -1,0 +1,32 @@
+# Copy to .github/workflows/proof.yml in your own repo.
+#
+# Your Proof run writes evidence into proof/. Commit that folder (or produce it in an
+# earlier step of this workflow), then this job computes the verdict on every pull
+# request, posts the report to the job summary, uploads verified findings as code
+# scanning alerts, and fails the check unless the verdict is Ship.
+name: proof
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write   # for the code scanning upload
+
+jobs:
+  verdict:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Optional: regenerate parts of the evidence in CI, for example
+      # - run: python3 path/to/proof/skills/proof-sec-secrets/entropy.py record .
+
+      - uses: AdityaManojA/the-startup-skill@main
+        with:
+          dir: proof
+          fail-on: high
+          sarif: "true"
+          fail: "true"

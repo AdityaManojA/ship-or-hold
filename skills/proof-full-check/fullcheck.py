@@ -34,8 +34,14 @@ ORDER = [
     ("proof-sec-web", "web security checklist"),
     ("proof-sec-secrets", "committed secrets"),
     ("proof-sec-deps", "vulnerable dependencies"),
+    ("proof-infra", "deployment and CI config"),
+    ("proof-privacy", "trackers, consent and personal data"),
     ("proof-web-perf", "performance budget"),
     ("proof-a11y", "accessibility"),
+    ("proof-compat", "cross-browser and device matrix"),
+    ("proof-visual", "visual regression"),
+    ("proof-i18n", "translations and locales"),
+    ("proof-email", "transactional emails"),
     ("proof-load", "behaviour under load"),
     ("proof-mutation", "test-suite strength"),
     ("proof-explore", "exploratory persona swarm"),
@@ -46,15 +52,18 @@ ORDER = [
     ("proof-seo", "search engine optimisation"),
     ("proof-geo", "AI-search citability"),
     ("proof-finance", "unit economics"),
+    ("proof-release", "launch readiness"),
 ]
 SEO = {"proof-seo", "proof-geo"}
 MOBILE = {"proof-mobile-e2e", "proof-mobile-audit"}
-WEB_ONLY = {"proof-web-e2e", "proof-web-perf", "proof-a11y", "proof-seo", "proof-geo"}
+WEB_ONLY = {"proof-web-e2e", "proof-web-perf", "proof-a11y", "proof-seo", "proof-geo", "proof-privacy",
+            "proof-compat", "proof-visual"}
+REPO = {"proof-sec-secrets", "proof-sec-deps", "proof-infra", "proof-mutation", "proof-restraint"}
 BY_KIND = {
     "web": lambda s: s not in MOBILE,
     "api": lambda s: s not in MOBILE and s not in WEB_ONLY,
     "mobile": lambda s: s not in WEB_ONLY,
-    "repo": lambda s: s in {"proof-sec-secrets", "proof-sec-deps", "proof-mutation", "proof-restraint"},
+    "repo": lambda s: s in REPO,
     "mixed": lambda s: True,
 }
 SKILL_RE = re.compile(r"^proof-[a-z0-9-]+$")

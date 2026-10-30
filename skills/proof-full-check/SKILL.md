@@ -4,9 +4,11 @@ description: >-
   Runs the whole Proof pack as one full check. It works out every skill that
   applies to the target (web, API, mobile or repo), makes all of them required so
   the verdict waits for every one, then walks through them in order: user flows,
-  API, security, secrets, dependencies, performance, accessibility, load, test
-  strength, exploratory testing, bloat, mobile, AI safety, SEO, AI-search
-  citability and unit economics, ending with the computed verdict. Use when the
+  API, security, secrets, dependencies, infra, privacy, performance,
+  accessibility, browser compatibility, visual regression, translations, emails,
+  load, test strength, exploratory testing, bloat, mobile, AI safety, SEO,
+  AI-search citability, unit economics and launch readiness, ending with the
+  computed verdict. Use when the
   user says "full check", "test everything", "run all the tests", "complete
   audit", "check the whole app", or "everything before launch".
 argument-hint: "[--has-llm] [--skip proof-x]"

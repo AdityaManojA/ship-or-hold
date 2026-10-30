@@ -100,6 +100,19 @@ as ruled out. Only verified findings count toward the verdict.
 Vulnerable dependencies are their own skill. Run `/proof-sec-deps` and mark the
 `deps` class covered here.
 
+## Static analysis with Semgrep
+
+When Semgrep is installed, run it with the rules you choose and import the results:
+
+```bash
+python3 "${CLAUDE_SKILL_DIR}/semgrep_import.py" run src/ --config p/owasp-top-ten
+python3 "${CLAUDE_SKILL_DIR}/semgrep_import.py" import semgrep.json   # output you already have
+```
+
+Each result becomes an unverified finding at its file and line, with the raw output
+as evidence and the `static-analysis` check marked covered. Pattern matches are leads:
+confirm each one in the code, then verify it, or reject it with a reason.
+
 ## Honest limits
 
 This is a structured review, not a guarantee. It finds the classes you work through
