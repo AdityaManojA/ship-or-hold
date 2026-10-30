@@ -128,10 +128,9 @@ It also writes `proof/board/meeting.html`. Open it for the user (built-in browse
 send the file): it plays the same meeting on its own, step by step, with a timeline
 of the agenda, each item's outcome appearing as it is reached, the directors'
 quotes with links to their sources, the vote, the decision and an action checklist.
-It pauses while the tab is hidden and resumes when it is back. Pause and Full
-transcript are there for anyone who wants them; nothing needs a click. With reduced
-motion set, it shows the full transcript at once. `play` paces the same meeting in a
-terminal.
+Each step shows short points and the quotes; the full text is in a dropdown, and
+opening one holds the meeting on that step. Nothing needs a click. `play` paces the
+same meeting in a terminal.
 
 ## Honest limits
 

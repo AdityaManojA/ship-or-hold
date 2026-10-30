@@ -190,9 +190,11 @@ class Board(unittest.TestCase):
         self.decision()
         with open(os.path.join(self.d, "board", "meeting.html"), encoding="utf-8") as fh:
             page = fh.read()
-        for part in ("Opening", "At the table", "Agenda", "Product and user flows", "The board asks the team",
-                     "The vote", "The decision", "Actions", "Full transcript", "Pause"):
+        for part in ("Opening", "Agenda and rules", "Product and user flows", "The board asks",
+                     "The vote", "The decision", "Actions", "Full points", "<details", "Watch again"):
             self.assertIn(part, page)
+        for gone in ("Pause", "Live view", "Full transcript"):
+            self.assertNotIn(gone, page)
         self.assertIn('class="outcome', page)
         self.assertNotIn("<script>x</script>", page)
         self.assertIn("&lt;script&gt;x&lt;/script&gt;", page)

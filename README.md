@@ -123,10 +123,10 @@ shows you the meeting as it happens:
   based it on, the outcome of that item, then the vote, the decision and the actions.
   `board.py tally` prints the whole meeting; `board.py play` paces it in a terminal.
 - **In the browser**, `proof/board/meeting.html` plays the same meeting on its own,
-  item by item, and stops on the actions. It waits while the tab is hidden and
-  carries on when you come back. Pause and Full transcript are there if you want
-  them; nothing needs a click. With reduced motion turned on, it opens as a full
-  transcript instead.
+  item by item, and stops on the actions. Each step shows the short version and
+  the quotes; the full points sit behind a click. Opening one holds the meeting on
+  that step until it is closed, and the progress bar at the top jumps to any step.
+  Nothing needs a click.
 
 The only time Proof stops to ask is at `/proof-plan`, to confirm you own the target or
 have permission to test it.
@@ -355,12 +355,12 @@ below says what was checked and what does not apply.
 Build and handoff
 
 - [x] DONE - Run commands are documented (`board.py brief`, `check`, `tally`, `play`); the board's tests pass (`tests/test_board.py`).
-- [x] DONE - No dependencies added: standard-library Python writes the page; the page is one HTML file with inline CSS and JavaScript, no fonts or libraries fetched.
+- [x] DONE - No dependencies added: standard-library Python writes the page; the page is one HTML file with inline CSS and JavaScript, no fonts or libraries fetched. Type uses fonts already on the system (Bahnschrift and Sitka on Windows, DIN and Charter on macOS) with plain fallbacks.
 - [x] DONE - Assets: the director avatars are inline SVG drawn for this project; no third-party images. Quotes are attributed with their source and link.
-- [x] DONE - Autoplay, the hidden-tab wait and resume, and the action checklist were checked in a browser on the demo meeting.
-- [ ] PENDING - The reduced-motion path (opens as a full transcript) is implemented but was not tested with the setting turned on.
-- [x] DONE - Layout checked at desktop width and a narrow phone-like width (the agenda rail collapses to a progress bar).
-- [ ] PENDING - Keyboard and screen-reader pass: buttons are native, focus is visible and the status line is announced politely, but no full assistive-technology test has been run.
+- [x] DONE - Autoplay from the opening through every agenda item to the actions, and the action checklist, were checked in a browser on the demo meeting.
+- [ ] PENDING - The reduced-motion path (no fades, no progress animation) is implemented but was not tested with the setting turned on.
+- [x] DONE - Layout checked at desktop width and a 375px phone width (step labels collapse to the current one).
+- [ ] PENDING - Keyboard and screen-reader pass: the progress steps and dropdowns are native buttons and details elements and focus is visible, but no full assistive-technology test has been run.
 - [ ] PENDING - No measured performance figures; the page runs no animation loop and only fades text in, but nothing was profiled on low-end devices.
 
 SEO and search readiness
