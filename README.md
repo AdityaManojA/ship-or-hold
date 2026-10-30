@@ -1,42 +1,38 @@
 # Proof
 
-**An evidence-first testing and audit pack for Claude.** Free, MIT, offline, no API
-key, nothing to sign up for.
+Twenty-six Claude skills that test a product before you ship it. Free, MIT, no
+signup, no API key, nothing to connect.
 
-Most testing tools let the model *say* something passed. Proof does not. Every skill
-produces a **reproducible artifact** (a failing test, a working proof, a measured
-number, a screenshot) and the final verdict is **computed by a small Python tool
-from a ledger of verified evidence**, never written by the model. A finding counts
-only once it has been verified; a missing input makes the verdict `Incomplete`,
-never a silent pass.
+Most testing tools let the model say something passed. Proof does not. Every skill
+records evidence (a screenshot, a failing test, a measured number, a captured
+response) in a shared ledger, and the verdict is computed from that ledger by a
+small Python tool: Ship, Not yet, or Incomplete. A finding only counts once it is
+verified, and a missing input is an error, never a silent pass.
 
-It covers the whole surface of a product: web and mobile testing, security and
-dependency and secret audits, performance, accessibility, SEO and AI-search
-readiness, mutation and load testing, LLM-feature safety, the finance behind the
-product, and a tamper-evident evidence pack at the end. **26 skills**, all driven by
-one shared ledger, each usable on its own.
-
-```
-/proof-plan  ->  the testing skills you choose  ->  /proof-report  ->  /proof-audit-trail
-```
-
-Or test everything in one go:
-
-```
-/proof-plan  ->  /proof-full-check          (every applicable skill)
-/proof-plan  ->  /proof-full-check-no-seo   (the same, without SEO and AI-search)
-```
+It covers web and mobile testing, API contracts, security, secrets and
+dependencies, performance, accessibility, load, test strength, SEO and AI-search
+readiness, LLM-feature safety, and the unit economics behind the product.
 
 ## Install
 
-As a plugin in Claude Code:
+Paste this repo link into Claude and say `install skill`:
+
+```
+https://github.com/AdityaManojA/the-startup-skill
+
+install skill
+```
+
+Or as a plugin, in Claude Code:
 
 ```
 /plugin marketplace add AdityaManojA/the-startup-skill
 /plugin install proof-skill@proof-skill
 ```
 
-Or copy the skills into your Claude skills folder:
+Claude Code namespaces plugin skills, so installed as a plugin they show up as
+`/proof-skill:proof-plan` and so on. Copy the folders instead if you want plain
+`/proof-plan`:
 
 ```bash
 git clone https://github.com/AdityaManojA/the-startup-skill.git
@@ -44,195 +40,174 @@ cp -r the-startup-skill/skills/proof-* ~/.claude/skills/
 ```
 
 Project-local instead of global: copy the same folders into your repo's
-`.claude/skills/`. The tools need Python 3.8 or newer and nothing to `pip install`.
+`.claude/skills/`.
 
-## How it works
+The tools need Python 3.8 or newer. Nothing to pip install.
 
-Everything a run produces lives under a `proof/` folder in your project:
+## The twenty-six
 
-| file | written by | holds |
+| command | job | what it does |
 | --- | --- | --- |
-| `target.json` | `/proof-plan` | what is under test, whether you are authorised to test it, and the skills the verdict waits for |
-| `findings/<skill>/<id>.json` | any skill | one finding each; counts only when its `status` is `verified` |
-| `coverage/<skill>.json` | any skill | which checks were looked at, not applicable, or not yet run |
-| `scores/<skill>.json` | measuring skills | measured numbers against budgets |
-| `evidence/<skill>/...` | any skill | screenshots, logs, captures, reports |
-| `report.md`, `verdict.json` | `/proof-report` | the compiled report and the computed verdict |
+| `/proof-full-check` | Full check | Works out every skill that applies to the target, requires all of them, and walks through them in order to a verdict. |
+| `/proof-full-check-no-seo` | Full check, no SEO | The same, without SEO and AI-search checks. For internal tools, stealth builds and private betas. |
+| `/proof-plan` | Planner | Records what is under test, whether you are authorised to test it, and which skills the verdict waits for. |
+| `/proof-report` | Verdict | Compiles the ledger into a report and computes Ship, Not yet or Incomplete. Exits non-zero for CI. |
+| `/proof-core` | Ledger | The shared evidence ledger, its schema and rules, and a validator. |
+| `/proof-doctor` | Tool check | Shows which optional tools are installed and what each one adds. |
+| `/proof-swarm` | Persona swarm | Deals a seeded crowd of sub-agent personas, sends each the same brief, and tallies their answers. |
+| `/proof-web-e2e` | Web flows | Drives each critical user flow in a browser and records a pass with a screenshot, or a finding with a repro. |
+| `/proof-web-perf` | Performance | Scores load speed against a budget, from Lighthouse or measured numbers. |
+| `/proof-a11y` | Accessibility | Checks WCAG colour contrast and walks a manual review checklist. |
+| `/proof-api` | API | Validates responses against the OpenAPI spec and generates awkward-input cases. |
+| `/proof-sec-web` | Web security | Works through a checklist of weakness classes on an app you are authorised to test, with a verification gate. |
+| `/proof-sec-secrets` | Secrets | Scans for committed keys and tokens. Values are always masked. |
+| `/proof-sec-deps` | Dependencies | Matches installed packages against an advisory file and names the version to upgrade to. |
+| `/proof-sec-diff` | Branch review | Scopes a security review to what a branch changed. |
+| `/proof-mobile-e2e` | Mobile flows | Plans mobile flows, generates Maestro files, and records each result with a screenshot. |
+| `/proof-mobile-audit` | Mobile build | Reads an APK or IPA for permissions, cleartext traffic and embedded URLs. |
+| `/proof-mutation` | Test strength | Plants small bugs one at a time and checks whether the tests catch them. |
+| `/proof-load` | Load | Writes a load plan and scores the result (p95, p99, errors, throughput) against a budget. |
+| `/proof-explore` | Exploratory | Sends a persona swarm through the product and turns what they hit into findings to reproduce. |
+| `/proof-restraint` | Restraint | Finds dead code, unused dependencies and oversized files: what to delete. |
+| `/proof-seo` | SEO | Audits on-page and technical SEO with a computed score. |
+| `/proof-geo` | AI search | Scores how readable and citable each page is to AI assistants, and which AI crawlers robots.txt allows. |
+| `/proof-ai` | LLM safety | Tests your own LLM feature across the OWASP LLM Top 10 categories. |
+| `/proof-finance` | Unit economics | Profit per sale, break-even, year one month by month, cash needed, and what-ifs. |
+| `/proof-audit-trail` | Evidence pack | Packs the run into a folder with a SHA-256 for every file, and verifies it later. |
 
-Three rules hold across every skill: a finding is born unverified and only counts
-once verified by an evidence file, a reproduced run, or a human note; coverage is
-recorded, not assumed, so the report can say *what was looked at* as well as *what
-broke*; and a missing input is an error, never a zero. `proof-core` documents and
-enforces all of it.
+## How to use it
 
-**Every skill is optional and standalone.** You pick the ones the verdict should
-wait for (its `required_skills`); any other can still be run on its own, and not
-running it never counts against the verdict. Building something you are not ready to
-make public? Leave SEO and GEO off the list. No mobile app? Leave the mobile skills
-off. Nothing breaks.
+Start with `/proof-plan`. It writes `proof/target.json`, which every other skill
+reads. Then either pick the skills you need or run a full check:
 
-**Authorisation.** The security and load skills act only against a target you mark
-as owned or authorised in `target.json`; they refuse a live third-party target.
+```
+plan -> the skills you choose -> report -> audit-trail
+plan -> full-check -> report -> audit-trail
+```
 
-**External tools are optional.** Proof's own tools are standard-library Python and
-make no network calls. When a tool like Playwright, Lighthouse, Semgrep, k6, Maestro
-or TruffleHog is installed, the matching skill uses it for stronger evidence; when it
-is not, the skill falls back to a slower built-in path. `/proof-doctor` tells you
-what is installed and what each missing tool would add.
+Each skill writes into a `proof/` folder in your project: findings, coverage (what
+was looked at), scores, and the evidence files behind them.
 
-## The 26 skills
+An example: an online shop, running locally, with a checkout.
 
-### Full checks
+1. **`/proof-plan`** asks for the name, kind and URL, and whether you own the app or
+   have written permission to test it. It records the answer in `target.json`.
+2. **`/proof-full-check`** picks the skills for a web app and requires them all:
+   flows, API, security, secrets, dependencies, performance, accessibility, load,
+   test strength, exploratory testing, restraint, SEO, AI search and finance.
+3. **`/proof-web-e2e`** drives sign-in, add to cart and checkout. Checkout submits
+   twice on a fast double click: that becomes a high finding, verified by its
+   screenshot.
+4. The remaining skills run in turn. `fullcheck.py next` names the next one;
+   `status` shows what is done.
+5. **`/proof-report`** computes the verdict. With the double-submit bug open it says
+   Not yet, and lists the finding with its evidence. Fix it, re-run the flow, and
+   it says Ship.
+6. **`/proof-audit-trail`** packs the run with a hash for every file, so a reviewer
+   can confirm nothing changed.
 
-- **`/proof-full-check`** - run every skill that applies to the target as one check.
-  Works out the skills for the target's kind (web, API, mobile, repo), makes all of
-  them required, and walks you through them in order, ending with the verdict.
-  `fullcheck.py plan [--has-llm] [--mobile android] [--skip proof-x]` ·
-  `fullcheck.py next` · `fullcheck.py status`
-- **`/proof-full-check-no-seo`** - the same full check without SEO and AI-search
-  (GEO), for internal tools, stealth builds and private betas.
-  `fullcheck.py plan --no-seo` · `fullcheck.py next` · `fullcheck.py status`
+Every skill also runs on its own. A skill you do not require never counts against
+the verdict.
 
-### Core
+## The tools
 
-- **`/proof-plan`** - describe the target and choose what to test.
-  `target.py init --name "App" --kind web --authorised yes --url ...` ·
-  `target.py require add proof-web-e2e ...` · `target.py recommend --kind web --public --has-llm` · `target.py show`
-- **`/proof-report`** - compile the run and compute the verdict.
-  `verdict.py` · `verdict.py --check` (exit 0 Ship, 1 Not yet, 2 Incomplete) · `verdict.py --fail-on medium`
-- **`/proof-core`** - the shared evidence ledger, schema and rules.
-  `validate.py --dir proof` checks a `proof/` folder is well formed.
-- **`/proof-doctor`** - detect optional external tools.
-  `doctor.py` · `doctor.py --for proof-web-e2e` · `doctor.py --json`
-- **`/proof-swarm`** - a deterministic, seeded crowd of persona sub-agents, shared by
-  other skills. `swarm.py init --profile p.json --brief b.md [--quick]` ·
-  `swarm.py prompts` · `swarm.py check` · `swarm.py tally`
-
-### Web
-
-- **`/proof-web-e2e`** - end-to-end user-flow testing with a screenshot behind each
-  pass. `flows.py plan flows.json` · `flows.py result <id> pass --evidence ...` ·
-  `flows.py result <id> fail --title ... --severity ... --verify` ·
-  `flows.py edge-cases <id>` · `flows.py script <id> --out ... --python` ·
-  `serve.py --run "npm run dev" --port 3000 -- <cmd>` (starts a dev server, waits, runs, tears down)
-- **`/proof-web-perf`** - measure performance against a budget.
-  `budget.py template --out budget.json` · `budget.py record --budget b.json --measured m.json` ·
-  `budget.py from-lighthouse --json lhr.json --budget b.json` · `budget.py skip <id> --note ...`
-- **`/proof-a11y`** - accessibility: a WCAG contrast checker plus a manual-review
-  checklist. `contrast.py ratio --fg "#767676" --bg "#fff"` ·
-  `contrast.py check --pairs pairs.json --record` · `contrast.py checklist --record`
-- **`/proof-api`** - test an API against its OpenAPI contract and with awkward
-  inputs. `schema_check.py endpoints --spec openapi.json` ·
-  `schema_check.py validate --spec ... --response resp.json --endpoint "GET /users/{id}" --status 200` ·
-  `schema_check.py cases --spec ... --out cases.json`
-
-### Security and audit
-
-- **`/proof-sec-web`** - a defensive, authorised-only web security audit across a
-  checklist of weakness classes, with a verification gate. `secweb.py classes` ·
-  `secweb.py start` · `secweb.py cover <class> --evidence ...` · `secweb.py na <class> --note ...` ·
-  `secweb.py finding add <class> --title ... --severity ...` · `secweb.py finding verify <id> --by evidence-file` ·
-  `secweb.py scan-headers response.txt`
-- **`/proof-sec-secrets`** - scan for committed secrets, values always masked.
-  `entropy.py scan .` · `entropy.py record .`
-- **`/proof-sec-deps`** - audit dependencies against an advisory file.
-  `advisories.py deps .` · `advisories.py audit . --advisories adv.json` · `advisories.py template --out adv.json`
-- **`/proof-sec-diff`** - scope a security review to what a branch changed.
-  `diffscope.py changed --base main` · `git diff main... | diffscope.py changed --stdin` · `diffscope.py record --base main`
-
-### Mobile
-
-- **`/proof-mobile-e2e`** - mobile flow testing, with Maestro flow generation.
-  `flowgen.py plan flows.json` · `flowgen.py maestro <id> --out f.yaml --app com.example.app` ·
-  `flowgen.py result <id> pass --evidence ...`
-- **`/proof-mobile-audit`** - inspect an APK or IPA for permissions, cleartext
-  traffic and embedded URLs. `apkscan.py apk app.apk` · `apkscan.py ios MyApp.ipa` · `apkscan.py record apk app.apk`
-
-### Quality depth
-
-- **`/proof-mutation`** - measure whether the tests catch bugs, by mutation testing.
-  `mutate.py sites src/x.py` · `mutate.py run --src src/ --test-cmd "python -m pytest -q" --max 40`
-- **`/proof-load`** - plan and score a load test against latency and throughput
-  budgets. `loadplan.py plan --target URL --vus 50 --duration 60` ·
-  `loadplan.py from-k6 --summary k6-summary.json --budget budget.json`
-- **`/proof-explore`** - exploratory testing with a persona swarm.
-  `explore.py scaffold --target "a web checkout"` · `explore.py harvest --results proof/swarm/<run>/results.json`
-- **`/proof-restraint`** - find code, files and dependencies that should not exist.
-  `bloat.py scan .` · `bloat.py deadcode src/` · `bloat.py deps .` · `bloat.py record .`
-
-### SEO and AI search
-
-- **`/proof-seo`** - a technical and on-page SEO audit with a computed score.
-  `seo_score.py page page.html` · `seo_score.py site --pages dir --robots robots.txt --sitemap sitemap.xml` ·
-  `seo_score.py record page.html`
-- **`/proof-geo`** - how readable and citable the site is to AI search, with a
-  computed citability score. `geo_score.py page page.html` ·
-  `geo_score.py access --robots robots.txt --llms llms.txt` · `geo_score.py record page.html`
-
-### AI, finance, packaging
-
-- **`/proof-ai`** - test your own LLM feature across the OWASP LLM Top 10 categories.
-  `redteam.py deck` · `redteam.py plan` · `redteam.py result <category> pass --evidence ...` ·
-  `redteam.py result <category> fail --title ... --verify`
-- **`/proof-finance`** - the unit economics behind the product.
-  `unit_economics.py --template numbers.json` · `unit_economics.py numbers.json` · `unit_economics.py numbers.json --record`
-- **`/proof-audit-trail`** - package the run into a hash-stamped evidence folder.
-  `pack.py build --dir proof` · `pack.py verify proof/audit/run-<timestamp>`
-
-## A worked run
+Standard-library Python. None touch the network.
 
 ```bash
-# 1. describe the target and pick what the verdict waits for
-python3 skills/proof-plan/target.py init --name "Acme Shop" --kind web --authorised yes \
-  --url http://localhost:3000 --require proof-web-e2e --require proof-sec-web
-
-# 2. test the critical flows, recording evidence for each
+python3 skills/proof-plan/target.py init --name "Shop" --kind web --authorised yes --url http://localhost:3000
+python3 skills/proof-full-check/fullcheck.py plan              # or: plan --no-seo
 python3 skills/proof-web-e2e/flows.py plan flows.json
-python3 skills/proof-web-e2e/flows.py result checkout pass --evidence evidence/proof-web-e2e/checkout.png
-
-# 3. work the web security checklist
 python3 skills/proof-sec-web/secweb.py start
-python3 skills/proof-sec-web/secweb.py cover authz-object --evidence evidence/proof-sec-web/idor.txt --note "two test accounts, no cross-access"
-
-# 4. compile the computed verdict
-python3 skills/proof-report/verdict.py --check     # Ship / Not yet / Incomplete, with a CI exit code
-
-# 5. freeze the evidence
+python3 skills/proof-report/verdict.py --check                 # exit 0 Ship, 1 Not yet, 2 Incomplete
 python3 skills/proof-audit-trail/pack.py build --dir proof
 ```
 
-In normal use you drive this through Claude with the `/proof-*` skills, which do the
-recording for you; the commands above are the same thing by hand.
+**`ledger.py`** is the shared core. A finding is born unverified and becomes
+verified only through an evidence file that exists, a repro that was run, or a
+note from the person who checked it. Every record is validated against the schema
+on write.
 
-## Honest limits
+**`verdict.py`** reads the ledger and computes the verdict. Incomplete when a
+required skill has not reported or still has checks not run; Not yet when a
+verified finding is at or above the fail-on severity or a score is over budget;
+Ship otherwise.
 
-Proof makes claims checkable; it does not make them true. A screenshot shows one
-moment, a repro shows one machine, a measured number is only as good as the tool
-that measured it, and a swarm of simulated users shares one model's blind spots.
-"Ship" means the checks you required passed on the build you tested, not that no bug
-exists. For anything high-stakes, have a person re-run the repros that matter. The
-security skills are a structured review, not a guarantee, and not a substitute for a
-professional audit where the stakes call for one. The finance tool produces
-projections from your inputs, not a forecast, and is not financial advice.
+**`fullcheck.py`** picks the skills that apply to the target, requires them, and
+tracks progress.
 
-## Tests and contributing
+**`swarm.py`** deals persona cards from a profile (same seed, same cards), writes
+one brief per agent, checks the answers and tallies them. It never answers for an
+agent.
+
+Every tool has `--help`. When an external tool such as Playwright, Lighthouse,
+Semgrep, k6 or Maestro is installed, the matching skill uses it; when it is not,
+the skill falls back to a built-in path. `/proof-doctor` shows which are present.
 
 ```bash
 python3 -m unittest discover -s tests -v
 ```
 
-Everything is standard-library Python, runs offline, and works on Windows, macOS and
-Linux. `CONTRIBUTING.md` has the rules every skill follows; the test suite enforces
-them, including that each skill is standalone, that a verified finding has real
-evidence behind it, and that nothing in the code traces back to another project.
+## Fine print
 
-## Credits
+**Evidence, not assurance.** Proof makes claims checkable; it does not make them
+true. A screenshot shows one moment, a repro shows one machine, and a measured
+number is only as good as the tool that measured it. Ship means the checks you
+required passed on the build you tested, not that no bug exists.
 
-Proof is **original work**. It takes inspiration, ideas and patterns, from a number
-of excellent open-source projects, but copies no code, text, schema, name or asset
-from any of them. With thanks to the authors of the prediction-engine, business-test,
-app-clone, security-audit, web-testing, SEO and restraint packs whose ideas shaped
-the approach, and to the OWASP Web, Mobile and LLM testing guides.
+**Only test what you are allowed to test.** The security and load skills act only
+against a target marked as authorised in `target.json`, and refuse a live
+third-party target. Checks are non-destructive.
+
+**The swarm is simulated, not real users.** It is good at surfacing confusing
+moments and odd inputs. It is not a measure of how real people behave. Nothing it
+reports counts until it is reproduced against the real app.
+
+**Not a substitute for a professional audit.** The security skills are a
+structured review. Where the stakes call for it, have a professional confirm the
+critical findings.
+
+**Not financial advice.** The finance skill projects from your inputs. Confirm
+costs with real quotes and the structure with an accountant.
+
+## Files
+
+```
+skills/proof-full-check/        SKILL.md, fullcheck.py
+skills/proof-full-check-no-seo/ SKILL.md
+skills/proof-plan/              SKILL.md, target.py
+skills/proof-report/            SKILL.md, verdict.py
+skills/proof-core/              SKILL.md, ledger.py, num.py, validate.py, evidence-schema.json
+skills/proof-doctor/            SKILL.md, doctor.py
+skills/proof-swarm/             SKILL.md, swarm.py, profile.example.json, brief.example.md
+skills/proof-web-e2e/           SKILL.md, flows.py, serve.py, flows.example.json
+skills/proof-web-perf/          SKILL.md, budget.py, budget.example.json
+skills/proof-a11y/              SKILL.md, contrast.py, checklist.md
+skills/proof-api/               SKILL.md, schema_check.py, openapi.example.json, cases.example.json
+skills/proof-sec-web/           SKILL.md, secweb.py, attack-classes.md
+skills/proof-sec-secrets/       SKILL.md, entropy.py
+skills/proof-sec-deps/          SKILL.md, advisories.py
+skills/proof-sec-diff/          SKILL.md, diffscope.py
+skills/proof-mobile-e2e/        SKILL.md, flowgen.py
+skills/proof-mobile-audit/      SKILL.md, apkscan.py
+skills/proof-mutation/          SKILL.md, mutate.py
+skills/proof-load/              SKILL.md, loadplan.py
+skills/proof-explore/           SKILL.md, explore.py
+skills/proof-restraint/         SKILL.md, bloat.py
+skills/proof-seo/               SKILL.md, seo_score.py, page.example.html
+skills/proof-geo/               SKILL.md, geo_score.py, scoring.md, llms.example.txt
+skills/proof-ai/                SKILL.md, redteam.py
+skills/proof-finance/           SKILL.md, unit_economics.py
+skills/proof-audit-trail/       SKILL.md, pack.py
+tests/                          the tests for every tool
+```
+
+Your own files live in `proof/` in your project. The skills read each other's.
+
+## Credit
+
+Proof is original work. It draws on ideas from several open-source skill packs and
+testing tools, and on the OWASP web, mobile and LLM testing guides, but copies no
+code, text or assets from any of them.
 
 ## License
 
