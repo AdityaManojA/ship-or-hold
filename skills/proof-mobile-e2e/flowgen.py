@@ -8,6 +8,7 @@ needs an evidence file (a screenshot), a failure becomes a finding.
 
     python3 flowgen.py plan flows.json
     python3 flowgen.py maestro sign-in --out proof/mobile/sign-in.yaml --app com.example.app
+    python3 flowgen.py run sign-in --flow proof/mobile/sign-in.yaml      # runs it with the Maestro CLI
     python3 flowgen.py result sign-in pass --evidence evidence/proof-mobile-e2e/sign-in.png
     python3 flowgen.py result checkout fail --evidence <path> --title "..." --severity high
     python3 flowgen.py status
@@ -16,7 +17,11 @@ needs an evidence file (a screenshot), a failure becomes a finding.
 import argparse
 import json
 import os
+import shlex
+import shutil
+import subprocess
 import sys
+import xml.etree.ElementTree as ET
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "proof-core"))
@@ -116,6 +121,74 @@ def cmd_result(a):
     return 0
 
 
+def _junit_failures(path):
+    """Return (tests, [failure messages]) from a JUnit XML report."""
+    root = ET.parse(path).getroot()
+    cases = root.iter("testcase")
+    tests, failures = 0, []
+    for case in cases:
+        tests += 1
+        for bad in list(case.findall("failure")) + list(case.findall("error")):
+            failures.append(("%s: %s" % (case.get("name") or "flow", bad.get("message") or (bad.text or "").strip()))[:300])
+    return tests, failures
+
+
+def cmd_run(a):
+    """Run one flow with the Maestro CLI on the connected device or emulator and record the result."""
+    flows = {f["id"]: f for f in _load_flows(a.dir)}
+    if a.flow_id not in flows:
+        raise SystemExit("no flow %r in the plan" % a.flow_id)
+    if not os.path.isfile(a.flow):
+        raise SystemExit("no flow file at %s. Generate one: flowgen.py maestro %s --out %s" % (a.flow, a.flow_id, a.flow))
+    cmd = shlex.split(a.maestro, posix=(os.name != "nt"))
+    cmd = [c[1:-1] if len(c) > 1 and c[0] == c[-1] == '"' else c for c in cmd]
+    if not cmd or not (shutil.which(cmd[0]) or os.path.isfile(cmd[0])):
+        raise SystemExit("Maestro is not installed (see maestro.dev), so the flow cannot run here. "
+                         "Run it by hand or with the Maestro MCP tools, then record it with: flowgen.py result")
+    ev = ledger.evidence_dir(a.dir, SKILL)
+    report = os.path.join(ev, "%s-junit.xml" % a.flow_id)
+    shots = os.path.join(ev, a.flow_id)
+    os.makedirs(shots, exist_ok=True)
+    argv = cmd + ["test", a.flow, "--format", "junit", "--output", report, "--test-output-dir", shots]
+    if a.device:
+        argv[len(cmd):len(cmd)] = ["--device", a.device]
+    print("running: %s" % " ".join(argv))
+    try:
+        p = subprocess.run(argv, timeout=a.timeout, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                           universal_newlines=True)
+        output, code = p.stdout, p.returncode
+    except subprocess.TimeoutExpired:
+        output, code = "timed out after %ds" % a.timeout, None
+    log = os.path.join(ev, "%s-run.log" % a.flow_id)
+    with open(log, "w", encoding="utf-8") as fh:
+        fh.write("$ %s\nexit: %s\n\n%s" % (" ".join(argv), code, output or ""))
+    rel = lambda p: os.path.relpath(p, ledger.root(a.dir)).replace(os.sep, "/")
+    evidence = [rel(log)]
+    if os.path.isfile(report):
+        evidence.insert(0, rel(report))
+        tests, failures = _junit_failures(report)
+    else:
+        tests, failures = 0, ["no JUnit report was written (exit %s); see the run log" % code]
+    for base, _, names in os.walk(shots):
+        evidence += [rel(os.path.join(base, n)) for n in sorted(names) if n.lower().endswith(".png")][:5]
+    flow = flows[a.flow_id]
+    if code == 0 and not failures:
+        ledger.mark_coverage(a.dir, SKILL, a.flow_id, "covered", evidence=evidence,
+                             note="ran with Maestro: %d test(s) passed" % max(tests, 1))
+        print("%s %s passed on the device; evidence recorded." % (ledger.OK, a.flow_id))
+        return 0
+    title = "Flow %s fails on the device: %s" % (a.flow_id, failures[0] if failures else "exit %s" % code)
+    f = ledger.new_finding(SKILL, title[:160], "high" if flow.get("critical") else "medium",
+                           id=ledger.slug("run-%s" % a.flow_id), category="flow:%s" % a.flow_id,
+                           location=a.flow_id, evidence=evidence, repro="maestro test %s" % a.flow,
+                           description="; ".join(failures)[:400] or None)
+    ledger.write_finding(a.dir, f)
+    ledger.verify(a.dir, SKILL, f["id"], by="repro-run")
+    ledger.mark_coverage(a.dir, SKILL, a.flow_id, "covered", evidence=evidence)
+    print("%s %s failed on the device: finding %r written and verified by the run." % (ledger.BAD, a.flow_id, f["id"]))
+    return 1
+
+
 def cmd_skip(a):
     flows = {f["id"]: f for f in _load_flows(a.dir)}
     if a.flow_id not in flows:
@@ -165,6 +238,13 @@ def main(argv=None):
     r.add_argument("--fix")
     r.add_argument("--verify", action="store_true")
     r.set_defaults(func=cmd_result)
+    rn = sub.add_parser("run", help="run a flow with the Maestro CLI and record the result")
+    rn.add_argument("flow_id")
+    rn.add_argument("--flow", required=True, help="the Maestro YAML file for this flow")
+    rn.add_argument("--device", help="device or emulator id, when more than one is connected")
+    rn.add_argument("--timeout", type=int, default=600, help="seconds before the run is stopped")
+    rn.add_argument("--maestro", default="maestro", help="the Maestro command (default: maestro on PATH)")
+    rn.set_defaults(func=cmd_run)
     s = sub.add_parser("skip", help="mark a flow not applicable")
     s.add_argument("flow_id")
     s.add_argument("--note", required=True)

@@ -5,9 +5,8 @@ description: >-
   applies to the target (web, API, mobile or repo), makes all of them required so
   the verdict waits for every one, then walks through them in order: user flows,
   API, security, secrets, dependencies, infra, privacy, performance,
-  accessibility, browser compatibility, visual regression, translations, emails,
-  load, exploratory testing, bloat, slop, mobile, AI safety, SEO,
-  AI-search citability, unit economics and launch readiness, ending with the
+  accessibility, translations, emails, load, exploratory testing, bloat, slop,
+  mobile, AI safety, SEO, AI-search citability and unit economics, ending with the
   computed verdict. Use when the
   user says "full check", "test everything", "run all the tests", "complete
   audit", "check the whole app", or "everything before launch".
@@ -56,9 +55,18 @@ bloat and slop), writes them into `target.json` as required, and prints the run
 order. The AI safety skill is only included with `--has-llm`; leave out anything
 that does not apply with `--skip`.
 
-Mutation testing (`/proof-mutation`) is never part of a full check: it runs the
-test suite once per change and not every project needs it. Run it on its own when
-you want to measure how strong the tests are.
+Some skills are never part of a full check, because each needs setup, a second
+run or a person, or only some projects need it. `plan` lists them; run any of them
+on its own when you want it:
+
+- `/proof-mutation`: test strength (runs the suite once per change)
+- `/proof-compat`: the browser and device matrix (needs each browser and device)
+- `/proof-visual`: visual regression (means something from the second run)
+- `/proof-release`: the launch checklist (items only a person can prove)
+- `/proof-design-match`: screens against the design and the last build
+- `/proof-mobile-explore`: an agent explores the real app on a device
+- `/proof-mobile-a11y`: phone accessibility from UI trees
+- `/proof-llm-device`: on-device LLM speed, memory, heat and battery
 
 ## Step 3: work through them
 

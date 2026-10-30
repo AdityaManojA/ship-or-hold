@@ -38,8 +38,6 @@ ORDER = [
     ("proof-privacy", "trackers, consent and personal data"),
     ("proof-web-perf", "performance budget"),
     ("proof-a11y", "accessibility"),
-    ("proof-compat", "cross-browser and device matrix"),
-    ("proof-visual", "visual regression"),
     ("proof-i18n", "translations and locales"),
     ("proof-email", "transactional emails"),
     ("proof-load", "behaviour under load"),
@@ -52,12 +50,22 @@ ORDER = [
     ("proof-seo", "search engine optimisation"),
     ("proof-geo", "AI-search citability"),
     ("proof-finance", "unit economics"),
-    ("proof-release", "launch readiness"),
 ]
 SEO = {"proof-seo", "proof-geo"}
 MOBILE = {"proof-mobile-e2e", "proof-mobile-audit"}
-WEB_ONLY = {"proof-web-e2e", "proof-web-perf", "proof-a11y", "proof-seo", "proof-geo", "proof-privacy",
-            "proof-compat", "proof-visual"}
+WEB_ONLY = {"proof-web-e2e", "proof-web-perf", "proof-a11y", "proof-seo", "proof-geo", "proof-privacy"}
+# Never part of a full check: each needs setup, a second run or a person, or only some
+# projects need it. They still run on their own, and the plan lists them.
+OPTIONAL = [
+    ("proof-mutation", "test strength; runs the suite once per change"),
+    ("proof-compat", "browser and device matrix; needs each browser and device"),
+    ("proof-visual", "visual regression; means something from the second run"),
+    ("proof-release", "launch checklist; items only a person can prove"),
+    ("proof-design-match", "screens against the design and the last build"),
+    ("proof-mobile-explore", "an agent explores the real app on a device"),
+    ("proof-mobile-a11y", "phone accessibility from UI trees"),
+    ("proof-llm-device", "on-device LLM speed, memory, heat and battery"),
+]
 REPO = {"proof-sec-secrets", "proof-sec-deps", "proof-infra", "proof-restraint", "proof-slop"}
 BY_KIND = {
     "web": lambda s: s not in MOBILE,
@@ -125,6 +133,11 @@ def cmd_plan(a):
     if not t.get("authorised"):
         print("\nNote: target.json says authorised: no. The security and load skills will refuse to "
               "act against a live target until it is yes.")
+    extra = [(s, why) for s, why in OPTIONAL if s in _installed()]
+    if extra:
+        print("\nNot part of a full check; run on their own when you want them:")
+        for s, why in extra:
+            print("      /%s - %s" % (s, why))
     print("\nRun them in order (fullcheck.py next tells you which), then /proof-report.")
     return 0
 

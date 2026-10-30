@@ -43,11 +43,16 @@ If Maestro is installed (check with `/proof-doctor --for proof-mobile-e2e`):
 
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/flowgen.py" maestro sign-in --out proof/mobile/sign-in.yaml --app com.example.app
-maestro test proof/mobile/sign-in.yaml
+python3 "${CLAUDE_SKILL_DIR}/flowgen.py" run sign-in --flow proof/mobile/sign-in.yaml
 ```
 
-Refine the generated `tapOn` selectors to match the real UI. The flow ends with a
-screenshot saved as evidence. Without Maestro, drive the flow by hand on the device
+Refine the generated `tapOn` selectors to match the real UI. `run` runs the flow
+with the Maestro CLI on the connected emulator or device (`--device` picks one when
+several are connected, `--timeout` bounds it), saves the JUnit report, the run log
+and Maestro's screenshots as evidence, and records the result itself: a pass covers
+the flow, a failure becomes a finding verified by the run. When the session has the
+Maestro MCP tools (`maestro mcp`), you can check a flow's syntax and try it there
+first, then record the real run with `run`. Without Maestro, drive the flow by hand on the device
 or emulator and save a screenshot to `proof/evidence/proof-mobile-e2e/<flow>.png`.
 
 ## Step 3: record

@@ -18,7 +18,8 @@ questions on top.
   {"id": "cto", "title": "Chief Technology Officer", "short": "CTO",
    "skills": ["proof-web-e2e", "proof-api", "proof-load", "proof-web-perf", "proof-mutation",
               "proof-restraint", "proof-infra", "proof-visual", "proof-compat", "proof-mobile-e2e",
-              "proof-mobile-audit", "proof-watch", "proof-slop"],
+              "proof-mobile-audit", "proof-watch", "proof-slop", "proof-mobile-explore",
+              "proof-llm-device"],
    "veto": ["proof-web-e2e", "proof-api", "proof-load", "proof-mobile-e2e"]},
   {"id": "ciso", "title": "Chief Information Security Officer", "short": "CISO",
    "skills": ["proof-sec-web", "proof-sec-secrets", "proof-sec-deps", "proof-sec-diff", "proof-infra",
@@ -28,7 +29,8 @@ questions on top.
    "skills": ["proof-finance", "proof-load", "proof-release"],
    "veto": ["proof-finance"]},
   {"id": "cmo", "title": "Chief Marketing Officer", "short": "CMO",
-   "skills": ["proof-seo", "proof-geo", "proof-a11y", "proof-i18n", "proof-email", "proof-web-perf", "proof-visual"],
+   "skills": ["proof-seo", "proof-geo", "proof-a11y", "proof-i18n", "proof-email", "proof-web-perf", "proof-visual",
+              "proof-design-match"],
    "veto": []},
   {"id": "sales", "title": "Head of Sales", "short": "Sales",
    "skills": ["proof-web-e2e", "proof-compat", "proof-sec-web", "proof-privacy", "proof-release", "proof-finance",
@@ -39,10 +41,10 @@ questions on top.
    "veto": ["proof-release"]},
   {"id": "cpo", "title": "Chief Product Officer", "short": "CPO",
    "skills": ["proof-web-e2e", "proof-explore", "proof-a11y", "proof-visual", "proof-compat", "proof-i18n",
-              "proof-mobile-e2e"],
+              "proof-mobile-e2e", "proof-mobile-explore", "proof-mobile-a11y", "proof-design-match"],
    "veto": []},
   {"id": "legal", "title": "General Counsel", "short": "Legal",
-   "skills": ["proof-privacy", "proof-a11y", "proof-email", "proof-release", "proof-ai"],
+   "skills": ["proof-privacy", "proof-a11y", "proof-mobile-a11y", "proof-email", "proof-release", "proof-ai"],
    "veto": ["proof-privacy"]}
 ]
 ```

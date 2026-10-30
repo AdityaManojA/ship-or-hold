@@ -1,6 +1,6 @@
 # Proof
 
-Thirty-six Claude skills that test a product before you ship it, then present it to a board of directors. Free, MIT, no
+Forty Claude skills that test a product before you ship it, then present it to a board of directors. Free, MIT, no
 signup, no API key, nothing to connect.
 
 Most testing tools let the model say something passed. Proof does not. Every skill
@@ -94,7 +94,7 @@ Or start with `/proof-plan`, which records what is under test and asks you to
 confirm you own it or have permission to test it, then pick the skills you need.
 Everything Proof writes goes into a `proof/` folder in your project.
 
-## The thirty-six
+## The forty
 
 | command | job | what it does |
 | --- | --- | --- |
@@ -120,6 +120,10 @@ Everything Proof writes goes into a `proof/` folder in your project.
 | `/proof-infra` | Infrastructure | Flags risky settings in Dockerfiles, Compose, Kubernetes, Terraform and CI workflows. |
 | `/proof-privacy` | Privacy | Trackers that load before consent, first-visit cookies, missing policy links, personal data in URLs. |
 | `/proof-mobile-e2e` | Mobile flows | Plans mobile flows, generates Maestro files, and records each result with a screenshot. |
+| `/proof-mobile-explore` | Mobile explore | An agent explores the real app on your own device or emulator toward goals; crashes, ANRs and dead ends become findings with screenshots and logs. |
+| `/proof-mobile-a11y` | Mobile accessibility | Unlabelled controls, touch targets under 48 dp / 44 pt, meaningless labels and large-text clipping, from the app's UI trees. |
+| `/proof-design-match` | Design match | Compares screens with the design export and the last build: pixel difference, and elements that are new, missing, moved or resized. |
+| `/proof-llm-device` | On-device LLM | Time to first token, tokens per second, peak memory, heat throttling, battery per 100 prompts and model size against a budget. |
 | `/proof-mobile-audit` | Mobile build | Reads an APK or IPA for permissions, cleartext traffic and embedded URLs. |
 | `/proof-i18n` | Translations | Missing keys, placeholder mismatches, a pseudo-locale for overflow, hardcoded strings. |
 | `/proof-email` | Email | Checks transactional emails for links, text parts and leaking dev hosts, and SPF and DMARC records. |
@@ -184,6 +188,12 @@ have permission to test it.
 
 Leaving SEO out is a decision about scope, not a pass: the report and the board say
 the area was not tested.
+
+Neither full check includes the optional skills, which need setup, a second run or
+a person, or only fit some projects: `/proof-mutation`, `/proof-compat`,
+`/proof-visual`, `/proof-release`, `/proof-design-match`, `/proof-mobile-explore`,
+`/proof-mobile-a11y` and `/proof-llm-device`. Run any of them on its own; the full
+check's plan lists them.
 
 An example run: an online shop, running locally, with a checkout.
 
@@ -377,6 +387,10 @@ skills/proof-sec-diff/          SKILL.md, diffscope.py
 skills/proof-infra/             SKILL.md, infra.py
 skills/proof-privacy/           SKILL.md, privacy.py
 skills/proof-mobile-e2e/        SKILL.md, flowgen.py
+skills/proof-mobile-explore/    SKILL.md, mexplore.py
+skills/proof-mobile-a11y/       SKILL.md, ma11y.py
+skills/proof-design-match/      SKILL.md, design.py
+skills/proof-llm-device/        SKILL.md, llmdevice.py
 skills/proof-mobile-audit/      SKILL.md, apkscan.py
 skills/proof-i18n/              SKILL.md, i18n.py
 skills/proof-email/             SKILL.md, mailcheck.py

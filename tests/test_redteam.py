@@ -43,6 +43,23 @@ class RedTeam(unittest.TestCase):
         cov = ledger.load_coverage(self.d, "proof-ai")
         self.assertEqual(len(cov["checks"]), len(redteam.CATEGORIES))
 
+    def test_mobile_plan_adds_the_phone_checks(self):
+        rc, out = run("--dir", self.d, "plan", "--mobile")
+        self.assertEqual(rc, 0, out)
+        ids = {c["id"] for c in ledger.load_coverage(self.d, "proof-ai")["checks"]}
+        for cid in ("offline-fallback", "clipboard-injection", "deeplink-injection", "image-text-injection",
+                    "on-device-leak", "model-integrity", "prompt-injection"):
+            self.assertIn(cid, ids)
+        self.tp.write("evidence/proof-ai/logcat.txt", "prompt text in the device log")
+        rc, out = run("--dir", self.d, "result", "on-device-leak", "fail", "--evidence", "evidence/proof-ai/logcat.txt",
+                      "--title", "Prompts are written to logcat", "--verify")
+        self.assertEqual(rc, 0, out)
+        self.assertTrue(any("LLM06" in r for r in ledger.load_findings(self.d, "proof-ai")[0]["references"]))
+        rc, out = run("deck", "--mobile")
+        self.assertIn("model-integrity", out)
+        rc, out = run("deck")
+        self.assertNotIn("model-integrity", out)
+
     def test_result_pass_needs_evidence(self):
         run("--dir", self.d, "plan")
         rc, out = run("--dir", self.d, "result", "pii-leak", "pass", "--evidence", "evidence/proof-ai/missing.txt")

@@ -64,6 +64,30 @@ python3 "${CLAUDE_SKILL_DIR}/redteam.py" na excessive-agency --note "the feature
 A category passes only with a transcript behind it; a failure writes a finding you
 verify from the transcript.
 
+## An LLM inside a mobile app
+
+For an assistant inside an iOS or Android app, add the mobile checks:
+
+```bash
+python3 "${CLAUDE_SKILL_DIR}/redteam.py" deck --mobile
+python3 "${CLAUDE_SKILL_DIR}/redteam.py" plan --mobile
+```
+
+Six more categories join the plan: `offline-fallback` (airplane mode or no model),
+`clipboard-injection` (pasted or shared-in text), `deeplink-injection` (links,
+intents and notification payloads), `image-text-injection` (text read from photos
+or the camera), `on-device-leak` (app storage, device logs, backups, keyboard
+learning, lock-screen notifications) and `model-integrity` (a swapped or corrupt
+model file). Run each on your own build, on your own emulator or device: drive it by
+hand, with `/proof-mobile-explore`, or with a mobile automation tool, and save the
+screen recording, screenshots or `adb logcat` output as evidence.
+
+To run an evaluation suite against the app's real model, point it at what the app
+calls: the backend API it uses, or, for a model bundled on the device, the same
+model file served locally (for example with llama.cpp's `llama-server`) so the
+prompts and settings match the app. Speed, memory, heat and battery of the
+on-device model are measured by `/proof-llm-device`.
+
 ## Automated evaluations
 
 For scale, run an evaluation tool against your own feature and import its report.

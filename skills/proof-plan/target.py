@@ -82,7 +82,11 @@ RECO = {
         ("proof-sec-deps", "audit the app's dependencies"),
         ("proof-restraint", "flag code, screens and dependencies that should not exist"),
         ("proof-slop", "find copy and code that read as generated"),
-        ("proof-ai", "red-team and evaluate any model the app embeds"),
+        ("proof-ai", "red-team and evaluate any model the app embeds (plan --mobile adds the phone checks)"),
+        ("proof-mobile-explore", "let an agent explore the real app and record crashes and dead ends"),
+        ("proof-mobile-a11y", "check labels, touch targets and large text from the app's UI trees"),
+        ("proof-design-match", "compare screens with the design and spot new or missing elements"),
+        ("proof-llm-device", "measure the on-device model's speed, memory, heat and battery"),
         ("proof-audit-trail", "package the whole run into a signed evidence folder"),
     ],
     "repo": [
