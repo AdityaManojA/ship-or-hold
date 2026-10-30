@@ -90,6 +90,12 @@ Open Claude in your own project's folder and say what you want:
 run a full check and present it to the board
 ```
 
+Don't want SEO (an internal tool, a build in stealth, a private beta):
+
+```
+run a full check without SEO and present it to the board
+```
+
 Or start with `/proof-plan`, which records what is under test and asks you to
 confirm you own it or have permission to test it, then pick the skills you need.
 Everything Proof writes goes into a `proof/` folder in your project.
