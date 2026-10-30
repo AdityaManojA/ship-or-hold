@@ -1,7 +1,7 @@
 {
   "name": "proof-skill",
   "description": "Thirty-six evidence-first testing and audit skills for Claude: web and mobile testing, security, privacy, infrastructure, performance, accessibility, SEO, AI safety and finance, with every verdict computed from verified evidence, then a board of directors that votes on the launch. Free, MIT.",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "author": {
     "name": "Aditya Manoj"
   },
