@@ -24,7 +24,7 @@ jobs:
       # Optional: regenerate parts of the evidence in CI, for example
       # - run: python3 path/to/proof/skills/proof-sec-secrets/entropy.py record .
 
-      - uses: AdityaManojA/the-startup-skill@v1
+      - uses: AdityaManojA/ship-or-hold@v1
         with:
           dir: proof
           fail-on: high

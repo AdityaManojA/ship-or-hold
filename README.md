@@ -22,16 +22,23 @@ and votes on the launch, in a meeting that runs by itself.
 Paste this repo link into Claude and say `install skill`:
 
 ```
-https://github.com/AdityaManojA/the-startup-skill
+https://github.com/AdityaManojA/ship-or-hold
 
 install skill
 ```
 
-Or as a plugin, in Claude Code:
+Or as a plugin, inside a Claude Code session:
 
 ```
-/plugin marketplace add AdityaManojA/the-startup-skill
+/plugin marketplace add AdityaManojA/ship-or-hold
 /plugin install proof-skill@proof-skill
+```
+
+The same from a terminal (PowerShell, bash or zsh):
+
+```bash
+claude plugin marketplace add AdityaManojA/ship-or-hold
+claude plugin install proof-skill@proof-skill
 ```
 
 Claude Code namespaces plugin skills, so installed as a plugin they show up as
@@ -39,8 +46,8 @@ Claude Code namespaces plugin skills, so installed as a plugin they show up as
 `/proof-plan`:
 
 ```bash
-git clone https://github.com/AdityaManojA/the-startup-skill.git
-cp -r the-startup-skill/skills/proof-* ~/.claude/skills/
+git clone https://github.com/AdityaManojA/ship-or-hold.git
+cp -r ship-or-hold/skills/proof-* ~/.claude/skills/
 ```
 
 Project-local instead of global: copy the same folders into your repo's
@@ -48,15 +55,17 @@ Project-local instead of global: copy the same folders into your repo's
 
 The tools need Python 3.8 or newer. Nothing to pip install.
 
-## Try it in one command
+## Start
 
-```bash
-python3 examples/run_demo.py
+Open Claude in your own project's folder and say what you want:
+
+```
+run a full check and present it to the board
 ```
 
-This starts a small demo shop with problems planted on purpose, runs Proof against
-it, and writes the verdict, an HTML report and a SARIF file. It catches all nine
-planted problems. See `examples/README.md`.
+Or start with `/proof-plan`, which records what is under test and asks you to
+confirm you own it or have permission to test it, then pick the skills you need.
+Everything Proof writes goes into a `proof/` folder in your project.
 
 ## The thirty-six
 
@@ -234,7 +243,7 @@ the verdict in the job summary, verified findings as code scanning alerts, and a
 failed check unless the verdict is Ship:
 
 ```yaml
-- uses: AdityaManojA/the-startup-skill@v1
+- uses: AdityaManojA/ship-or-hold@v1
   with:
     dir: proof
     fail-on: high
