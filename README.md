@@ -1,6 +1,6 @@
 # Proof
 
-Fifty-one Claude skills that test a product before you ship it, then present it to a board of directors. Free, MIT, no
+Fifty-five Claude skills that test a product before you ship it, then present it to a board of directors. Free, MIT, no
 signup, no API key, nothing to connect.
 
 Most testing tools let the model say something passed. Proof does not. Every skill
@@ -84,39 +84,43 @@ The tools need Python 3.8 or newer. Nothing to pip install.
 
 ## Start
 
-Open Claude in your own project's folder and say what you want:
+Open Claude in your own project's folder and pick the check that fits what you are building.
+Each one runs only what that kind of product needs, so you never spend a run on checks that do not apply:
 
-```
-run a full check and present it to the board
-```
+| say | command | runs |
+| --- | --- | --- |
+| "quick check" | `/proof-quick` | offline scans of secrets, dependencies and deploy config; minutes, no running app |
+| "are we ready to launch" | `/proof-startup` | core flows, launch-sinking risks, unit economics, then the board votes |
+| "check my web app" | `/proof-webapp` | flows, web security, privacy, speed, accessibility |
+| "check my mobile app" | `/proof-mobile` | device flows, the build, store rules, phone accessibility |
+| "check my API" | `/proof-backend` | contract, security, data, deploy config |
+| "security check" | `/proof-security` | secrets, deps, web security, sign-in, data, infra, privacy |
+| "test absolutely everything" | `/proof-ultracheck` | every skill that fits; long, opt in deliberately |
 
-Don't want SEO (an internal tool, a build in stealth, a private beta):
+Not sure? Say "test my app" and `/proof-check` reviews the project and suggests one.
 
-```
-run a full check without SEO and present it to the board
-```
-
-Every check that fits the app, the optional ones too:
-
-```
-run the ultracheck and present it to the board
-```
-
-Each one reviews the app first (web, PWA, API, mobile, LLM, database, sign-in and so on) and shows you what it
-found before planning.
+Each check reviews the app first (web, PWA, API, mobile, LLM, database, sign-in and so on) and shows you what it
+found. Conditional skills join only when the review finds what they test: no sign-in, no auth check; no
+database, no database check. SEO and AI-search run only when you say the product is public (`--public`).
+Proof only reads and records; no skill edits your code.
 
 Or start with `/proof-plan`, which records what is under test and asks you to
 confirm you own it or have permission to test it, then pick the skills you need.
 Everything Proof writes goes into a `proof/` folder in your project.
 
-## The fifty-one
+## The fifty-five
 
 | command | job | what it does |
 | --- | --- | --- |
 | `/proof-board` | Board of directors | Nine directors, each applying the researched thinking of one person (Jobs, Vogels, Katz, Porat, Ogilvy, Patterson, Cook, Fadell, Smith), hear the evidence and vote. The meeting runs by itself in the chat and as a page; Go, Go with conditions or Hold is computed. |
-| `/proof-full-check` | Full check | Every skill that applies to the target, including SEO and AI search, run in order to a verdict. |
-| `/proof-ultracheck` | Ultra check | Reviews the app, then runs the full check plus every optional skill the review finds a reason for, all required. |
-| `/proof-full-check-no-seo` | Full check, no SEO | The same, minus SEO and AI search, which then never hold the launch. For internal tools, stealth builds, private betas. |
+| `/proof-check` | Pick a check | Reviews the app, suggests a profile, and plans only the skills that profile lists and the app needs. |
+| `/proof-quick` | Quick check | Offline secrets, dependency and deploy-config scans; minutes, no running app, no sub-agents. |
+| `/proof-startup` | Startup launch check | Core flows, the risks that sink a launch, and unit economics; ends with the board. |
+| `/proof-webapp` | Web app check | Flows, API, web security, sign-in, data, privacy, speed and accessibility, as the app needs. |
+| `/proof-mobile` | Mobile app check | Device flows, the build, React Native/Expo, store rejection risks and phone accessibility. |
+| `/proof-backend` | Backend check | API contract, web security, sign-in, data, deploy config, LLM cost and RAG, as the service needs. |
+| `/proof-security` | Security check | Secrets, dependencies, web security, sign-in, data, infra and privacy only. |
+| `/proof-ultracheck` | Ultra check | Every skill that fits the app, optional ones included. Long; opt in deliberately. |
 | `/proof-plan` | Planner | Records what is under test, whether you are authorised to test it, and which skills the verdict waits for. |
 | `/proof-report` | Verdict | Computes Ship, Not yet or Incomplete. Writes Markdown, HTML and SARIF reports, and compares runs. |
 | `/proof-core` | Ledger | The shared evidence ledger, its schema and rules, and a validator. |
@@ -153,7 +157,6 @@ Everything Proof writes goes into a `proof/` folder in your project.
 | `/proof-mobile-audit` | Mobile build | Reads an APK or IPA for permissions, cleartext traffic and embedded URLs. |
 | `/proof-i18n` | Translations | Missing keys, placeholder mismatches, a pseudo-locale for overflow, hardcoded strings. |
 | `/proof-email` | Email | Checks transactional emails for links, text parts and leaking dev hosts, and SPF and DMARC records. |
-| `/proof-mutation` | Test strength | Plants small bugs one at a time and checks whether the tests catch them. |
 | `/proof-load` | Load | Writes a load plan and scores the result (p95, p99, errors, throughput) against a budget. |
 | `/proof-explore` | Exploratory | Sends a persona swarm through the product and turns what they hit into findings to reproduce. |
 | `/proof-restraint` | Restraint | Finds dead code, unused dependencies and oversized files: what to delete. |
@@ -168,11 +171,11 @@ Everything Proof writes goes into a `proof/` folder in your project.
 ## How to use it
 
 Start with `/proof-plan`. It writes `proof/target.json`, which every other skill
-reads. Then either pick the skills you need or run a full check:
+reads. Then either pick the skills you need or run a profile:
 
 ```
 plan -> the skills you choose -> report -> board -> audit-trail
-plan -> full-check -> report -> board -> audit-trail
+plan -> a profile (startup, webapp, mobile, ...) -> report -> board -> audit-trail
 ```
 
 Each skill writes into a `proof/` folder in your project: findings, coverage (what
@@ -181,8 +184,8 @@ its own, and a skill you do not require never counts against the verdict.
 
 ## It runs by itself
 
-You do not click through anything. Say what you want (for example "run a full check
-and present it to the board") and Claude runs the skills, convenes the board, and
+You do not click through anything. Say what you want (for example "run the startup
+check") and Claude runs the skills, convenes the board, and
 shows you the meeting as it happens:
 
 - **In the chat or terminal**, the meeting appears step by step: the opening, each
@@ -203,32 +206,28 @@ shows you the meeting as it happens:
 The only time Proof stops to ask is at `/proof-plan`, to confirm you own the target or
 have permission to test it.
 
-## Full check, or full check without SEO
+## Which profile
 
-| | `/proof-full-check` | `/proof-full-check-no-seo` |
-| --- | --- | --- |
-| Use it for | a product people should be able to find: a public site, an app with a landing page, anything you will market | something not meant to be found yet: an internal tool, a build in stealth, a private beta, an API with no public pages |
-| Runs | every skill that fits the target's kind (web, API, mobile or repo) | the same set |
-| Leaves out | nothing | `/proof-seo` (search engines) and `/proof-geo` (AI assistants and AI search) |
-| Effect on the verdict | SEO and GEO scores count; an SEO score over budget makes the verdict Not yet | SEO and GEO are not required, so they can never hold the launch |
-| Later | | run `/proof-seo` and `/proof-geo` on their own when you go public, or re-plan with `/proof-full-check` |
+| profile | use it for | always runs | joins when the review finds it |
+| --- | --- | --- | --- |
+| `/proof-quick` | any repo, before a push | secrets, deps, infra | |
+| `/proof-startup` | an MVP about to launch | core flows (web or mobile), secrets, deps, finance | sign-in, database, privacy (web), store rules (mobile), email, LLM safety; SEO/GEO with `--public` |
+| `/proof-webapp` | a web app or PWA | web flows, secrets, deps, web security, privacy, speed, accessibility | API, sign-in, database, PWA, email, translations, LLM safety; SEO/GEO with `--public` |
+| `/proof-mobile` | an iOS or Android app | device flows, build audit, store rules, phone accessibility, secrets, deps | React Native/Expo, API, sign-in, LLM safety, on-device model, voice |
+| `/proof-backend` | an API or service | API contract, web security, secrets, deps, infra | sign-in, database, email, LLM safety and cost, RAG |
+| `/proof-security` | security only | secrets, deps, infra | web security, sign-in, database, privacy, LLM safety |
+| `/proof-ultracheck` | everything | every skill that fits the app | |
 
-Leaving SEO out is a decision about scope, not a pass: the report and the board say
-the area was not tested.
-
-Neither full check includes the optional skills, which need setup, a second run or
-a person, or only fit some projects: `/proof-mutation`, `/proof-compat`,
-`/proof-visual`, `/proof-release`, `/proof-design-match`, `/proof-mobile-explore`,
-`/proof-mobile-a11y`, `/proof-llm-device`, `/proof-pwa`, `/proof-react-native`, `/proof-database`, `/proof-auth`,
-`/proof-rag`, `/proof-llm-cost`, `/proof-resilience`, `/proof-voice`, `/proof-store-ready` and
-`/proof-licenses`. `/proof-ultracheck` adds every one the app's review calls for. Run any of them on its own; the full
-check's plan lists them.
+A profile is a decision about scope, not a pass: skills it leaves out are reported as
+not run, and the board says the area was not tested. Anything else is one
+`--add proof-x` away, and every skill still runs on its own. The plan lists what else
+fits the app so you can choose.
 
 An example run: an online shop, running locally, with a checkout.
 
 1. **`/proof-plan`** asks for the name, kind and URL, and whether you own the app or
    have written permission to test it.
-2. **`/proof-full-check`** picks the skills for a web app and requires them all.
+2. **`/proof-webapp`** picks the web-app skills that fit the shop and requires them.
 3. **`/proof-web-e2e`** drives sign-in, add to cart and checkout. Checkout submits
    twice on a fast double click: that becomes a high finding, verified by its
    screenshot.
@@ -324,7 +323,7 @@ Standard-library Python. None touch the network.
 
 ```bash
 python3 skills/proof-plan/target.py init --name "Shop" --kind web --authorised yes --url http://localhost:3000
-python3 skills/proof-full-check/fullcheck.py plan              # or: plan --no-seo
+python3 skills/proof-check/check.py plan --profile webapp      # or startup, mobile, backend, ...
 python3 skills/proof-web-e2e/flows.py plan flows.json
 python3 skills/proof-report/verdict.py --check                 # exit 0 Ship, 1 Not yet, 2 Incomplete
 python3 skills/proof-report/verdict.py --sarif proof/proof.sarif
@@ -343,8 +342,8 @@ required skill has not reported or still has checks not run; Not yet when a
 verified finding is at or above the fail-on severity or a score is over budget;
 Ship otherwise. It also writes SARIF 2.1.0 for code scanning.
 
-**`fullcheck.py`** picks the skills that apply to the target, requires them, and
-tracks progress.
+**`check.py`** reviews the app, picks the skills a profile lists that fit it,
+requires them, and tracks progress.
 
 **`swarm.py`** deals persona cards from a profile (same seed, same cards), writes
 one brief per agent, checks the answers and tallies them. It never answers for an
@@ -395,8 +394,13 @@ inputs; confirm costs with real quotes and the structure with an accountant.
 action.yml                      the GitHub Action
 examples/                       the planted-bug demo shop, run_demo.py, a board meeting, a workflow to copy
 skills/proof-board/             SKILL.md, board.py, seats.md, personas.json
-skills/proof-full-check/        SKILL.md, fullcheck.py
-skills/proof-full-check-no-seo/ SKILL.md
+skills/proof-check/             SKILL.md, check.py, review.py
+skills/proof-quick/             SKILL.md
+skills/proof-startup/           SKILL.md
+skills/proof-webapp/            SKILL.md
+skills/proof-mobile/            SKILL.md
+skills/proof-backend/           SKILL.md
+skills/proof-security/          SKILL.md
 skills/proof-plan/              SKILL.md, target.py
 skills/proof-report/            SKILL.md, verdict.py, htmlreport.py, rundiff.py
 skills/proof-core/              SKILL.md, ledger.py, num.py, validate.py, evidence-schema.json
@@ -434,7 +438,6 @@ skills/proof-llm-device/        SKILL.md, llmdevice.py
 skills/proof-mobile-audit/      SKILL.md, apkscan.py
 skills/proof-i18n/              SKILL.md, i18n.py
 skills/proof-email/             SKILL.md, mailcheck.py
-skills/proof-mutation/          SKILL.md, mutate.py
 skills/proof-load/              SKILL.md, loadplan.py
 skills/proof-explore/           SKILL.md, explore.py
 skills/proof-restraint/         SKILL.md, bloat.py

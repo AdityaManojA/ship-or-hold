@@ -65,7 +65,7 @@ related. Most answers quote nothing.
 
 ## Step 1: evidence first
 
-The board judges the ledger, so the testing skills (or `/proof-full-check`) and
+The board judges the ledger, so the testing skills (or a profile such as `/proof-startup`) and
 `/proof-report` come first. With no evidence the board can only hold.
 
 ## Step 2: the presentation

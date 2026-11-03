@@ -16,7 +16,7 @@ questions on top.
   {"id": "ceo", "title": "Chief Executive Officer", "short": "CEO",
    "skills": ["*"], "veto": []},
   {"id": "cto", "title": "Chief Technology Officer", "short": "CTO",
-   "skills": ["proof-web-e2e", "proof-api", "proof-load", "proof-web-perf", "proof-mutation",
+   "skills": ["proof-web-e2e", "proof-api", "proof-load", "proof-web-perf",
               "proof-restraint", "proof-infra", "proof-visual", "proof-compat", "proof-mobile-e2e",
               "proof-mobile-audit", "proof-watch", "proof-slop", "proof-mobile-explore",
               "proof-llm-device", "proof-react-native", "proof-resilience", "proof-voice", "proof-rag",
