@@ -1,18 +1,7 @@
 ---
 name: proof-resilience
 description: >-
-  Checks how a web or mobile app behaves when the network or the backend
-  misbehaves, with evidence for every result: offline, a slow network, server
-  errors, requests that never answer, a cold start of a sleeping backend, a fast
-  double tap on submit, retry storms, one API failing while the rest works, and a
-  session that expires mid-task (plus backgrounding and network switches on a
-  phone). Gives the way to cause each one on your own app and what a pass looks
-  like, records each result with a screenshot or capture, and reads HAR files for
-  duplicate writes, retry storms, very slow requests and a slow first request.
-  Optional, not in the targeted profiles; add it with --add or run it on its own. Use when the user says "what happens when
-  the network drops", "test offline", "resilience test", "does it handle server
-  errors", "double submit", "chaos test my app", "slow network test", or "cold
-  start".
+  Offline, slow network, server errors, timeouts, cold starts, double submits and retry storms, with a HAR analyser. Use for "what if the network drops", "resilience test" or "double submit".
 argument-hint: "[a scenario to focus on, or blank for all]"
 ---
 

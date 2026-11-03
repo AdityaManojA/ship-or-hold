@@ -1,7 +1,7 @@
 ---
 name: proof-quick
 description: >-
-  The fastest, cheapest Proof check: offline scans of committed secrets, vulnerable dependencies and deployment config, run on any repo in minutes with no running app, no browser and no sub-agents. Use when the user says "quick check", "quick scan", "sanity check", "scan my repo", "check for leaked keys", "is anything obviously wrong", or wants a check without spending many tokens.
+  The cheapest check: offline scans of secrets, dependencies and deploy config on any repo, no running app or sub-agents. Use for "quick check", "quick scan", "sanity check" or "check for leaked keys".
 argument-hint: "[--add proof-x]"
 ---
 
@@ -34,9 +34,13 @@ For more, move up a profile rather than adding to this one: `/proof-security` fo
 
    `--add proof-x` adds a skill the profile leaves out; `--skip proof-x` drops one.
 3. **Run.** `check.py next` names the next skill; follow that skill's own steps, then
-   ask again. `check.py status` shows progress and flags verified high or critical
-   findings as they appear. Proof only reads and records: no skill edits the project.
-4. **Finish.** `/proof-report` for the verdict. Stop there: no board, no audit pack, unless the user asks.
+   ask again. Work from each tool's printed summary; open evidence files only to
+   verify a finding. Proof only reads and records: no skill edits the project.
+4. **Run it again later.** Keep `proof/` and repeat the same command: the plan keeps
+   what earlier runs learnt, and `check.py next` skips every skill whose inputs have
+   not changed, so only the changed areas run. After redeploying a live target, mark
+   its live skills with `check.py refresh <skill>`.
+5. **Finish.** `/proof-report` for the verdict. Stop there: no board, no audit pack, unless the user asks.
 
 ## Example
 

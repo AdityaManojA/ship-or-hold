@@ -1,13 +1,7 @@
 ---
 name: proof-explore
 description: >-
-  Exploratory testing with a swarm of user personas. Scaffolds a persona profile
-  and brief for the target, runs the scenario swarm so a crowd of simulated users
-  each tries the product their own way, then harvests the problems they report into
-  candidate findings for a human to reproduce and verify. Finds the odd cases a
-  scripted test never lists. Use when the user says "explore the app", "try to
-  break it", "exploratory testing", "what would users trip on", "unscripted
-  testing", or "throw a crowd at it".
+  Exploratory testing: a persona swarm goes through the product and what they hit becomes findings to reproduce. Use for "exploratory testing", "try to break it", "user personas test" or "bug bash".
 argument-hint: "[what to explore, e.g. the checkout]"
 ---
 

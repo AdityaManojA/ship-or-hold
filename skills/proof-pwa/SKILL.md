@@ -1,16 +1,7 @@
 ---
 name: proof-pwa
 description: >-
-  Checks that a web app works as an installable Progressive Web App, from files
-  saved off the running site: the page links a manifest, the manifest has the
-  fields an install needs, icons exist at 192 and 512 px with one maskable and
-  match their declared sizes, a service worker is registered and handles fetches,
-  there is an offline fallback, the origin is HTTPS, and the iOS home-screen and
-  theme meta are set. Computes a score against a budget and records findings in
-  the ledger. Offline, read-only, Optional. Joins /proof-webapp when the app is a PWA. Use when
-  the user says "is my PWA installable", "PWA check", "add to home screen", "does
-  it work offline", "check the manifest", "service worker check", or "test the
-  PWA".
+  Installable web app checks from saved files: manifest, icons, service worker, offline fallback, HTTPS. Use for "is my PWA installable", "PWA check", "add to home screen" or "service worker".
 argument-hint: "[--html page.html --manifest manifest.json --sw sw.js]"
 ---
 

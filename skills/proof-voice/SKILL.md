@@ -1,16 +1,7 @@
 ---
 name: proof-voice
 description: >-
-  Tests voice and real-time audio features (a voice assistant, a WebRTC call,
-  speech in and out of a web or mobile app) with evidence. A checklist covers the
-  microphone permission and what happens when it is denied, reply latency, barge-in
-  (interrupting the reply), background and screen lock, audio route changes, poor
-  networks, echo, releasing the microphone at the end, and transcript accuracy.
-  Measures reply latency per turn, word error rate, and packet loss, jitter and
-  round-trip time from a WebRTC stats dump against budgets. Optional. Joins /proof-mobile when the app has voice. Use when the user says "test the voice feature", "voice assistant
-  testing", "how fast does it reply", "can I interrupt it", "test the call
-  quality", "WebRTC stats", "word error rate", "transcript accuracy", or "does the
-  mic turn off".
+  Voice and real-time audio: mic permission, latency, barge-in, audio routes, word error rate, WebRTC stats. Use for "test the voice feature", "call quality", "word error rate" or "WebRTC stats".
 argument-hint: "[plan | latency | wer | webrtc | record | result | status]"
 ---
 

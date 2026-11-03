@@ -1,13 +1,7 @@
 ---
 name: proof-core
 description: >-
-  The shared spine of the Proof pack: the evidence ledger every /proof-* skill
-  writes to, the schema it must follow, the rules for when a finding counts, and
-  the validator. Load this when another proof skill asks for "the ledger rules",
-  when you need to record a finding, mark coverage or write a score by hand, when
-  you want to check a proof/ folder is well formed, or when the user asks how
-  Proof decides what counts as evidence. Every other proof skill works on its own;
-  this one explains the files they have in common.
+  The shared evidence ledger every Proof skill writes to: schema, rules for when a finding counts, and the validator. Use for "ledger rules", "record a finding by hand" or "validate the proof folder".
 argument-hint: "[validate | explain]"
 ---
 

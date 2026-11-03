@@ -1,15 +1,7 @@
 ---
 name: proof-compat
 description: >-
-  Cross-browser and device compatibility testing as an evidence matrix. Rows are
-  the flows or pages that matter (sign in, checkout, the home page), columns are
-  browser and viewport combinations (Chrome, Firefox, Safari and Edge on desktop,
-  Chrome on Android, Safari on iOS, tablets), and every cell needs its own
-  screenshot or capture before it counts. A failing cell becomes a finding tied to
-  that environment; the grid shows at a glance what was checked where. Use when the
-  user says "cross-browser", "browser compatibility", "does it work in Safari",
-  "test on mobile", "test on iPhone", "device testing", "compat matrix", "check
-  every browser", or "responsive check".
+  A browser and viewport matrix for the critical flows, one piece of evidence per cell. Use for "browser compatibility", "does it work in Safari", "cross-browser test" or "device matrix".
 argument-hint: "[a preset (web, mobile, full) or a target to focus on, or blank]"
 ---
 

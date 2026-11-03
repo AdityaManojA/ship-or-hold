@@ -1,13 +1,7 @@
 ---
 name: proof-sec-deps
 description: >-
-  Audits a project's dependencies for known-vulnerable versions. It reads the
-  Python and Node manifests and lockfiles, matches them against an advisory file
-  (your own export, or the bundled format), and records a verified finding for each
-  affected package with the version to upgrade to. Offline and repeatable. Use when
-  the user says "audit dependencies", "any vulnerable packages", "check my
-  lockfile", "supply chain", "CVE check", or as part of a security pass. Defers to
-  pip-audit, npm audit or Trivy when a live, always-current check is wanted.
+  Matches installed packages against advisories and names the version to upgrade to. Use for "vulnerable dependencies", "npm audit", "CVE check" or "outdated packages".
 argument-hint: "[a path to the project, default here]"
 ---
 

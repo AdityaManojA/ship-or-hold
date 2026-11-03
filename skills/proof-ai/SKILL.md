@@ -1,14 +1,7 @@
 ---
 name: proof-ai
 description: >-
-  Tests an app's own language-model feature for safety and reliability, across the
-  known problem categories for LLM features: prompt injection, insecure handling of
-  model output, leaking secrets or personal data, taking real actions without
-  confirmation, overreliance and hallucination. It tracks which categories you
-  covered and records each result against your own app, holding failures to the
-  verification gate. Use when the user says "test my AI feature", "red team my
-  chatbot", "is my LLM app safe", "prompt injection", "does my assistant leak",
-  "LLM security", or "test the model feature". Cites the OWASP Top 10 for LLM apps.
+  Safety tests for an LLM feature: prompt injection, jailbreaks, data leaks and harmful output, plus imported eval results. Use for "test my AI", "red team", "prompt injection" or "is the chatbot safe".
 argument-hint: "[a category to focus on, or blank for all]"
 ---
 

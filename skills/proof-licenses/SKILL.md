@@ -1,16 +1,7 @@
 ---
 name: proof-licenses
 description: >-
-  Checks the licences of a project's dependencies and writes a software bill of
-  materials (SBOM). Reads npm lockfiles and node_modules, yarn and pnpm lockfiles,
-  and Python site-packages metadata or requirements and pyproject, classifies each
-  licence (permissive, weak copyleft, strong copyleft, network copyleft or unknown,
-  including SPDX OR and AND expressions), judges each against your project's own
-  licence and an optional allow and deny list, and writes a CycloneDX 1.5 SBOM as
-  evidence. Offline, read-only, Optional, not in the targeted profiles; add it with --add or run it on its own. Use when the
-  user says "check licenses", "licence compliance", "any GPL in my app", "AGPL
-  dependencies", "open source compliance", "make an SBOM", "software bill of
-  materials", or "can we ship these dependencies".
+  Dependency licences against your project licence, and a CycloneDX SBOM. Use for "check licenses", "any GPL", "licence compliance" or "make an SBOM".
 argument-hint: "[project folders, default here] [--project-license MIT]"
 ---
 

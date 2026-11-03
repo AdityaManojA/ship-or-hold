@@ -1,16 +1,7 @@
 ---
 name: proof-mobile-a11y
 description: >-
-  Accessibility checks for a native iOS or Android app from captured UI trees,
-  offline. Flags controls a screen reader cannot name, touch targets under 48 x 48
-  dp (Android) or 44 x 44 pt (iOS), labels that say nothing or repeat ("button",
-  "img_3", three controls all called "Edit"), and, from a second capture at the
-  largest font size, text that is truncated, runs off the screen or overlaps.
-  Records each problem per screen as a verified finding with the tree as evidence,
-  and lists the checks only a person can do (a TalkBack or VoiceOver walk-through,
-  focus order, gestures). Use when the user says "mobile accessibility", "app
-  accessibility", "TalkBack", "VoiceOver", "is my app accessible", "touch target
-  size", "dynamic type", "large text breaks my app", or "a11y check for the app".
+  Phone accessibility from UI trees: unlabelled controls, small touch targets, meaningless labels, large-text clipping. Use for "mobile accessibility", "TalkBack", "VoiceOver" or "touch target size".
 argument-hint: "[a saved UI tree, or blank to capture one]"
 ---
 

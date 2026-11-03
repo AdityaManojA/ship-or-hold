@@ -1,12 +1,7 @@
 ---
 name: proof-audit-trail
 description: >-
-  Packages a finished Proof run into a timestamped, hash-stamped evidence folder.
-  It copies the whole ledger and every evidence file, writes a manifest with the
-  SHA-256 of each file and the computed verdict, and can re-check the pack later to
-  prove nothing changed. Use when the user says "package the results", "evidence
-  pack", "sign off the run", "hand this to a reviewer", "audit trail", "prove these
-  results", or at the end of a Proof pass. Offline, standard library only.
+  Packs a finished Proof run into a folder with a SHA-256 for every file, and verifies it later. Use for "audit trail", "evidence pack", "archive the run" or "prove what we tested".
 argument-hint: "[build | verify <pack>]"
 ---
 

@@ -1,14 +1,7 @@
 ---
 name: proof-privacy
 description: >-
-  Checks a site's privacy basics from saved files: third-party trackers that load
-  before the visitor consents, non-essential cookies set on the first visit,
-  whether a consent banner and a privacy policy link exist, forms that send
-  personal data over plain HTTP or in the URL, and personal data leaking into URLs
-  in logs. Offline, read-only, results in the ledger with the saved files as
-  evidence. Use when the user says "GDPR check", "privacy audit", "cookie consent",
-  "are we tracking before consent", "is personal data leaking", "privacy review",
-  or "CCPA".
+  Trackers before consent, first-visit cookies, missing policy links and personal data in URLs. Use for "privacy check", "cookie banner", "GDPR trackers" or "consent check".
 argument-hint: "[a saved page, or blank to set it up]"
 ---
 

@@ -1,15 +1,7 @@
 ---
 name: proof-auth
 description: >-
-  Login and session safety for an app you own or are authorised to test, with
-  evidence for every result: password reset, session expiry, logout really ending
-  the session, where tokens are stored, session cookie flags, token hygiene, OAuth
-  redirect allowlists, rate limiting, account enumeration, a second factor that
-  cannot be skipped, and the password policy. Offline analysers read what you
-  captured (a token, sign-in response headers, two responses, a log of repeated
-  attempts); tokens are decoded, never verified, never printed in full. Optional. Joins /proof-startup, /proof-webapp, /proof-mobile, /proof-backend and /proof-security when the app has sign-in. Use when the user says "test my login", "auth security",
-  "is logout safe", "session handling", "check my JWT", "cookie flags", "rate limit
-  the login", "account enumeration", or "password reset security".
+  Login and session safety: reset, expiry, logout, token storage, cookie flags, JWT, OAuth redirects, rate limits, enumeration. Use for "test my login", "auth security", "is logout safe" or "check my JWT".
 argument-hint: "[a check to focus on, or blank for all]"
 ---
 

@@ -1,13 +1,7 @@
 ---
 name: proof-mobile-e2e
 description: >-
-  End-to-end testing of a mobile app's user flows, with evidence for each. Plans the
-  critical flows (sign in, the main task, checkout), generates Maestro flow files to
-  run on a device or emulator, and records each flow as a pass backed by a
-  screenshot or a failing finding. Falls back to manual-guided steps when Maestro is
-  not installed. Use when the user says "test the mobile app", "test the app on a
-  phone", "android e2e", "ios flow test", "does the app work on a device", or
-  "mobile end to end".
+  Plans mobile user flows, writes Maestro files and records each result with a screenshot. Use for "test my mobile app", "mobile e2e", "Maestro flows" or "test the app flows".
 argument-hint: "[a flow to focus on, or blank for all]"
 ---
 

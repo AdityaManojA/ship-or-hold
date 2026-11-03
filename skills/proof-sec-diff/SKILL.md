@@ -1,13 +1,7 @@
 ---
 name: proof-sec-diff
 description: >-
-  Scopes a security review to what a branch changed. It reads a git diff (from a
-  base branch, a patch file, or stdin), lists the changed files and added lines,
-  and flags which weakness classes each change most likely touches, so a reviewer
-  or a CI gate looks only at what moved. Records the scope in the ledger as
-  review checks to work through. Use when the user says "review my branch", "what
-  did this PR change", "security review of the diff", "scope the review", "check
-  the changes", or wants a fast pre-merge security gate.
+  Scopes a security review to what one branch or patch changed. Use for "review this branch for security", "security diff", "check my PR" or "what did this change expose".
 argument-hint: "[--base main]"
 ---
 

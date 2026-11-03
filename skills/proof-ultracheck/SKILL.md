@@ -1,16 +1,7 @@
 ---
 name: proof-ultracheck
 description: >-
-  The biggest check Proof runs, for when you deliberately want everything. It
-  reviews the app (web, PWA, API, React Native or native mobile, LLM use, an
-  on-device model, retrieval, database, sign-in, voice, email, translations) and
-  requires every skill that fits it: the targeted profiles combined plus the
-  browser matrix, visual regression, design match, resilience, load, exploratory
-  testing, code health, licences and the launch checklist. Long and token-heavy;
-  the targeted profiles (/proof-startup, /proof-webapp, /proof-mobile,
-  /proof-backend, /proof-security, /proof-quick) are cheaper. Use only when the user
-  says "ultracheck", "ultra check", "test absolutely everything", "every check
-  there is", "the deepest audit", or "leave nothing out".
+  Every skill that fits the app, all required; long and token-heavy, so prefer a targeted profile. Use only for "ultracheck", "test absolutely everything", "every check there is" or "leave nothing out".
 argument-hint: "[--public] [--skip proof-x] [--project path]..."
 ---
 
@@ -42,7 +33,8 @@ What the user typed after `/proof-ultracheck`: `$ARGUMENTS`
 
    SEO and AI-search join only with `--public`. Proof only reads and records: no
    skill edits the project, so there is no mutation testing here.
-4. **Run.** `check.py next` names each skill; follow its own steps. A check that
+4. **Run.** `check.py next` names each skill; follow its own steps. On a later run
+   it skips every skill whose inputs are unchanged. A check that
    cannot apply (no design exports, no device) is marked not applicable with a
    reason inside the skill, so it stops holding the verdict at Incomplete.
 5. **Finish.** Without asking: `/proof-report`, then `/proof-board` whatever the

@@ -1,17 +1,7 @@
 ---
 name: proof-react-native
 description: >-
-  A static, offline audit of a React Native or Expo app's own source and config,
-  for problems that ship to users: secrets compiled into the bundle (app config
-  extra, EXPO_PUBLIC_ variables, keys in the source), tokens and passwords kept in
-  plain AsyncStorage, cleartext traffic, permissions that do not match the code or
-  lack an iOS usage description, debug leftovers in release builds, deep-link
-  handlers that open whatever they are given, over-the-air update settings,
-  Android backups and expo-doctor failures. Read-only; it never builds or runs the
-  app. Optional. Joins /proof-mobile for a React Native or Expo app. Use when the user says "audit my React
-  Native app", "check my Expo app", "is my Expo config safe", "are my tokens stored
-  safely", "check app permissions", "react native security", or "is the app ready
-  for the app store".
+  Static audit of a React Native or Expo app: secrets in the bundle, tokens in AsyncStorage, cleartext, permissions, debug settings, OTA. Use for "audit my Expo app" or "react native security".
 argument-hint: "[project folder, blank for the current one]"
 ---
 

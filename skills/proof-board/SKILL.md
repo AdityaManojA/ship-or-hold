@@ -1,16 +1,7 @@
 ---
 name: proof-board
 description: >-
-  Presents the project to a board of directors and gets a launch decision, with
-  nothing for the user to do. Nine directors (CEO, CTO, CISO, CFO, CMO, Head of
-  Sales, COO, CPO, General Counsel) are sub-agents; each applies the researched,
-  sourced thinking of one person (Steve Jobs, Werner Vogels, Steve Katz, Ruth
-  Porat, David Ogilvy, John H. Patterson, Tim Cook, Tony Fadell, Brad Smith),
-  quotes them word for word with sources, and backs every serious risk with a
-  finding or score from the ledger. The meeting runs by itself, item by item
-  through the audits, in the chat and as a page that plays on its own. Use when
-  the user says "present this to the board", "board of directors", "what would
-  the execs say", "board meeting", "should we launch", or "get sign-off".
+  A nine-director board hears the evidence and votes Go, Go with conditions or Hold; the meeting runs by itself. Use for "present this to the board", "board meeting", "should we launch" or "get sign-off".
 argument-hint: "[--seats ceo,cto,cfo]"
 ---
 
@@ -77,12 +68,18 @@ python3 "${CLAUDE_SKILL_DIR}/board.py" brief
 Writes `proof/board/presentation.md` (the product, the computed verdict, every
 verified finding and score with a reference in square brackets, and the ask) and one
 brief per director: their role, their lens with its quotes, and the answer format.
-`--seats ceo,cto,cfo,sales` convenes a smaller board. A new brief clears the previous
-meeting's answers, so the board always judges the current evidence.
+Each brief shows that director's own area in full and every other area in one line
+(only what could block a launch), so no director reads the whole ledger.
+`--seats ceo,cto,cfo,sales` convenes a smaller board.
+
+On a later run, a director whose brief is unchanged keeps their answer; `brief` lists
+only the directors whose evidence moved, and says so when nobody needs to meet again
+(then go straight to `tally`). `--fresh` clears every answer and convenes everyone.
 
 ## Step 3: convene the board
 
-Send ONE message with one Agent tool call per director brief, all in parallel:
+Send ONE message with one Agent tool call per brief that `brief` listed (not the
+directors whose answers it kept), all in parallel:
 
 - `subagent_type`: `general-purpose`
 - `description`: `board <seat>`

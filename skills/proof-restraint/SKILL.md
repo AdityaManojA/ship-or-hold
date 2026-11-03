@@ -1,13 +1,7 @@
 ---
 name: proof-restraint
 description: >-
-  Finds code, files and dependencies that probably should not exist: functions and
-  classes nothing references, oversized source files, declared-but-unimported
-  packages, and left-in debug and TODO markers. The cheapest code to own is the
-  code you delete, so each candidate is something to confirm and remove. Offline,
-  read-only, results in the ledger as low-severity notes that do not block a ship.
-  Use when the user says "what can I delete", "find dead code", "is this bloated",
-  "unused dependencies", "clean this up", "reduce surface area", or "simplify".
+  Finds dead code, unused dependencies and oversized files: what to delete. Use for "dead code", "unused dependencies", "bloat" or "what can we delete".
 argument-hint: "[a path, default here]"
 ---
 

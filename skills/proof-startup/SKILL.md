@@ -1,7 +1,7 @@
 ---
 name: proof-startup
 description: >-
-  A lean launch check for a startup MVP: the core user flows, the risks that sink a launch (leaked keys, vulnerable packages, broken sign-in, open data, privacy, store rejection) and whether each sale makes money, then a board of directors votes on the launch. Only the skills the product needs run. Use when the user says "startup check", "launch check", "are we ready to launch", "MVP check", "can we ship this", "pre-launch audit", or "present it to the board".
+  Lean launch check for a startup MVP: core flows, launch-sinking risks and unit economics, then the board votes. Use for "startup check", "are we ready to launch", "MVP check" or "can we ship this".
 argument-hint: "[--public] [--add proof-x] [--skip proof-x]"
 ---
 
@@ -49,9 +49,13 @@ Common additions when the user asks: `/proof-web-perf` (speed), `/proof-a11y` (a
 
    `--add proof-x` adds a skill the profile leaves out; `--skip proof-x` drops one.
 3. **Run.** `check.py next` names the next skill; follow that skill's own steps, then
-   ask again. `check.py status` shows progress and flags verified high or critical
-   findings as they appear. Proof only reads and records: no skill edits the project.
-4. **Finish.** `/proof-report`, then `/proof-board` whatever the verdict (it ends with `board.py tally --open`, which opens the meeting page), then `/proof-audit-trail`.
+   ask again. Work from each tool's printed summary; open evidence files only to
+   verify a finding. Proof only reads and records: no skill edits the project.
+4. **Run it again later.** Keep `proof/` and repeat the same command: the plan keeps
+   what earlier runs learnt, and `check.py next` skips every skill whose inputs have
+   not changed, so only the changed areas run. After redeploying a live target, mark
+   its live skills with `check.py refresh <skill>`.
+5. **Finish.** `/proof-report`, then `/proof-board` whatever the verdict (it ends with `board.py tally --open`, which opens the meeting page), then `/proof-audit-trail`.
 
 ## Example
 

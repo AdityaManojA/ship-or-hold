@@ -1,14 +1,7 @@
 ---
 name: proof-web-perf
 description: >-
-  Measure a web page's load performance against a written budget and record every
-  number as a pass or fail score in the evidence ledger. Covers Largest Contentful
-  Paint, Cumulative Layout Shift, Total Blocking Time, First Contentful Paint, time
-  to first byte, JavaScript weight, total transfer and request count. Reads a
-  Lighthouse JSON result when Lighthouse is installed, or numbers you capture by
-  hand from the browser into a small file. Use when the user says "is the site
-  fast", "page speed", "performance budget", "core web vitals", "LCP", "CLS",
-  "bundle size", "how heavy is the page", "run Lighthouse", or "perf check".
+  Scores load speed against a budget from Lighthouse or measured numbers: LCP, CLS, TBT, size. Use for "is my site fast", "Lighthouse", "Core Web Vitals" or "performance budget".
 argument-hint: "[a URL to measure, or a path to a Lighthouse JSON result, or blank]"
 ---
 

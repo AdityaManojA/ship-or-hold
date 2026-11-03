@@ -1,15 +1,7 @@
 ---
 name: proof-check
 description: >-
-  Picks the right Proof check for this product and plans it. Reviews the app
-  (web, PWA, API, React Native or native mobile, and what it uses: sign-in, a
-  database, an LLM, retrieval, email, voice), suggests a profile, and requires
-  only the skills that profile lists and the app actually needs, so a run never
-  spends tokens on checks that do not apply. Profiles: /proof-quick,
-  /proof-startup, /proof-webapp, /proof-mobile, /proof-backend, /proof-security,
-  and /proof-ultracheck for everything. Use when the user says "test my app",
-  "check my project", "which check should I run", "audit this before launch", or
-  asks for a check without naming one.
+  Reviews the app, suggests the right Proof profile and plans only the skills it needs; skips skills whose inputs are unchanged on a re-run. Use for "test my app", "which check should I run" or a check without a name.
 argument-hint: "[quick | startup | webapp | mobile | backend | security | ultra] [--public]"
 ---
 
@@ -30,6 +22,7 @@ python3 "${CLAUDE_SKILL_DIR}/check.py" profiles
 python3 "${CLAUDE_SKILL_DIR}/check.py" plan --profile <name> [--public] [--add proof-x] [--skip proof-x]
 python3 "${CLAUDE_SKILL_DIR}/check.py" status
 python3 "${CLAUDE_SKILL_DIR}/check.py" next
+python3 "${CLAUDE_SKILL_DIR}/check.py" refresh <skill> | --all
 ```
 
 ## Pick a profile
@@ -64,6 +57,16 @@ AI-search join only with `--public`, for a product meant to be found.
    reason inside the skill, so it stops holding the verdict at Incomplete.
 5. **Finish.** `/proof-report` for the computed verdict. The profile's own command
    says whether to continue to `/proof-board` and `/proof-audit-trail`.
+
+## The second run costs less
+
+Keep `proof/` between runs. Each finished skill records a fingerprint of what it reads
+(lockfiles for dependency skills, deploy files for infra, the source for the rest;
+docs only for finance). Re-plan with the same profile and `check.py next` skips every
+skill whose inputs are unchanged, so its instructions and tools are never loaded;
+`status` marks those `unchanged` and anything whose inputs moved `stale`. A live
+target can change without the code changing: after a redeploy, run
+`check.py refresh <skill>` (or `--all`). The board does the same per director.
 
 ## Honest limits
 

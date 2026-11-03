@@ -1,17 +1,7 @@
 ---
 name: proof-llm-cost
 description: >-
-  Works out what an app's language-model calls cost and how fast they answer,
-  from usage records you export, against a budget: cost per call and per
-  conversation, cost per active user per day, the projected monthly cost of a
-  heavy user, tokens per call, response time at the median, 95th and 99th
-  percentile, error rate and prompt-cache share. Flags runaway conversations,
-  duplicate calls and model calls in the code with no output-token cap. Prices come
-  only from a file you fill in; it never guesses one and never calls a provider.
-  Optional. Joins /proof-backend when the app calls an LLM. Use when the user says "what does the AI
-  cost", "LLM cost per user", "are we losing money on the model", "token usage",
-  "OpenAI bill", "how slow are the AI responses", "spend limits", or "cost per
-  conversation".
+  LLM cost per call, conversation and user from usage records and your price file, plus response times and runaway calls. Use for "what does the AI cost", "token usage", "LLM bill" or "cost per user".
 argument-hint: "[usage records, or blank to set up prices]"
 ---
 

@@ -1,14 +1,7 @@
 ---
 name: proof-mobile-audit
 description: >-
-  Inspects a mobile app build for configuration and data-handling problems, offline.
-  For Android it reads an APK for the permissions it requests, cleartext-traffic
-  settings and plain-HTTP URLs baked in; for iOS it reads Info.plist for App
-  Transport Security, URL schemes and permission-use descriptions. Findings go in
-  the ledger. Use when the user says "audit the apk", "check the app build",
-  "mobile security", "what permissions does my app ask for", "is the app leaking
-  http", or "ios app transport security". Defers to a dedicated mobile security tool
-  for a deep inspection.
+  Reads an APK or IPA for permissions, debug flags, cleartext traffic, secrets and embedded URLs. Use for "audit my APK", "check the IPA", "mobile build security" or "app permissions".
 argument-hint: "[path to an .apk or .ipa]"
 ---
 

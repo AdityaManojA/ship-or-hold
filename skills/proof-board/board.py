@@ -147,7 +147,23 @@ def vetoes(r, seats):
 
 # ---------------------------------------------------------- presentation
 
-def _skill_lines(r, skills):
+LOW_SHOWN = 3
+NOT_RUN_SHOWN = 5
+
+
+def _summary_line(r, sk, by_skill):
+    """One line for a skill outside a director's area: counts, plus the refs that could decide a call."""
+    # Only what could block a launch, so a small change in another area does not
+    # change this director's brief (and their answer can be kept).
+    blocking = [f for f in by_skill.get(sk, []) if f["status"] == "verified" and f["severity"] in ("critical", "high")]
+    sc = next((s for s in r["scores"] if s["skill"] == sk), None)
+    over = [m for m in (sc["metrics"] if sc else []) if not ledger.metric_passes(m)]
+    keys = ["[%s/%s] %s" % (sk, f["id"], f["severity"].upper()) for f in blocking]
+    keys += ["[%s/score:%s] over budget" % (sk, m["id"]) for m in over]
+    return "- %s: %s" % (sk, "; ".join(keys) if keys else "nothing blocking")
+
+
+def _skill_lines(r, skills, compact=False):
     L = []
     by_skill = {}
     for f in r["findings"]:
@@ -165,9 +181,16 @@ def _skill_lines(r, skills):
         tag = "required" if sk in r["required"] else "optional"
         L.append("### %s, %s%s" % (sk, tag, counts))
         fs = [f for f in by_skill.get(sk, []) if f["status"] == "verified"]
+        lows = 0
         for f in sorted(fs, key=lambda f: verdict.RANK[f["severity"]]):
+            if compact and f["severity"] in ("low", "info"):
+                lows += 1
+                if lows > LOW_SHOWN:
+                    continue
             L.append("- [%s/%s] %s: %s%s" % (sk, f["id"], f["severity"].upper(), f["title"],
-                                             (" Fix: " + f["fix"]) if f.get("fix") else ""))
+                                             (" Fix: " + f["fix"]) if f.get("fix") and not compact else ""))
+        if lows > LOW_SHOWN:
+            L.append("- and %d more low or info finding(s)" % (lows - LOW_SHOWN))
         unv = [f for f in by_skill.get(sk, []) if f["status"] == "unverified"]
         if unv:
             L.append("- %d unverified lead(s), not counted: %s" % (len(unv), "; ".join(f["title"] for f in unv[:5])))
@@ -178,15 +201,20 @@ def _skill_lines(r, skills):
                 "within budget" if ledger.metric_passes(m) else "OVER BUDGET"))
         if cov:
             notrun = [c for c in cov["checks"] if c["status"] == "not_run"]
-            for c in notrun[:10]:
+            shown = NOT_RUN_SHOWN if compact else 10
+            for c in notrun[:shown]:
                 L.append("- [%s/coverage:%s] not yet checked: %s" % (sk, c["id"], c["title"]))
+            if len(notrun) > shown:
+                L.append("- and %d more check(s) not yet run" % (len(notrun) - shown))
         if not fs and not unv and not (sc and sc["metrics"]):
             L.append("- no verified findings")
         L.append("")
     return L
 
 
-def presentation(r, seats_vetoes):
+def presentation(r, seats_vetoes, focus=None):
+    """The team's presentation. With `focus` (a director's skills), only that area is shown in
+    full and every other skill is one line, so each brief carries what that seat judges."""
     t = r.get("target") or {}
     sev = {s: sum(1 for f in r["findings"] if f["status"] == "verified" and f["severity"] == s) for s in ledger.SEVERITIES}
     L = ["# %s: presentation to the board" % (t.get("name") or "The product"), ""]
@@ -199,9 +227,16 @@ def presentation(r, seats_vetoes):
     L.append("")
     L.append("## The headline")
     L.append("- [verdict] The computed Proof verdict is **%s**." % r["verdict"])
-    L.append("- Verified findings: %d critical, %d high, %d medium, %d low." % (
-        sev["critical"], sev["high"], sev["medium"], sev["low"]))
-    for c in r["checks"]:
+    if focus in (None, ["*"]):
+        L.append("- Verified findings: %d critical, %d high, %d medium, %d low." % (
+            sev["critical"], sev["high"], sev["medium"], sev["low"]))
+        checks = r["checks"]
+    else:
+        L.append("- Verified critical or high findings, all areas: %d." % (sev["critical"] + sev["high"]))
+        # Counts in the shared lines would change every brief on any edit; drop them here.
+        checks = [dict(c, text=re.sub(r" \(\d+ below it\)", "", c["text"])) for c in r["checks"]
+                  if "proof-" not in c["text"] or any(sk in c["text"] for sk in focus)]
+    for c in checks:
         L.append("- %s %s" % ("OK" if c["ok"] else "PROBLEM:", c["text"]))
     if seats_vetoes:
         L.append("- The evidence already triggers %d veto(es) on this board:" % len(seats_vetoes))
@@ -210,7 +245,20 @@ def presentation(r, seats_vetoes):
     L.append("")
     L.append("## What was tested, and what it found")
     L.append("")
-    L.extend(_skill_lines(r, ["*"]))
+    if focus is None:
+        L.extend(_skill_lines(r, ["*"]))
+    else:
+        L.extend(_skill_lines(r, focus, compact=True))
+        if focus != ["*"]:
+            by_skill = {}
+            for f in r["findings"]:
+                by_skill.setdefault(f["skill"], []).append(f)
+            names = sorted(set([f["skill"] for f in r["findings"]] + [c["skill"] for c in r["coverage"]] +
+                               [x["skill"] for x in r["scores"]]) - set(focus))
+            if names:
+                L.append("### Outside your area, in one line each")
+                L.extend(_summary_line(r, sk, by_skill) for sk in names)
+                L.append("")
     L.append("## The ask")
     L.append("Decide whether this ships now (Go), ships once named conditions are met (Go with conditions), "
              "or does not ship yet (Hold).")
@@ -1407,40 +1455,51 @@ def cmd_brief(a):
     fp = fingerprint(r)
     bdir = _board_dir(a.dir)
     meta_path = os.path.join(bdir, "board.json")
-    old_fp = None
+    old = {}
     if os.path.exists(meta_path):
         with open(meta_path, encoding="utf-8") as fh:
-            old_fp = json.load(fh).get("fingerprint")
+            old = json.load(fh)
+    old_seat_fps = old.get("seat_fingerprints") or {}
     ans_dir = os.path.join(bdir, "answers")
-    if os.path.isdir(ans_dir) and not (a.keep_answers and old_fp == fp):
-        removed = 0
-        for n in os.listdir(ans_dir):
-            if n.endswith(".json"):
-                os.remove(os.path.join(ans_dir, n))
-                removed += 1
-        qa = os.path.join(bdir, "qa.json")
-        if os.path.exists(qa):
-            os.remove(qa)
-        if removed:
-            print("Cleared %d answer(s) from an earlier meeting (the board judges the current evidence)." % removed)
     triggered = vetoes(r, seats)
-    pres = presentation(r, triggered)
-    _write(os.path.join(bdir, "presentation.md"), pres)
+    _write(os.path.join(bdir, "presentation.md"), presentation(r, triggered))
     personas = load_personas()
-    paths = []
+    qa = _load_qa(a.dir)
+    paths, kept, cleared, seat_fps = [], [], 0, {}
     for seat in seats:
         p = os.path.join(bdir, "briefs", seat["id"] + ".md")
-        _write(p, seat_brief(seat, pres, os.path.abspath(_answer_path(a.dir, seat["id"])), triggered,
-                             personas.get(seat["id"])))
+        text = seat_brief(seat, presentation(r, triggered, focus=seat["skills"]),
+                          os.path.abspath(_answer_path(a.dir, seat["id"])), triggered, personas.get(seat["id"]))
+        _write(p, text)
+        seat_fps[seat["id"]] = hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+        ans = _answer_path(a.dir, seat["id"])
+        same = old_seat_fps.get(seat["id"]) == seat_fps[seat["id"]]
+        if os.path.exists(ans) and same and not a.fresh:
+            kept.append(seat["id"])  # nothing this director judges has changed: keep the answer
+            continue
+        if os.path.exists(ans):
+            os.remove(ans)
+            cleared += 1
+        qa.pop(seat["id"], None)
         paths.append(p)
+    _write(os.path.join(bdir, "qa.json"), json.dumps(qa, indent=2, ensure_ascii=False) + "\n")
     os.makedirs(ans_dir, exist_ok=True)
     with open(meta_path, "w", encoding="utf-8") as fh:
-        json.dump({"fingerprint": fp, "seats": [s["id"] for s in seats], "created": ledger.now()}, fh, indent=2)
+        json.dump({"fingerprint": fp, "seat_fingerprints": seat_fps, "seats": [s["id"] for s in seats],
+                   "created": ledger.now()}, fh, indent=2)
+    if cleared:
+        print("Cleared %d answer(s) whose evidence changed (the board judges the current evidence)." % cleared)
+    if kept:
+        print("Kept %d answer(s) whose evidence is unchanged: %s." % (len(kept), ", ".join(kept)))
     print("%s presentation written to %s" % (ledger.OK, os.path.join(bdir, "presentation.md")))
     if triggered:
         print("The evidence already triggers %d veto(es); the board will hold whatever the votes say." % len(triggered))
-    print("\nConvene the board: send ONE message with one Agent call per director "
-          "(subagent_type general-purpose, prompt 'Read <brief> and follow it exactly. It is your whole brief.'):")
+    if not paths:
+        print("\nNo director needs to meet again: every answer stands. Next: board.py tally")
+        return 0
+    print("\nConvene %s: send ONE message with one Agent call per director below "
+          "(subagent_type general-purpose, prompt 'Read <brief> and follow it exactly. It is your whole brief.'):"
+          % ("the board" if not kept else "only these %d director(s)" % len(paths)))
     for p in paths:
         print("  " + p)
     print("\nThen: board.py check, board.py tally")
@@ -1581,7 +1640,9 @@ def main(argv=None):
     s.set_defaults(func=cmd_seats)
     b = sub.add_parser("brief", help="write the presentation and one brief per director")
     b.add_argument("--seats", help="comma-separated subset, e.g. ceo,cto,cfo")
-    b.add_argument("--keep-answers", action="store_true", help="keep answers if the evidence has not changed")
+    b.add_argument("--keep-answers", action="store_true",
+                   help="kept for old scripts; answers are now kept by default while a director's evidence is unchanged")
+    b.add_argument("--fresh", action="store_true", help="clear every answer and convene the whole board")
     b.set_defaults(func=cmd_brief)
     sub.add_parser("check", help="validate the directors' answers").set_defaults(func=cmd_check)
     sv = sub.add_parser("save", help="file one director's answer from stdin")

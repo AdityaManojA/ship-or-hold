@@ -1,16 +1,7 @@
 ---
 name: proof-slop
 description: >-
-  Finds the tells of machine-made filler in a product's copy, UI and code, each with
-  a file and line: hype words, em-dash chains, decorative emoji, "not just X, it's
-  Y" framing, numbers that look invented, placeholder text left in, stock
-  purple-to-blue gradients, gradient headline text, glass panels everywhere, a
-  stock typeface as the only voice, banner comments, comments that repeat the
-  code, errors caught and ignored, and assistant chatter left in the source.
-  Computes a score against a budget and records findings in the ledger. Offline,
-  read-only. Use when the user says "does this look AI-generated", "remove the
-  slop", "check for AI slop", "is the copy generic", "does the UI look templated",
-  "clean up generated code", or "make it read like a person made it".
+  Finds copy, styling and code that read as machine-made: hype words, invented-looking numbers, stock gradients, banner comments. Use for "slop check", "does this look AI-generated" or "clean up the copy".
 argument-hint: "[folders or files to scan, blank for the project root]"
 ---
 

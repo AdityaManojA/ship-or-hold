@@ -1,12 +1,7 @@
 ---
 name: proof-doctor
 description: >-
-  Reports which optional external tools are installed (Playwright, Lighthouse, axe,
-  Semgrep, TruffleHog, k6, Maestro, Schemathesis, promptfoo and more), the version
-  it found, which Proof skills each one unlocks, and what you lose without it. No
-  network, detection by PATH. Use when the user says "what do I need to install",
-  "check my tools", "run the doctor", "is Playwright installed", "setup check",
-  "why is this skill using the slow path", or before a run to see what is available.
+  Shows which optional external tools are installed and what each one adds. Use for "which tools do I need", "proof doctor", "check my setup" or "what is missing".
 argument-hint: "[--for proof-<skill>] [--json]"
 ---
 

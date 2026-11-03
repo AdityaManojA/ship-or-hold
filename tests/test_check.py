@@ -200,5 +200,89 @@ class Plan(unittest.TestCase):
         self.assertNotIn(first, out)
 
 
+class Cache(unittest.TestCase):
+    """A second run skips skills whose inputs have not changed."""
+
+    def setUp(self):
+        self.tp = TempProof().__enter__()
+        self.d = self.tp.dir
+        ledger.write_target(self.d, {"name": "App", "kind": "web", "authorised": True, "required_skills": []})
+        self.root = os.path.join(self.tp.base, "app")
+        for rel, text in {"package.json": '{"dependencies": {"next": "15"}}', "Dockerfile": "FROM node:22\n",
+                          "src/app.js": "x = 1\n", "README.md": "hi\n"}.items():
+            self.put(rel, text)
+
+    def tearDown(self):
+        self.tp.__exit__(None, None, None)
+
+    def put(self, rel, text):
+        path = os.path.join(self.root, rel)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write(text)
+
+    def finish(self, skill):
+        ev = self.tp.write("evidence/%s/x.txt" % skill, b"x")
+        ledger.init_coverage(self.d, skill, [("c1", "Check 1")])
+        ledger.mark_coverage(self.d, skill, "c1", "covered", evidence=[ev])
+
+    def second_run(self):
+        """Re-plan as a later run would, with the plan dated after the first run finished."""
+        run("--dir", self.d, "plan", "--profile", "quick", "--project", self.root)
+        plan = ck._load_plan(self.d)
+        plan["created"] = "2999-01-01T00:00:00+00:00"
+        ck._save_plan(self.d, plan)
+
+    def states(self):
+        return {r["skill"]: r["state"] for r in ck._progress(self.d)[1]}
+
+    def first_run(self):
+        run("--dir", self.d, "plan", "--profile", "quick", "--project", self.root)
+        for s in ("proof-sec-secrets", "proof-sec-deps", "proof-infra"):
+            self.finish(s)
+        self.assertEqual(set(self.states().values()), {"done"})
+
+    def test_unchanged_inputs_are_skipped(self):
+        self.first_run()
+        self.second_run()
+        self.assertEqual(set(self.states().values()), {"unchanged"})
+        rc, out = run("--dir", self.d, "next")
+        self.assertIn("3 unchanged and skipped", out)
+        rc, out = run("--dir", self.d, "plan", "--profile", "quick", "--project", self.root)
+        self.assertIn("finished in an earlier run", out)
+
+    def test_only_the_skills_whose_inputs_moved_go_stale(self):
+        self.first_run()
+        self.put("package.json", '{"dependencies": {"next": "16"}}')
+        self.second_run()
+        got = self.states()
+        self.assertEqual(got["proof-sec-deps"], "stale")
+        self.assertEqual(got["proof-infra"], "unchanged")
+        rc, out = run("--dir", self.d, "next")
+        self.assertIn("inputs changed", out)
+        os.utime(ledger.coverage_path(self.d, "proof-sec-secrets"), None)  # re-run after the change
+        os.utime(ledger.coverage_path(self.d, "proof-sec-deps"), None)
+        self.finish("proof-sec-deps")
+        got = self.states()
+        self.assertEqual(got["proof-sec-deps"], "done")
+
+    def test_docs_do_not_invalidate_code_skills_and_refresh_forces(self):
+        self.first_run()
+        self.put("README.md", "changed\n")
+        self.second_run()
+        self.assertEqual(self.states()["proof-sec-secrets"], "unchanged")
+        run("--dir", self.d, "refresh", "proof-infra")
+        self.assertEqual(self.states()["proof-infra"], "refresh")
+        rc, out = run("--dir", self.d, "next")
+        self.assertIn("marked to run again", out)
+
+    def test_fingerprints_group_inputs(self):
+        a = ck.fingerprints([self.root])
+        self.put("Dockerfile", "FROM node:24\n")
+        b = ck.fingerprints([self.root])
+        self.assertNotEqual(a["infra"], b["infra"])
+        self.assertEqual(a["deps"], b["deps"])
+
+
 if __name__ == "__main__":
     unittest.main()

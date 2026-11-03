@@ -1,16 +1,7 @@
 ---
 name: proof-rag
 description: >-
-  Measures the answer quality of a retrieval-augmented (RAG) feature with
-  evidence: whether the right documents are retrieved, whether citations point at
-  documents that were retrieved and relevant (and none are invented), whether the
-  app abstains when the documents hold no answer, whether answers are faithful
-  and mention the required facts, and whether any user ever sees another user's or
-  tenant's documents. You run your cases against your own app; the tool scores the
-  saved results against budgets and never calls a model. Optional. Joins /proof-backend when the app uses retrieval. Use when the user says "test my RAG", "are the citations right",
-  "does retrieval work", "evaluate answers against my documents", "is it
-  hallucinating citations", "can users see each other's documents", "grounding
-  check", or "RAG eval".
+  Retrieval quality from saved runs: hit rate, citations that support the answer, abstaining, leaks between users. Use for "test my RAG", "are the citations right" or "can users see each other's documents".
 argument-hint: "[cases.json results.json, or blank to start from a template]"
 ---
 

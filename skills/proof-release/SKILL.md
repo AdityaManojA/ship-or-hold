@@ -1,15 +1,7 @@
 ---
 name: proof-release
 description: >-
-  The pre-launch readiness gate. Walks through the operational things that decide
-  whether launch day goes well (error tracking and alerts that reach a person,
-  backups and a restore that was actually tested, a rollback that was tried,
-  secrets and access, two-factor, domain and certificate renewal, rate limits,
-  load, an on-call owner, support and status comms, legal pages, kill switches)
-  and asks for evidence on each, not a yes. Items that are not ready become
-  findings that must be verified. Use when the user says "are we ready to launch",
-  "launch readiness", "pre-launch checklist", "go-live check", "production
-  readiness review", "what could go wrong on launch day", or "launch gate".
+  A launch-day checklist (alerts, backups, rollback, on-call) where each item needs proof. Use for "launch checklist", "release readiness", "are we ready to go live" or "rollback plan".
 argument-hint: "[planned launch date YYYY-MM-DD, or an item id to focus on]"
 ---
 

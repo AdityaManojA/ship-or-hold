@@ -1,17 +1,7 @@
 ---
 name: proof-store-ready
 description: >-
-  Catches App Store and Google Play rejection risks before you submit, from the
-  project and a few saved files, offline: no in-app account deletion, third-party
-  login on iOS without Sign in with Apple, an Android target SDK below Play's
-  floor, a missing or incomplete iOS privacy manifest, analytics, crash and ads
-  SDKs that the privacy declarations do not mention, version and build numbers,
-  export compliance, the App Store icon (1024 px, no alpha) and Android adaptive
-  icon, and screenshot sizes. Works for Expo and React Native and for native
-  projects. Optional. Joins /proof-startup and /proof-mobile for a mobile app. Use when the user says "is the app
-  ready for the App Store", "will Apple reject this", "Play Store submission",
-  "store readiness", "app review checklist", "why was my app rejected", or "before
-  we submit the app".
+  App Store and Google Play rejection risks: account deletion, Sign in with Apple, target SDK, privacy manifest, icons. Use for "will Apple reject this", "store readiness" or "before we submit the app".
 argument-hint: "[project folder, blank for the current one]"
 ---
 
