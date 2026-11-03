@@ -8,7 +8,7 @@ description: >-
   SDKs that the privacy declarations do not mention, version and build numbers,
   export compliance, the App Store icon (1024 px, no alpha) and Android adaptive
   icon, and screenshot sizes. Works for Expo and React Native and for native
-  projects. Optional, not part of a full check. Use when the user says "is the app
+  projects. Optional. Joins /proof-startup and /proof-mobile for a mobile app. Use when the user says "is the app
   ready for the App Store", "will Apple reject this", "Play Store submission",
   "store readiness", "app review checklist", "why was my app rejected", or "before
   we submit the app".
@@ -24,7 +24,7 @@ no longer accepts, or it ships an analytics SDK the privacy labels never mention
 This skill reads the project and points at each risk with a file, a line and the
 guideline it breaks.
 
-It is optional and not part of a full check. It pairs with `/proof-react-native`
+It joins `/proof-startup` and `/proof-mobile` for a mobile app. It pairs with `/proof-react-native`
 (permissions, secrets and storage in the code), `/proof-mobile-audit` (the built
 APK or IPA) and `/proof-privacy` (the web side).
 

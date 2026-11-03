@@ -7,8 +7,7 @@ description: >-
   app abstains when the documents hold no answer, whether answers are faithful
   and mention the required facts, and whether any user ever sees another user's or
   tenant's documents. You run your cases against your own app; the tool scores the
-  saved results against budgets and never calls a model. Optional, not part of a
-  full check. Use when the user says "test my RAG", "are the citations right",
+  saved results against budgets and never calls a model. Optional. Joins /proof-backend when the app uses retrieval. Use when the user says "test my RAG", "are the citations right",
   "does retrieval work", "evaluate answers against my documents", "is it
   hallucinating citations", "can users see each other's documents", "grounding
   check", or "RAG eval".
@@ -22,7 +21,7 @@ document it never read, answers from the model's memory when the user's document
 say nothing, or, worst, pulls another customer's document into the answer. This
 skill turns those into numbers with the cases behind them.
 
-It is optional and never part of a full check. It pairs with `/proof-ai`, which
+It joins `/proof-backend` when the review finds retrieval. It pairs with `/proof-ai`, which
 covers safety (prompt injection, data leaks, misuse), and with
 `eval_import.py results` in that skill for any eval suite you already run.
 

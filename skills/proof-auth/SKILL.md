@@ -7,8 +7,7 @@ description: >-
   redirect allowlists, rate limiting, account enumeration, a second factor that
   cannot be skipped, and the password policy. Offline analysers read what you
   captured (a token, sign-in response headers, two responses, a log of repeated
-  attempts); tokens are decoded, never verified, never printed in full. Optional,
-  not part of a full check. Use when the user says "test my login", "auth security",
+  attempts); tokens are decoded, never verified, never printed in full. Optional. Joins /proof-startup, /proof-webapp, /proof-mobile, /proof-backend and /proof-security when the app has sign-in. Use when the user says "test my login", "auth security",
   "is logout safe", "session handling", "check my JWT", "cookie flags", "rate limit
   the login", "account enumeration", or "password reset security".
 argument-hint: "[a check to focus on, or blank for all]"
@@ -22,7 +21,7 @@ differently from "wrong password", a login with no rate limit. This skill walks
 those doors on your own app and records what it found, with the captured requests
 and responses as proof.
 
-It is optional and not part of `/proof-full-check`. `/proof-sec-web` covers
+It joins `/proof-startup`, `/proof-webapp`, `/proof-mobile`, `/proof-backend` and `/proof-security` when the review finds sign-in. `/proof-sec-web` covers
 authentication as one line of its checklist; this goes deeper.
 
 What the user typed after `/proof-auth`: `$ARGUMENTS`

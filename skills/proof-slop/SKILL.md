@@ -86,8 +86,11 @@ the target sets `fail_on` to medium.
 
 ## Step 4: fix and re-run
 
-Fix the real ones, mark deliberate exceptions with `slop: ignore`, and run
-`record` again. The board's CTO reads this skill's results.
+Proof never edits the project. Report the real ones for the team to fix, and rule
+out a deliberate exception by rejecting its finding with a reason
+(`ledger.reject(...)`, see `/proof-core`), which keeps it in the ledger as a false
+positive. A line the team has marked `slop: ignore` themselves is skipped. Run
+`record` again after their fixes. The board's CTO reads this skill's results.
 
 ## Honest limits
 

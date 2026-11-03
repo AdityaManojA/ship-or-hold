@@ -7,7 +7,7 @@ description: >-
   licence (permissive, weak copyleft, strong copyleft, network copyleft or unknown,
   including SPDX OR and AND expressions), judges each against your project's own
   licence and an optional allow and deny list, and writes a CycloneDX 1.5 SBOM as
-  evidence. Offline, read-only, optional (not part of a full check). Use when the
+  evidence. Offline, read-only, Optional, not in the targeted profiles; add it with --add or run it on its own. Use when the
   user says "check licenses", "licence compliance", "any GPL in my app", "AGPL
   dependencies", "open source compliance", "make an SBOM", "software bill of
   materials", or "can we ship these dependencies".
@@ -22,7 +22,7 @@ Enterprise buyers and app stores increasingly ask for an SBOM too. This skill li
 every dependency with its licence, flags the ones that conflict with how you ship,
 and writes the SBOM, with the files it read as evidence.
 
-It is optional and not part of a full check: run it before a release, a sale to a
+It is not in the targeted profiles (only `/proof-ultracheck`); add it with `--add proof-licenses` or run it before a release, a sale to a
 company that asks, or an open-source launch.
 
 What the user typed after `/proof-licenses`: `$ARGUMENTS`

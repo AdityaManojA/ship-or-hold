@@ -27,10 +27,10 @@ import ledger  # noqa: E402
 # name, how to find it, version argv (or None), skills it helps, what you lose without it, install hint
 TOOLS = [
     ("python", "python", ["--version"], ["everything"], "nothing; this is the floor", "already here"),
-    ("node", "node", ["--version"], ["proof-web-e2e", "proof-a11y", "proof-mutation"],
+    ("node", "node", ["--version"], ["proof-web-e2e", "proof-a11y"],
      "the JavaScript-based testers fall back to slower paths", "Node.js"),
     ("npm", "npm", ["--version"], ["proof-sec-deps", "proof-a11y"], "npm audit for dependency and a11y tooling", "Node.js"),
-    ("npx", "npx", None, ["proof-web-e2e", "proof-a11y", "proof-mutation"],
+    ("npx", "npx", None, ["proof-web-e2e", "proof-a11y"],
      "running JS tools without installing them", "Node.js"),
     ("git", "git", ["--version"], ["proof-sec-diff", "proof-sec-secrets", "proof-restraint", "proof-audit-trail"],
      "diff-scoped review and history scanning", "Git"),
@@ -67,15 +67,13 @@ TOOLS = [
      "Perfetto trace_processor"),
     ("schemathesis", None, None, ["proof-api"], "property-based API fuzzing; falls back to example-based checks", "Schemathesis (pip install schemathesis)"),
     ("promptfoo", "promptfoo", None, ["proof-ai"], "LLM evaluation and red-team runs; falls back to the swarm", "promptfoo (npm i -g promptfoo)"),
-    ("mutmut", None, None, ["proof-mutation"], "Python mutation testing; falls back to the built-in AST mutator", "mutmut (pip install mutmut)"),
-    ("stryker", "stryker", None, ["proof-mutation"], "JavaScript mutation testing", "Stryker (npm i -D @stryker-mutator/core)"),
     ("garak", None, None, ["proof-ai"], "LLM vulnerability probes; falls back to the deck and the swarm", "garak (pip install garak)"),
     ("trivy", "trivy", ["--version"], ["proof-infra", "proof-sec-deps"],
      "deeper config and dependency scanning; falls back to the built-in rules", "Trivy"),
     ("checkov", "checkov", None, ["proof-infra"], "policy checks for Terraform, Kubernetes and more", "Checkov (pip install checkov)"),
 ]
 
-PY_IMPORT = {"playwright": "playwright", "schemathesis": "schemathesis", "mutmut": "mutmut", "garak": "garak"}
+PY_IMPORT = {"playwright": "playwright", "schemathesis": "schemathesis", "garak": "garak"}
 
 
 def _run(argv):
