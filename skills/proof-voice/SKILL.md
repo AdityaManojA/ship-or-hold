@@ -7,8 +7,7 @@ description: >-
   (interrupting the reply), background and screen lock, audio route changes, poor
   networks, echo, releasing the microphone at the end, and transcript accuracy.
   Measures reply latency per turn, word error rate, and packet loss, jitter and
-  round-trip time from a WebRTC stats dump against budgets. Optional, not part of a
-  full check. Use when the user says "test the voice feature", "voice assistant
+  round-trip time from a WebRTC stats dump against budgets. Optional. Joins /proof-mobile when the app has voice. Use when the user says "test the voice feature", "voice assistant
   testing", "how fast does it reply", "can I interrupt it", "test the call
   quality", "WebRTC stats", "word error rate", "transcript accuracy", or "does the
   mic turn off".
@@ -23,7 +22,7 @@ microphone on, a Bluetooth headset drops the session. This skill keeps a checkli
 of those behaviours, records each result you run on your own app with its
 evidence, and turns what can be measured into scores against a budget.
 
-It is optional and never part of `/proof-full-check`. Run it on its own for any
+It joins `/proof-mobile` when the review finds voice. Run it on its own for any
 app with speech or real-time audio.
 
 What the user typed after `/proof-voice`: `$ARGUMENTS`

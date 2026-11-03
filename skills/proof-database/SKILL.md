@@ -6,8 +6,7 @@ description: >-
   anyone read or write everything, public storage buckets, the service-role key
   reachable from client code, migrations that drop, rewrite or lock data, and
   schema smells (no primary key, unindexed foreign keys, secrets stored as plain
-  text). Every problem points to a file and becomes a verified finding. Optional,
-  not part of a full check. Use when the user says "check my database", "is RLS
+  text). Every problem points to a file and becomes a verified finding. Optional. Joins /proof-startup, /proof-webapp, /proof-backend and /proof-security when the app has a database. Use when the user says "check my database", "is RLS
   on", "Supabase security", "row level security", "are my buckets public", "is the
   service role key exposed", "review my migrations", or "database audit".
 argument-hint: "[queries | scan | record] [--rls f] [--policies f] [--buckets f] [--schema f]"
@@ -22,7 +21,7 @@ Migrations cause the other big class of incidents: a dropped column, a rewritten
 table or an index build that locks writes during the day. This skill checks all of
 that from files you export, and points at each problem.
 
-It is optional and never part of a full check. Run it on its own for any app with
+It joins `/proof-startup`, `/proof-webapp`, `/proof-backend` and `/proof-security` when the review finds a database. Run it on its own for any app with
 a Postgres or Supabase database.
 
 What the user typed after `/proof-database`: `$ARGUMENTS`

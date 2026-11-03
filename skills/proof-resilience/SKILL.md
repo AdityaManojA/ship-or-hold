@@ -9,7 +9,7 @@ description: >-
   phone). Gives the way to cause each one on your own app and what a pass looks
   like, records each result with a screenshot or capture, and reads HAR files for
   duplicate writes, retry storms, very slow requests and a slow first request.
-  Optional, not part of a full check. Use when the user says "what happens when
+  Optional, not in the targeted profiles; add it with --add or run it on its own. Use when the user says "what happens when
   the network drops", "test offline", "resilience test", "does it handle server
   errors", "double submit", "chaos test my app", "slow network test", or "cold
   start".
@@ -24,8 +24,7 @@ to sleep. This skill walks through the ways the network and the backend fail, ha
 you cause each one on your own app, and records what the app did, backed by a
 screenshot, a screen recording or a HAR capture.
 
-It is optional and never part of `/proof-full-check` or
-`/proof-full-check-no-seo`. Run it on its own when you want it.
+It is not in the targeted profiles (only `/proof-ultracheck`); add it with `--add proof-resilience`. Run it on its own when you want it.
 
 What the user typed after `/proof-resilience`: `$ARGUMENTS`
 

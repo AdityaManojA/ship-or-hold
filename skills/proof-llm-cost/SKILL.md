@@ -8,7 +8,7 @@ description: >-
   percentile, error rate and prompt-cache share. Flags runaway conversations,
   duplicate calls and model calls in the code with no output-token cap. Prices come
   only from a file you fill in; it never guesses one and never calls a provider.
-  Optional, not part of a full check. Use when the user says "what does the AI
+  Optional. Joins /proof-backend when the app calls an LLM. Use when the user says "what does the AI
   cost", "LLM cost per user", "are we losing money on the model", "token usage",
   "OpenAI bill", "how slow are the AI responses", "spend limits", or "cost per
   conversation".
@@ -22,7 +22,7 @@ a long system prompt, retrieved context that grows, an agent loop that retries, 
 reply with no length cap. This skill turns exported usage into the numbers that
 show it, each against a budget you set, and records them as evidence.
 
-It is optional and not part of `/proof-full-check`. Run it on its own when the
+It joins `/proof-backend` when the review finds an LLM. Run it on its own when the
 product calls a model API.
 
 What the user typed after `/proof-llm-cost`: `$ARGUMENTS`

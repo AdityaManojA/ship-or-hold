@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Review a project before a full check: what kind of app it is and what it uses.
+"""Review a project before a check: what kind of app it is and what it uses.
 
 Standard library only, read-only, no network. Reads the manifests (package.json,
 requirements files, pyproject.toml, app.json) and a capped sample of the source in

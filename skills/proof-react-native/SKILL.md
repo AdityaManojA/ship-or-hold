@@ -8,7 +8,7 @@ description: >-
   lack an iOS usage description, debug leftovers in release builds, deep-link
   handlers that open whatever they are given, over-the-air update settings,
   Android backups and expo-doctor failures. Read-only; it never builds or runs the
-  app. Optional, not part of a full check. Use when the user says "audit my React
+  app. Optional. Joins /proof-mobile for a React Native or Expo app. Use when the user says "audit my React
   Native app", "check my Expo app", "is my Expo config safe", "are my tokens stored
   safely", "check app permissions", "react native security", or "is the app ready
   for the app store".
@@ -23,7 +23,7 @@ read, a refresh token sits in AsyncStorage as plain text, an API is called over
 http, the camera is used with no iOS usage description, and App Review rejects the
 build. This skill reads the project and points at each one with a file and line.
 
-It is optional and not part of a full check. It pairs with `/proof-mobile-audit`
+It joins `/proof-mobile` for a React Native or Expo app. It pairs with `/proof-mobile-audit`
 (the built APK or IPA), `/proof-mobile-e2e` (flows on a device),
 `/proof-mobile-a11y` (accessibility from UI trees) and `/proof-ai` with
 `plan --mobile` (an assistant inside the app).

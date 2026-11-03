@@ -7,7 +7,7 @@ description: >-
   match their declared sizes, a service worker is registered and handles fetches,
   there is an offline fallback, the origin is HTTPS, and the iOS home-screen and
   theme meta are set. Computes a score against a budget and records findings in
-  the ledger. Offline, read-only, optional (not part of a full check). Use when
+  the ledger. Offline, read-only, Optional. Joins /proof-webapp when the app is a PWA. Use when
   the user says "is my PWA installable", "PWA check", "add to home screen", "does
   it work offline", "check the manifest", "service worker check", or "test the
   PWA".
@@ -22,7 +22,7 @@ linked manifest with the right fields, real icons, a service worker that answers
 fetches, an offline page and a secure origin. This skill reads those from saved
 files and records each gap with the file as proof.
 
-It is optional and not part of `/proof-full-check`. Run it on its own when the
+It joins `/proof-webapp` when the review finds a PWA. Run it on its own when the
 product is meant to be installed.
 
 What the user typed after `/proof-pwa`: `$ARGUMENTS`
