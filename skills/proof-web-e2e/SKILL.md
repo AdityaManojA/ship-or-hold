@@ -1,13 +1,7 @@
 ---
 name: proof-web-e2e
 description: >-
-  End-to-end testing of a web app's real user flows, where every result is backed
-  by evidence. Plans the critical flows (sign in, add to cart, checkout, and so on),
-  starts the dev server, drives each flow with a browser (a scripted run when a
-  browser library is installed, the built-in browser tools otherwise), saves a
-  screenshot or page capture for each, and records a pass or a failing finding in
-  the ledger. Use when the user says "test the web app", "end to end", "e2e", "click
-  through the flows", "does the login work", "test the checkout", or "browser test".
+  Drives each critical web flow in a browser and records a pass with a screenshot or a finding with a repro. Use for "test my website flows", "e2e test", "does checkout work" or "browser test".
 argument-hint: "[a flow to focus on, or blank for all]"
 ---
 

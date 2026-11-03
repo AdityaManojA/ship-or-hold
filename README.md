@@ -104,6 +104,12 @@ found. Conditional skills join only when the review finds what they test: no sig
 database, no database check. SEO and AI-search run only when you say the product is public (`--public`).
 Proof only reads and records; no skill edits your code.
 
+Run the same check again later and it costs less: keep the `proof/` folder, and every
+skill whose inputs have not changed is skipped (lockfiles for dependency checks, deploy
+files for infra, the source for the rest), and board directors whose evidence did not
+move keep their answers. After redeploying a live site, `check.py refresh <skill>` runs
+its live checks again.
+
 Or start with `/proof-plan`, which records what is under test and asks you to
 confirm you own it or have permission to test it, then pick the skills you need.
 Everything Proof writes goes into a `proof/` folder in your project.

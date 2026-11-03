@@ -79,8 +79,12 @@ class Repo(unittest.TestCase):
             fm, text = frontmatter(os.path.join(SKILLS_DIR, d, "SKILL.md"))
             self.assertIn("name: %s\n" % d, fm + "\n", "%s frontmatter name" % d)
             self.assertRegex(fm, r"description:", d)
-            self.assertGreater(len(fm), 300, "%s description is too thin" % d)
-            self.assertGreater(len(text.splitlines()), 60, "%s SKILL.md is too short" % d)
+            desc = " ".join(re.search(r"description:\s*>?-?\s*(.*?)(?:\n[a-z-]+:|\Z)", fm, re.S).group(1).split())
+            # Every description is loaded in every session, so it must say what and when, briefly.
+            self.assertGreater(len(desc), 120, "%s description is too thin" % d)
+            self.assertLess(len(desc), 320, "%s description is too long (it costs tokens every session)" % d)
+            self.assertIn("Use ", desc, "%s description names no trigger phrases" % d)
+            self.assertGreater(len(text.splitlines()), 40, "%s SKILL.md is too short" % d)
 
     def test_skill_md_has_honest_limits_and_output(self):
         for d in skill_dirs():

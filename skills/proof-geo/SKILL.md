@@ -1,13 +1,7 @@
 ---
 name: proof-geo
 description: >-
-  Audits how readable and citable a site is to AI search engines and assistants
-  (GEO / AEO), with a computed citability score. It reads saved HTML pages for a
-  clear topic, quotable factual passages, structured data, author and date signals,
-  and whether the content is in the HTML at all; and it reads robots.txt and
-  llms.txt to report which AI crawlers may fetch the site. Use when the user says
-  "GEO", "AEO", "AI search", "will AI cite my site", "citability", "llms.txt",
-  "generative engine optimisation", or "optimise for ChatGPT and Perplexity".
+  Scores how citable the site is by AI assistants and AI search. Use for "AI search", "GEO", "will ChatGPT cite us", "llms.txt" or "AI visibility".
 argument-hint: "[a saved page, or blank to set it up]"
 ---
 

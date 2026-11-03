@@ -1,16 +1,7 @@
 ---
 name: proof-design-match
 description: >-
-  Checks that a built app screen matches its design and flags UI elements that are
-  new, missing, moved or resized. Compares an app screenshot with a design export
-  (a Figma or other frame exported as PNG, at any whole scale) and writes a diff
-  image and a percent-changed score against a budget, with regions such as the
-  status bar ignored. Compares the screen's element tree (an Android uiautomator
-  dump, or element JSON from an iOS accessibility dump) with the last build and
-  with an optional design spec. Offline, no design-tool account, results in the
-  ledger. Use when the user says "does the build match the design", "design QA",
-  "compare with Figma", "what changed on this screen", "new elements",
-  "missing buttons", "pixel perfect check", or "did the redesign land".
+  Compares app screens with the design export and the last build: pixel difference and elements new, missing, moved or resized. Use for "does the build match the design", "design QA" or "compare with Figma".
 argument-hint: "[compare | elements | record] --name <screen>"
 ---
 

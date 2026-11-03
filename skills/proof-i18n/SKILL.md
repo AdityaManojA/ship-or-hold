@@ -1,16 +1,7 @@
 ---
 name: proof-i18n
 description: >-
-  Checks internationalisation and localisation before a release. Compares every
-  translation file (JSON, .properties, gettext .po) with the base locale for
-  missing keys, extra keys, empty values, strings left identical to the base, and
-  placeholders that differ ({name}, {{count}}, %s, %(x)s), which crash or garble
-  text at runtime. Writes a pseudo-locale for testing text expansion and finds
-  likely hardcoded strings in .jsx, .tsx, .vue and .html. Offline, results in the
-  ledger with a completeness score per locale. Use when the user says "check my
-  translations", "are we ready to localise", "missing translations", "i18n audit",
-  "pseudo-localisation", "find hardcoded strings", "placeholder mismatch", or
-  "does the French version work".
+  Translation checks: missing keys, placeholder mismatches, pseudo-locale overflow and hardcoded strings. Use for "check translations", "i18n", "localisation" or "missing strings".
 argument-hint: "[locales folder] [--base en] [--src source folder]"
 ---
 

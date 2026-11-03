@@ -14,14 +14,18 @@ does not need.
     python3 check.py plan --profile startup --public # also SEO and AI search, for a public launch
     python3 check.py plan --profile mobile --add proof-resilience --skip proof-finance
     python3 check.py status
-    python3 check.py next
+    python3 check.py next                            # skips skills whose inputs have not changed
+    python3 check.py refresh proof-web-e2e           # run it again anyway (a redeployed live target)
 """
 
 import argparse
+import datetime
+import hashlib
 import json
 import os
 import re
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "proof-core"))
@@ -247,6 +251,96 @@ def _plan_path(d):
     return os.path.join(ledger.root(d), PLAN_FILE)
 
 
+# ------------------------------------------------------------- the cache
+#
+# A skill that finished on inputs that have not changed since does not need to
+# run again. Each finished skill keeps a fingerprint of what it reads; on the
+# next run it is reported as unchanged and skipped, so neither its instructions
+# nor its tools are loaded. A skill whose inputs moved is reported as stale.
+
+SKIP_DIRS = {".git", "node_modules", ".next", ".nuxt", ".svelte-kit", "dist", "build", "out", ".venv", "venv",
+             "env", "__pycache__", ".pytest_cache", ".mypy_cache", ".turbo", ".cache", ".expo", "Pods",
+             ".gradle", "target", "coverage", "proof", ".idea", ".vscode"}
+DEPS_RE = re.compile(r"^(package(-lock)?\.json|npm-shrinkwrap\.json|yarn\.lock|pnpm-lock\.yaml|bun\.lockb?|"
+                     r"requirements[\w.-]*\.txt|constraints[\w.-]*\.txt|pyproject\.toml|poetry\.lock|uv\.lock|"
+                     r"Pipfile(\.lock)?|setup\.(py|cfg)|go\.(mod|sum)|Cargo\.(toml|lock)|Gemfile(\.lock)?|"
+                     r"composer\.(json|lock)|Podfile(\.lock)?|build\.gradle(\.kts)?|.*\.csproj)$")
+INFRA_RE = re.compile(r"^(Dockerfile.*|.*\.dockerfile|\.dockerignore|(docker-)?compose.*\.ya?ml|render\.yaml|"
+                      r"vercel\.json|netlify\.toml|fly\.toml|app\.ya?ml|Procfile|.*\.tf|.*\.tfvars|"
+                      r"Chart\.yaml|kustomization\.ya?ml)$")
+INFRA_DIRS = (".github/workflows/", ".circleci/", "k8s/", "kubernetes/", "helm/", "deploy/")
+# What each skill reads. Everything not listed reads the source ("code"); the
+# finance skill also reads the docs its inputs come from ("all").
+INPUTS = {"proof-sec-deps": "deps", "proof-licenses": "deps", "proof-infra": "infra", "proof-finance": "all"}
+
+
+def _walk(roots):
+    for root in roots:
+        root = os.path.abspath(root)
+        for dirpath, dirs, files in os.walk(root):
+            dirs[:] = sorted(x for x in dirs if x not in SKIP_DIRS)
+            for n in sorted(files):
+                full = os.path.join(dirpath, n)
+                yield os.path.relpath(full, root).replace(os.sep, "/"), n, full
+
+
+def fingerprints(roots, target=None):
+    """{"deps", "infra", "code", "all"}: a short hash of what each group of skills reads.
+
+    Dependency and deploy files are hashed by content (they are small). Source
+    files are hashed by size and modification time, which is fast; a touch with
+    no edit only costs one extra re-run, never a missed change."""
+    h = {k: hashlib.sha256() for k in ("deps", "infra", "code", "all")}
+    where = json.dumps({"kind": (target or {}).get("kind"), "urls": (target or {}).get("urls")}, sort_keys=True)
+    for k in h:
+        h[k].update(where.encode("utf-8"))
+    for rel, name, full in _walk(roots):
+        try:
+            st = os.stat(full)
+        except OSError:
+            continue
+        stamp = ("%s %d %d" % (rel, st.st_size, st.st_mtime_ns)).encode("utf-8")
+        is_deps = bool(DEPS_RE.match(name))
+        is_infra = bool(INFRA_RE.match(name)) or any(("/" + rel).find("/" + x) >= 0 for x in INFRA_DIRS)
+        if is_deps or is_infra:
+            try:
+                with open(full, "rb") as fh:
+                    stamp = rel.encode("utf-8") + b" " + hashlib.sha256(fh.read()).digest()
+            except OSError:
+                pass
+            h["deps" if is_deps else "infra"].update(stamp)
+        h["all"].update(stamp)
+        if not name.lower().endswith((".md", ".rst")):
+            h["code"].update(stamp)
+    return {k: v.hexdigest()[:16] for k, v in h.items()}
+
+
+def _cov_mtime(d, skill):
+    path = ledger.coverage_path(d, skill)
+    return os.path.getmtime(path) if os.path.exists(path) else 0.0
+
+
+def _load_plan(d):
+    path = _plan_path(d)
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def _save_plan(d, plan):
+    os.makedirs(ledger.root(d), exist_ok=True)
+    with open(_plan_path(d), "w", encoding="utf-8") as fh:
+        json.dump(plan, fh, indent=2)
+
+
+def _created_ts(plan):
+    try:
+        return datetime.datetime.fromisoformat(plan["created"]).timestamp()
+    except (KeyError, ValueError):
+        return 0.0
+
+
 def cmd_plan(a):
     t = ledger.load_target(a.dir)
     if t is None:
@@ -272,12 +366,18 @@ def cmd_plan(a):
     t["required_skills"] = [s for s, _ in chosen]
     ledger.write_target(a.dir, t)
     title = PROFILES[a.profile]["title"]
-    with open(_plan_path(a.dir), "w", encoding="utf-8") as fh:
-        json.dump({"mode": title, "profile": a.profile, "kind": t["kind"], "public": bool(a.public),
-                   "skills": [s for s, _ in chosen], "created": ledger.now()}, fh, indent=2)
+    # Keep what earlier runs learnt, so a re-plan does not throw the cache away.
+    old = _load_plan(a.dir) or {}
+    cache = {s: v for s, v in (old.get("cache") or {}).items() if s in dict(chosen)}
+    roots = [os.path.abspath(p) for p in (a.project or ["."])]
+    _save_plan(a.dir, {"mode": title, "profile": a.profile, "kind": t["kind"], "public": bool(a.public),
+                       "skills": [s for s, _ in chosen], "roots": roots, "cache": cache, "created": ledger.now()})
     print("%s %s for a %s target: %d skills, now required by the verdict." % (ledger.OK, title, t["kind"], len(chosen)))
     for i, (s, why) in enumerate(chosen, 1):
         print("  %2d. /%s - %s" % (i, s, why))
+    if cache:
+        print("  %d of them finished in an earlier run; check.py next skips any whose inputs have not changed."
+              % len(cache))
     if not t.get("authorised"):
         print("\nNote: target.json says authorised: no. The security and load skills will refuse to "
               "act against a live target until it is yes.")
@@ -288,20 +388,19 @@ def cmd_plan(a):
         have = dict(chosen)
         fits = [(s, WHY[s]) for s, _, f in SKILLS if s in _installed() and s not in have and f(sig)]
         if fits:
-            print("\nAlso fits this app, not in the profile (add with --add, or run on its own):")
-            for s, why in fits:
-                print("      /%s - %s" % (s, why))
+            print("\nAlso fits this app (add with --add): %s" % ", ".join(s for s, _ in fits))
     print("\nRun them in order (check.py next tells you which), then /proof-report.")
     return 0
 
 
 def _progress(d):
-    path = _plan_path(d)
-    if not os.path.exists(path):
+    plan = _load_plan(d)
+    if plan is None:
         return None
-    with open(path, encoding="utf-8") as fh:
-        plan = json.load(fh)
     reported = set(ledger.skills_reported(d))
+    cache = plan.setdefault("cache", {})
+    fps = None
+    changed = False
     rows = []
     for s in plan["skills"]:
         cov = ledger.load_coverage(d, s)
@@ -313,9 +412,26 @@ def _progress(d):
         elif not_run:
             state = "in progress"
         else:
-            state = "done"
+            if fps is None:
+                fps = fingerprints(plan.get("roots") or ["."], ledger.load_target(d))
+            cur = fps[INPUTS.get(s, "code")]
+            entry = cache.get(s)
+            if entry is None or _cov_mtime(d, s) > entry["at"]:
+                # Finished just now, or run again after its inputs changed: remember what it saw.
+                cache[s] = {"fp": cur, "at": time.time()}
+                changed = True
+                state = "done"
+            elif entry["fp"] == cur:
+                state = "unchanged" if entry["at"] < _created_ts(plan) else "done"
+            else:
+                state = "refresh" if entry["fp"] == "refresh" else "stale"
         rows.append({"skill": s, "state": state, "not_run": not_run, "blockers": blockers})
+    if changed:
+        _save_plan(d, plan)
     return plan, rows
+
+
+FINISHED = ("done", "unchanged")
 
 
 def cmd_status(a):
@@ -324,13 +440,18 @@ def cmd_status(a):
         print("no check planned yet. Run: check.py plan --profile <name> (check.py profiles lists them)")
         return 0
     plan, rows = got
-    done = sum(1 for r in rows if r["state"] == "done")
-    print("%s: %d of %d skills done" % (plan["mode"], done, len(rows)))
+    done = sum(1 for r in rows if r["state"] in FINISHED)
+    kept = sum(1 for r in rows if r["state"] == "unchanged")
+    print("%s: %d of %d skills done%s" % (plan["mode"], done, len(rows),
+                                          " (%d unchanged since the last run, not re-run)" % kept if kept else ""))
     for r in rows:
-        mark = {"done": ledger.OK, "in progress": "..", "not started": "  "}[r["state"]]
+        mark = {"done": ledger.OK, "unchanged": ledger.OK, "in progress": "..", "not started": "  ",
+                "stale": "!!", "refresh": "!!"}[r["state"]]
         extra = ""
         if r["state"] == "in progress":
             extra = " (%d check(s) not run)" % r["not_run"]
+        if r["state"] == "stale":
+            extra = " (its inputs changed since it last ran)"
         if r["blockers"]:
             extra += " [%d verified high/critical]" % r["blockers"]
         print("  %s %-20s %s%s" % (mark, r["skill"], r["state"], extra))
@@ -345,11 +466,32 @@ def cmd_next(a):
         print("no check planned yet. Run: check.py plan --profile <name> (check.py profiles lists them)")
         return 0
     plan, rows = got
+    kept = [r["skill"] for r in rows if r["state"] == "unchanged"]
     for r in rows:
-        if r["state"] != "done":
-            print("Next: /%s (%s)" % (r["skill"], r["state"]))
+        if r["state"] not in FINISHED:
+            why = {"stale": "inputs changed since it last ran; re-run it",
+                   "refresh": "marked to run again; re-run it"}.get(r["state"], r["state"])
+            print("Next: /%s (%s)" % (r["skill"], why))
+            if kept:
+                print("Skipped, unchanged since the last run: %s" % ", ".join(kept))
             return 0
-    print("Every skill in the %s is done. Next: /proof-report" % plan["mode"])
+    print("Every skill in the %s is done%s. Next: /proof-report"
+          % (plan["mode"], " (%d unchanged and skipped)" % len(kept) if kept else ""))
+    return 0
+
+
+def cmd_refresh(a):
+    """Force skills to run again on the next pass, even if their inputs look unchanged."""
+    plan = _load_plan(a.dir)
+    if plan is None:
+        print("no check planned yet.")
+        return 0
+    names = plan["skills"] if a.all else (a.skill or [])
+    for s in names:
+        if s in plan.get("cache", {}):
+            plan["cache"][s] = {"fp": "refresh", "at": plan["cache"][s]["at"]}
+    _save_plan(a.dir, plan)
+    print("%s %d skill(s) will run again: %s" % (ledger.OK, len(names), ", ".join(names) or "none"))
     return 0
 
 
@@ -373,6 +515,10 @@ def main(argv=None):
     p.set_defaults(func=cmd_plan)
     sub.add_parser("status", help="progress through the planned check").set_defaults(func=cmd_status)
     sub.add_parser("next", help="the next skill to run").set_defaults(func=cmd_next)
+    rf = sub.add_parser("refresh", help="run skills again next pass even if their inputs look unchanged")
+    rf.add_argument("skill", nargs="*", help="skills to refresh (for a live target that was redeployed)")
+    rf.add_argument("--all", action="store_true", help="every skill in the plan")
+    rf.set_defaults(func=cmd_refresh)
     a = ap.parse_args(argv)
     return a.func(a)
 

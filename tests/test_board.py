@@ -188,6 +188,44 @@ class Board(unittest.TestCase):
         self.assertIn("Cleared", out)
         self.assertFalse(os.path.exists(board._answer_path(self.d, "ceo")))
 
+    def test_rebrief_keeps_answers_whose_evidence_is_unchanged(self):
+        first = ledger.new_finding("proof-finance", "Margin assumption noted", "low")
+        ledger.write_finding(self.d, first)
+        ledger.verify(self.d, "proof-finance", first["id"], by="manual", note="checked by hand")
+        run("--dir", self.d, "brief")
+        self.write_all("go")
+        # A low finding in one area: the CEO (who reads everything) and that area's seats
+        # meet again; directors who judge other areas keep their answers.
+        f = ledger.new_finding("proof-finance", "Small rounding note", "low")
+        ledger.write_finding(self.d, f)
+        ledger.verify(self.d, "proof-finance", f["id"], by="manual", note="checked by hand")
+        rc, out = run("--dir", self.d, "brief")
+        self.assertEqual(rc, 0, out)
+        self.assertIn("Kept", out)
+        self.assertFalse(os.path.exists(board._answer_path(self.d, "ceo")))
+        self.assertFalse(os.path.exists(board._answer_path(self.d, "cfo")))
+        self.assertTrue(os.path.exists(board._answer_path(self.d, "ciso")))
+        self.assertIn("only these", out)
+        rc, out = run("--dir", self.d, "brief", "--fresh")
+        self.assertFalse(os.path.exists(board._answer_path(self.d, "ciso")))
+
+    def test_rebrief_with_nothing_changed_needs_no_meeting(self):
+        run("--dir", self.d, "brief")
+        self.write_all("go")
+        rc, out = run("--dir", self.d, "brief")
+        self.assertIn("No director needs to meet again", out)
+        self.assertTrue(os.path.exists(board._answer_path(self.d, "ceo")))
+
+    def test_focused_brief_is_shorter_than_the_presentation(self):
+        run("--dir", self.d, "brief")
+        bdir = os.path.join(self.d, "board")
+        with open(os.path.join(bdir, "presentation.md"), encoding="utf-8") as fh:
+            full = fh.read()
+        with open(os.path.join(bdir, "briefs", "cfo.md"), encoding="utf-8") as fh:
+            cfo = fh.read()
+        self.assertIn("Outside your area", cfo)
+        self.assertNotIn("Outside your area", full)
+
     def test_meeting_page_is_interactive_and_escaped(self):
         run("--dir", self.d, "brief")
         self.write_all("go", cpo=answer("cpo", "go", risks=[{"risk": "<script>x</script>", "severity": "low",

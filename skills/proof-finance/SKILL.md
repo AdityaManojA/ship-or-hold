@@ -1,13 +1,7 @@
 ---
 name: proof-finance
 description: >-
-  Works out the unit economics behind a product: what one sale earns after its own
-  costs, the real profit margin at the planned volume, how many units a day break
-  even, a month-by-month year one, the cash needed before it pays for itself, and
-  what happens if price, sales or costs move. Every number traces to an input and a
-  missing input is an error, never a silent zero. Use when the user says "is this
-  profitable", "unit economics", "do the numbers", "break even", "what margin",
-  "how much to start", or "can this make money".
+  Unit economics from the user's numbers: margin, break-even, cash needed and what-ifs, never guessed. Use for "unit economics", "is this profitable", "break-even" or "do the numbers".
 argument-hint: "[path to a numbers.json, or --template to start one]"
 ---
 

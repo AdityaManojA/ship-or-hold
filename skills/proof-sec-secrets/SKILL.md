@@ -1,13 +1,7 @@
 ---
 name: proof-sec-secrets
 description: >-
-  Scans a project for secrets that should not be committed: cloud keys, tokens,
-  private keys, and long high-entropy strings. It runs offline, reads only, and
-  never prints or stores a secret in full (every match is masked), so the scan
-  output is safe to keep and share. Findings go in the ledger for the report. Use
-  when the user says "scan for secrets", "did I commit a key", "check for leaked
-  credentials", "secret scan", "any API keys in the code", or as part of a security
-  pass. Detects TruffleHog or Gitleaks when installed and defers to them.
+  Scans files and git history for committed keys and tokens, values always masked. Use for "leaked secrets", "API key in the repo", "secret scan" or "check git history for keys".
 argument-hint: "[a path to scan, default the repo root]"
 ---
 

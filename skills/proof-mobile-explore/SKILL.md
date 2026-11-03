@@ -1,16 +1,7 @@
 ---
 name: proof-mobile-explore
 description: >-
-  Exploratory testing of a real iOS or Android app by an AI agent, with evidence.
-  Writes a brief of goals (sign up, check out, ask the assistant a question), the
-  agent drives the app on the user's own emulator, simulator or device with
-  whatever driver the session has (mobile MCP tools, or Midscene, Mobilerun or
-  Maestro on the PATH) and saves a screenshot per step, then the tool reads the
-  session and the device logs and records every crash, ANR, dead end and blocked
-  goal as a verified finding. The tool never drives the device itself. Use when
-  the user says "explore my app", "test the app on my phone", "let an agent try
-  the app", "find crashes in the app", "monkey test", "agentic app testing", or
-  "try to break the mobile app".
+  An agent explores the real app on your device or emulator; crashes, ANRs and dead ends become findings. Use for "explore my app", "find crashes", "monkey test" or "let an agent try the app".
 argument-hint: "[app id and goals, or blank to set them up]"
 ---
 

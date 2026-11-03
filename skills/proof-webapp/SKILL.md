@@ -1,7 +1,7 @@
 ---
 name: proof-webapp
 description: >-
-  A targeted check for a web app or PWA: user flows, the API, web security, sign-in, data, privacy, speed and accessibility, each only when the app has it, with SEO and AI-search only for a public product. Use when the user says "check my web app", "test my website", "audit my Next.js / React / Vue app", "web app check", or "is my site ready".
+  Targeted check for a web app or PWA: flows, web security, privacy, speed and accessibility, plus API, sign-in, database and LLM when present. Use for "check my web app", "test my website" or "is my site ready".
 argument-hint: "[--public] [--add proof-x] [--skip proof-x]"
 ---
 
@@ -51,9 +51,13 @@ Common additions: `/proof-resilience` (offline, errors, double submits), `/proof
 
    `--add proof-x` adds a skill the profile leaves out; `--skip proof-x` drops one.
 3. **Run.** `check.py next` names the next skill; follow that skill's own steps, then
-   ask again. `check.py status` shows progress and flags verified high or critical
-   findings as they appear. Proof only reads and records: no skill edits the project.
-4. **Finish.** `/proof-report`. Then offer the board in one line ("Want me to present this to the board?") and run `/proof-board` and `/proof-audit-trail` only on a yes.
+   ask again. Work from each tool's printed summary; open evidence files only to
+   verify a finding. Proof only reads and records: no skill edits the project.
+4. **Run it again later.** Keep `proof/` and repeat the same command: the plan keeps
+   what earlier runs learnt, and `check.py next` skips every skill whose inputs have
+   not changed, so only the changed areas run. After redeploying a live target, mark
+   its live skills with `check.py refresh <skill>`.
+5. **Finish.** `/proof-report`. Then offer the board in one line ("Want me to present this to the board?") and run `/proof-board` and `/proof-audit-trail` only on a yes.
 
 ## Example
 

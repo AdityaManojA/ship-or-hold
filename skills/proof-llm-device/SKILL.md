@@ -1,16 +1,7 @@
 ---
 name: proof-llm-device
 description: >-
-  Measures an app's on-device language model against a written budget and records
-  every number as a pass or fail score: time to first token, prefill and decode
-  speed in tokens per second, peak memory, slowdown over a sustained run (thermal
-  throttling), battery drain per 100 prompts, and model file size. Reads files you
-  captured (llama.cpp llama-bench JSON, Android dumpsys meminfo and dumpsys
-  battery, or a measurements JSON or CSV), never touches the device itself, and a
-  metric nobody measured is never a pass. Use when the user says "test the
-  on-device model", "how fast is the LLM on the phone", "tokens per second",
-  "time to first token", "does the model drain the battery", "on-device AI
-  performance", "will it run on older phones", or "benchmark the local model".
+  On-device LLM speed, memory, heat throttling, battery and size against a budget, from captured files. Use for "on-device model", "tokens per second on the phone" or "benchmark the local model".
 argument-hint: "[captured files, or blank to set up the budget]"
 ---
 

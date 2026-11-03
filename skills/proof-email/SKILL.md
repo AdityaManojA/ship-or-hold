@@ -1,17 +1,7 @@
 ---
 name: proof-email
 description: >-
-  Checks the transactional emails an app sends (signup, verify, password reset,
-  receipt) from saved .eml files and a saved DNS TXT capture, with no network calls.
-  Per message it checks the required headers, subject length, a plain-text part next
-  to the HTML, https links and images, localhost or staging hosts leaking into links,
-  links pointing at the expected domain, List-Unsubscribe on marketing-type mail,
-  tokens or secrets printed in the body, message size and image alt text. From the
-  captured TXT records it checks SPF, DMARC and any DKIM selectors. Use when the user
-  says "check my emails", "test the password reset email", "are my transactional
-  emails ok", "email deliverability check", "check SPF and DMARC", "why do my emails
-  go to spam", "check the signup email", "email links point at localhost", or
-  "audit the receipt email".
+  Checks transactional emails: links, text parts, leaking dev hosts, escaping, and SPF and DMARC records. Use for "check my emails", "password reset email", "email deliverability" or "SPF/DMARC".
 argument-hint: "[one or more saved .eml files; optionally a TXT record file and the domain]"
 ---
 

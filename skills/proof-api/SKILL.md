@@ -1,16 +1,7 @@
 ---
 name: proof-api
 description: >-
-  Contract and awkward-input testing of an HTTP API that you own or are authorised
-  to test, with every result recorded as evidence. Reads an OpenAPI 3 spec, lists
-  every operation, generates a checklist of awkward inputs per endpoint (missing and
-  wrongly typed fields, nulls, extra fields, huge strings, negative numbers,
-  query-like and markup-like text sent as plain data, no credentials, another user's
-  id), checks each captured response against the schema the spec declares, and
-  records passes, failures and coverage in the ledger. The tool sends nothing; the
-  requests are made with the browser tools or curl. Use when the user says "test the
-  API", "contract test", "does the API match its spec", "check the responses against
-  the schema", "OpenAPI", "fuzz the endpoints", "awkward inputs", or "API test".
+  Checks API responses against the OpenAPI spec and generates awkward-input cases. Use for "test my API", "API contract", "OpenAPI check", "fuzz the endpoints" or "schema validation".
 argument-hint: "[path to openapi.json, or an endpoint such as 'POST /users' to focus on]"
 ---
 

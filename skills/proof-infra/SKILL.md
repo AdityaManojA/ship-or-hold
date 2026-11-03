@@ -1,15 +1,7 @@
 ---
 name: proof-infra
 description: >-
-  Checks infrastructure and deployment config for risky settings: containers that
-  run as root or use unpinned images, secrets baked into images, databases
-  published on every interface, privileged or host-sharing pods, firewall rules
-  open to the whole internet, public storage buckets, unencrypted volumes, CI
-  workflows that expose secrets to untrusted code, and committed environment files.
-  Reads Dockerfiles, Docker Compose, Kubernetes manifests, Terraform and CI
-  workflows, offline. Use when the user says "check my infra", "Dockerfile review",
-  "is my Kubernetes config safe", "terraform security", "audit the deployment",
-  "CI security", or "misconfiguration".
+  Flags risky settings in Dockerfiles, compose, Kubernetes, Terraform and CI workflows. Use for "check my Dockerfile", "infra audit", "CI security" or "deployment config".
 argument-hint: "[a path, default the repo root]"
 ---
 

@@ -1,15 +1,7 @@
 ---
 name: proof-watch
 description: >-
-  Re-runs checks when the code changes and tracks how the computed verdict moves
-  over time. It polls a folder for changed files, runs the commands you give it
-  (Proof tools or your own test commands) with a timeout and captured logs, then
-  snapshots the verdict, the verified findings by severity, the gaps and the
-  failing scores into a local history, and prints a timeline that marks every
-  verdict change and every finding that appeared or went away. Use when the user
-  says "watch mode", "re-run on save", "keep checking while I fix", "track the
-  verdict over time", "did my fix change the verdict", "verdict history", "run
-  the checks in CI", or "show me the trend".
+  Re-runs checks when the code changes and tracks how the verdict moves over time. Use for "watch mode", "re-run on change", "track the verdict" or "continuous proof".
 argument-hint: "[snapshot | history | run --cmd \"...\" | watch --path src --cmd \"...\"]"
 ---
 

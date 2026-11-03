@@ -1,13 +1,7 @@
 ---
 name: proof-report
 description: >-
-  Compiles a Proof run into one report and computes the verdict: Ship, Not yet, or
-  Incomplete. It reads the evidence ledger, counts only verified findings, checks
-  measured scores against their budgets, confirms every required skill reported and
-  covered its checks, and writes proof/report.md and proof/verdict.json. The model
-  never writes the verdict; this tool computes it. Use when the user says "the
-  report", "what's the verdict", "can we ship", "compile the results", "is it ready",
-  or after running the testing skills.
+  Computes Ship, Not yet or Incomplete from the ledger and writes Markdown, HTML and SARIF reports; compares runs. Use for "proof report", "what is the verdict", "can we ship" or "compare runs".
 argument-hint: "[--fail-on critical|high|medium|low]"
 ---
 

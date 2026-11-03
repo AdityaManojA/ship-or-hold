@@ -1,14 +1,7 @@
 ---
 name: proof-plan
 description: >-
-  The starting point of a Proof run. Writes proof/target.json: what is under test
-  (web, mobile, API or repo), the URLs or repo path, whether the user is authorised
-  to test it, and required_skills, the list of skills the verdict waits for. It
-  also suggests an order of skills for the target, but the user chooses what to
-  require and every other skill stays optional. Use when the user says "start
-  proof", "set up testing", "what should I test", "plan the testing", "describe the
-  target", "test my app", or at the beginning of any Proof run before the other
-  skills.
+  Starts a Proof run: records what is under test, whether you are authorised to test it, and which skills the verdict waits for. Use for "start proof", "set up testing", "plan the testing" or "describe the target".
 argument-hint: "[the app name, or leave blank to describe it in chat]"
 ---
 

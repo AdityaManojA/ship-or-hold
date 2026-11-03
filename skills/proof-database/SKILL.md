@@ -1,14 +1,7 @@
 ---
 name: proof-database
 description: >-
-  Reviews a Postgres or Supabase database's safety from saved files, never
-  connecting to it: public tables with row-level security off, policies that let
-  anyone read or write everything, public storage buckets, the service-role key
-  reachable from client code, migrations that drop, rewrite or lock data, and
-  schema smells (no primary key, unindexed foreign keys, secrets stored as plain
-  text). Every problem points to a file and becomes a verified finding. Optional. Joins /proof-startup, /proof-webapp, /proof-backend and /proof-security when the app has a database. Use when the user says "check my database", "is RLS
-  on", "Supabase security", "row level security", "are my buckets public", "is the
-  service role key exposed", "review my migrations", or "database audit".
+  Postgres or Supabase safety from saved files: RLS off or too open, public buckets, service-role key in client code, risky migrations. Use for "check my database", "is RLS on" or "Supabase security".
 argument-hint: "[queries | scan | record] [--rls f] [--policies f] [--buckets f] [--schema f]"
 ---
 

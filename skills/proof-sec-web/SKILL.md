@@ -1,15 +1,7 @@
 ---
 name: proof-sec-web
 description: >-
-  A defensive security audit of a web app and its API that you own or are
-  authorised to test. Works through a checklist of weakness classes (access
-  control, injection, cross-site scripting, request forgery, business logic,
-  security headers and more), records which classes were looked at, and holds every
-  finding to a verification gate before it counts, with safe read-only checks on
-  captured responses. Use when the user says "security review", "audit the app",
-  "check for vulnerabilities", "is this secure", "pen test my own app", "OWASP
-  check", or "find and fix security issues". Tests only targets the user is
-  authorised to test; it never probes third-party systems.
+  Works through web weakness classes on an app you are authorised to test, with a verification gate; imports Semgrep. Use for "web security", "pentest", "OWASP check" or "is my site secure".
 argument-hint: "[a weakness class to focus on, or blank for all]"
 ---
 

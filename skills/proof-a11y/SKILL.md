@@ -1,18 +1,7 @@
 ---
 name: proof-a11y
 description: >-
-  An accessibility audit of a web app against WCAG 2.2 where every result is backed
-  by evidence. The always-available tool is a WCAG contrast checker (pure arithmetic,
-  nothing to install) that scores colour pairs against the AA and AAA bars, records
-  each failing pair as a verified finding and writes a score the verdict reads. When
-  the axe command-line tool or Lighthouse is installed, their rule engines run too and
-  their reports go into the ledger as evidence. The rest is a manual checklist
-  (keyboard focus order, visible focus, names and labels, alt text, headings,
-  landmarks, form errors, motion, target size, zoom, a screen-reader pass) tracked as
-  coverage, because no tool can judge those. Use when the user says "accessibility
-  audit", "a11y check", "is this accessible", "WCAG", "check the contrast", "colour
-  contrast", "screen reader test", "keyboard navigation", or "will this pass an
-  accessibility review".
+  Accessibility audit: WCAG colour contrast, axe results and a manual checklist, each result with evidence. Use for "accessibility", "a11y", "WCAG", "contrast check" or "screen reader".
 argument-hint: "[a URL, a colour pair, or a checklist item to focus on; blank for the full audit]"
 ---
 

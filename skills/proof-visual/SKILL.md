@@ -1,15 +1,7 @@
 ---
 name: proof-visual
 description: >-
-  Visual regression testing backed by evidence. Saves a screenshot of each page or
-  state as a baseline, compares later screenshots against it pixel by pixel, writes
-  a diff image (changed pixels in red over a faded copy of the page) with the
-  bounding box of what moved, scores the percent of changed pixels against a budget,
-  and records a verified finding when a page changed more than allowed. Intended
-  changes are approved into a new baseline. Use when the user says "visual
-  regression", "did the layout change", "screenshot diff", "compare screenshots",
-  "pixel diff", "did my CSS break anything", "check the UI didn't move", "visual
-  test", or "approve the new design".
+  Compares screenshots against a baseline and flags layout changes with a diff image. Use for "visual regression", "did the layout change", "screenshot diff" or "compare screens".
 argument-hint: "[baseline | compare | approve] [page name] [screenshot.png]"
 ---
 

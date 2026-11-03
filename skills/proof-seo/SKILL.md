@@ -1,15 +1,7 @@
 ---
 name: proof-seo
 description: >-
-  A technical and on-page SEO audit of saved web pages where the score is computed
-  from the elements found, never an opinion. Parses the HTML you saved (title, meta
-  description, h1 and heading order, image alt text, canonical, lang, viewport, Open
-  Graph, structured data, internal links, word count), checks robots.txt and the
-  sitemap, folds in Lighthouse's SEO score when a report is available, and writes a
-  score, coverage and verified findings to the ledger. Use when the user says "SEO
-  audit", "check my SEO", "is this page indexable", "check the meta tags", "why am I
-  not ranking", "technical SEO", "on-page SEO", "check robots and sitemap", or
-  "structured data check". It audits pages; it does not write content.
+  Search engine optimisation score per page against a budget: titles, meta, headings, links, structured data. Use for "SEO check", "will Google find us", "meta tags" or "SEO audit".
 argument-hint: "[path to a saved .html page, or blank for proof/evidence/proof-seo/]"
 ---
 

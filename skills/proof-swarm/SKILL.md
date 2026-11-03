@@ -1,14 +1,7 @@
 ---
 name: proof-swarm
 description: >-
-  The scenario-agent swarm. Deals a crowd of personas from a profile (device,
-  patience, skill, intent, or any dimensions you choose), sends the same brief to
-  one sub-agent per persona in waves, checks every answer against a schema, and
-  tallies the results by segment with the exact words agents used. The tool never
-  answers for an agent and the same seed always deals the same crowd. Use when the
-  user says "run a swarm", "simulate users", "scenario agents", "panel of agents",
-  "try it as 100 different people", "exploratory test with personas", or when
-  another proof skill (exploratory testing, AI red-team) asks for a swarm run.
+  Deals a seeded crowd of sub-agent personas, sends each the same brief, and tallies their answers. Use for "persona swarm", "ask 20 users", "simulate users" or "survey personas".
 argument-hint: "[--quick | --n 100] [--seed S]"
 ---
 
