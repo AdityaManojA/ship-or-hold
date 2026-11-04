@@ -78,12 +78,17 @@ only the directors whose evidence moved, and says so when nobody needs to meet a
 
 ## Step 3: convene the board
 
-Send ONE message with one Agent tool call per brief that `brief` listed (not the
-directors whose answers it kept), all in parallel:
+Run what `brief` printed. By default that is ONE Agent call, which sits as every
+director who needs to meet and writes each answer from `briefs/panel.md`. Every agent
+starts with a large fixed context, so this is far cheaper than one agent per seat:
 
 - `subagent_type`: `general-purpose`
-- `description`: `board <seat>`
+- `description`: `board`
 - `prompt`: `Read <brief path> and follow it exactly. It is your whole brief.`
+
+`brief --separate` prints one brief per director instead, to send as one parallel
+Agent call each. It gives more independent readings at about nine times the fixed
+cost; `/proof-ultracheck` uses it.
 
 Then `board.py check`. It rejects a high-severity risk that cites nothing, a
 reference not in the evidence, a quote id outside the seat's research, a quote on a

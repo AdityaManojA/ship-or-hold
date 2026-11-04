@@ -47,8 +47,9 @@ Common additions: `/proof-mobile-explore` (an agent explores the app), `/proof-r
 
    `--add proof-x` adds a skill the profile leaves out; `--skip proof-x` drops one.
 3. **Run.** `check.py next` names the next skill; follow that skill's own steps, then
-   ask again. Work from each tool's printed summary; open evidence files only to
-   verify a finding. Proof only reads and records: no skill edits the project.
+   ask again. Run the skills in this session, one at a time: every extra agent starts
+   with a large fixed context, so spawn one only if the user asks. Work from each
+   tool's printed summary; open evidence files only to verify a finding. Proof only reads and records: no skill edits the project.
 4. **Run it again later.** Keep `proof/` and repeat the same command: the plan keeps
    what earlier runs learnt, and `check.py next` skips every skill whose inputs have
    not changed, so only the changed areas run. After redeploying a live target, mark

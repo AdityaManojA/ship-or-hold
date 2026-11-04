@@ -52,8 +52,9 @@ AI-search join only with `--public`, for a product meant to be found.
    `check.py profiles` to compare how many skills each would run for this app. Then
    `check.py plan --profile <name>`. The plan lists what else fits the app but is
    left out; add any of it with `--add` only if the user asks.
-4. **Run.** `check.py next` names the skill; follow that skill's own steps, then ask
-   for the next. A check that truly cannot apply is marked not applicable with a
+4. **Run.** `check.py next` names the skill; follow that skill's own steps in this
+   session, then ask for the next. Every extra agent starts with a large fixed context,
+   so spawn one only if the user asks. A check that truly cannot apply is marked not applicable with a
    reason inside the skill, so it stops holding the verdict at Incomplete.
 5. **Finish.** `/proof-report` for the computed verdict. The profile's own command
    says whether to continue to `/proof-board` and `/proof-audit-trail`.

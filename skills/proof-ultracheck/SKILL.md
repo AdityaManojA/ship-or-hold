@@ -37,7 +37,7 @@ What the user typed after `/proof-ultracheck`: `$ARGUMENTS`
    it skips every skill whose inputs are unchanged. A check that
    cannot apply (no design exports, no device) is marked not applicable with a
    reason inside the skill, so it stops holding the verdict at Incomplete.
-5. **Finish.** Without asking: `/proof-report`, then `/proof-board` whatever the
+5. **Finish.** Without asking: `/proof-report`, then `/proof-board --separate` whatever the
    verdict (ending with `board.py tally --open`), then `/proof-audit-trail`.
 
 ## Honest limits
