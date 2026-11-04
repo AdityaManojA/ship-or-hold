@@ -205,9 +205,18 @@ class Board(unittest.TestCase):
         self.assertFalse(os.path.exists(board._answer_path(self.d, "ceo")))
         self.assertFalse(os.path.exists(board._answer_path(self.d, "cfo")))
         self.assertTrue(os.path.exists(board._answer_path(self.d, "ciso")))
-        self.assertIn("only these", out)
+        self.assertIn("Convene 3 director(s) in ONE Agent call", out)
+        with open(os.path.join(self.d, "board", "briefs", "panel.md"), encoding="utf-8") as fh:
+            panel = fh.read()
+        self.assertIn("id cfo", panel)
+        self.assertNotIn("id ciso", panel)
         rc, out = run("--dir", self.d, "brief", "--fresh")
         self.assertFalse(os.path.exists(board._answer_path(self.d, "ciso")))
+
+    def test_separate_briefs_on_request(self):
+        rc, out = run("--dir", self.d, "brief", "--separate")
+        self.assertIn("one Agent call per director", out)
+        self.assertIn("cfo.md", out)
 
     def test_rebrief_with_nothing_changed_needs_no_meeting(self):
         run("--dir", self.d, "brief")

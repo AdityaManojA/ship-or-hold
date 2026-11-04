@@ -360,6 +360,39 @@ def seat_brief(seat, pres, answer_path, seat_vetoes, persona=None):
     return "\n".join(L) + "\n"
 
 
+def panel_brief(seats, pres, d, seat_vetoes, personas):
+    """One brief for one agent to sit as several directors. Every agent starts with a large
+    fixed context, so the agent count is the main cost of a meeting; the evidence appears once."""
+    L = ["You sit as %d directors on a board, one after another. The team is presenting their product and "
+         "asking whether it can launch." % len(seats), "",
+         "Judge each seat on its own, through its own role and lens only. Do not harmonise the seats: when two "
+         "lenses disagree, the answers disagree. Write a seat's answer before you start the next seat.", "",
+         "== THE PRESENTATION ==", pres, "== END OF PRESENTATION ==", "",
+         "How to answer, for every seat:",
+         "- Judge from the presentation only. Do not invent facts, numbers or findings that are not in it.",
+         "- Every high-severity risk must cite at least one ref from the presentation, copied exactly as it "
+         "appears inside square brackets. Medium and low risks may be judgement calls with an empty evidence list.",
+         "- Be the director, not a cheerleader. A polite yes is worth less than a clear concern.",
+         "- Conditions are concrete actions with an owner seat.",
+         "- Write each answer with your file-writing tool to the path given for that seat, containing ONLY "
+         "this JSON, no markdown fence (use the seat's id and title):", "",
+         SCHEMA % {"seat": "<seat id>", "short": "<seat title>"}, ""]
+    for seat in seats:
+        L += ["== SEAT: %s (%s), id %s ==" % (seat["title"], seat["short"], seat["id"]),
+              "Write this seat's answer to: %s" % os.path.abspath(_answer_path(d, seat["id"])), "", seat["lens"], ""]
+        L += lens_section(personas.get(seat["id"]))
+        if seat["skills"] != ["*"]:
+            L.append("The evidence closest to this role comes from: %s." % ", ".join(seat["skills"]))
+        if seat.get("veto"):
+            L.append("This seat holds a veto over: %s." % ", ".join(seat["veto"]))
+        mine = [v for v in seat_vetoes if v["seat"] == seat["id"]]
+        if mine:
+            L.append("The evidence already triggers this seat's veto: %s."
+                     % "; ".join("[%s] %s" % (v["ref"], v["why"]) for v in mine))
+        L.append("")
+    return "\n".join(L) + "\n"
+
+
 # ------------------------------------------------------------ answers
 
 def _answer_path(d, seat_id):
@@ -1465,7 +1498,7 @@ def cmd_brief(a):
     _write(os.path.join(bdir, "presentation.md"), presentation(r, triggered))
     personas = load_personas()
     qa = _load_qa(a.dir)
-    paths, kept, cleared, seat_fps = [], [], 0, {}
+    paths, kept, cleared, seat_fps, meeting = [], [], 0, {}, []
     for seat in seats:
         p = os.path.join(bdir, "briefs", seat["id"] + ".md")
         text = seat_brief(seat, presentation(r, triggered, focus=seat["skills"]),
@@ -1482,6 +1515,7 @@ def cmd_brief(a):
             cleared += 1
         qa.pop(seat["id"], None)
         paths.append(p)
+        meeting.append(seat)
     _write(os.path.join(bdir, "qa.json"), json.dumps(qa, indent=2, ensure_ascii=False) + "\n")
     os.makedirs(ans_dir, exist_ok=True)
     with open(meta_path, "w", encoding="utf-8") as fh:
@@ -1496,6 +1530,13 @@ def cmd_brief(a):
         print("The evidence already triggers %d veto(es); the board will hold whatever the votes say." % len(triggered))
     if not paths:
         print("\nNo director needs to meet again: every answer stands. Next: board.py tally")
+        return 0
+    if not a.separate:
+        panel = os.path.join(bdir, "briefs", "panel.md")
+        _write(panel, panel_brief(meeting, presentation(r, triggered, focus=["*"]), a.dir, triggered, personas))
+        print("\nConvene %d director(s) in ONE Agent call (subagent_type general-purpose, prompt 'Read <brief> and "
+              "follow it exactly. It is your whole brief.'):\n  %s" % (len(meeting), panel))
+        print("\nThen: board.py check, board.py tally")
         return 0
     print("\nConvene %s: send ONE message with one Agent call per director below "
           "(subagent_type general-purpose, prompt 'Read <brief> and follow it exactly. It is your whole brief.'):"
@@ -1643,6 +1684,8 @@ def main(argv=None):
     b.add_argument("--keep-answers", action="store_true",
                    help="kept for old scripts; answers are now kept by default while a director's evidence is unchanged")
     b.add_argument("--fresh", action="store_true", help="clear every answer and convene the whole board")
+    b.add_argument("--separate", action="store_true",
+                   help="one agent per director: more independent readings, about nine times the fixed agent cost")
     b.set_defaults(func=cmd_brief)
     sub.add_parser("check", help="validate the directors' answers").set_defaults(func=cmd_check)
     sv = sub.add_parser("save", help="file one director's answer from stdin")
