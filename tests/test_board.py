@@ -205,7 +205,7 @@ class Board(unittest.TestCase):
         self.assertFalse(os.path.exists(board._answer_path(self.d, "ceo")))
         self.assertFalse(os.path.exists(board._answer_path(self.d, "cfo")))
         self.assertTrue(os.path.exists(board._answer_path(self.d, "ciso")))
-        self.assertIn("Convene 3 director(s) in ONE Agent call", out)
+        self.assertIn("Convene 4 director(s) in ONE Agent call", out)
         with open(os.path.join(self.d, "board", "briefs", "panel.md"), encoding="utf-8") as fh:
             panel = fh.read()
         self.assertIn("id cfo", panel)
@@ -217,6 +217,56 @@ class Board(unittest.TestCase):
         rc, out = run("--dir", self.d, "brief", "--separate")
         self.assertIn("one Agent call per director", out)
         self.assertIn("cfo.md", out)
+
+    def product_and_security_finding(self):
+        with open(os.path.join(self.d, "product.md"), "w", encoding="utf-8") as fh:
+            fh.write("Shop sells hand-made mugs to gift buyers in the UK. Pricing: 18 pounds a mug.")
+        f = ledger.new_finding("proof-sec-deps", "pillow has a known heap overflow", "high")
+        ledger.write_finding(self.d, f)
+        ledger.verify(self.d, "proof-sec-deps", f["id"], by="manual", note="checked by hand")
+        return f
+
+    def brief_text(self, seat):
+        with open(os.path.join(self.d, "board", "briefs", seat + ".md"), encoding="utf-8") as fh:
+            return fh.read()
+
+    def test_product_seats_judge_the_product_and_cto_gets_the_engineering(self):
+        f = self.product_and_security_finding()
+        rc, out = run("--dir", self.d, "brief", "--separate")
+        self.assertEqual(rc, 0, out)
+        self.assertNotIn("Write the product dossier", out)
+        for seat in ("ceo", "cmo", "cfo", "sales", "coo", "cpo", "legal"):
+            text = self.brief_text(seat)
+            self.assertIn("hand-made mugs", text, seat)
+            self.assertIn("Judge it as a product", text, seat)
+            self.assertNotIn("heap overflow", text, seat)
+            self.assertIn("1 blocking issue(s)", text, seat)
+        for seat in ("cto", "ciso"):
+            text = self.brief_text(seat)
+            self.assertIn("heap overflow", text, seat)
+            self.assertNotIn("Judge it as a product", text, seat)
+        with open(os.path.join(self.d, "board", "presentation.md"), encoding="utf-8") as fh:
+            self.assertIn("heap overflow", fh.read())
+
+    def test_panel_keeps_engineering_in_an_appendix(self):
+        self.product_and_security_finding()
+        run("--dir", self.d, "brief")
+        with open(os.path.join(self.d, "board", "briefs", "panel.md"), encoding="utf-8") as fh:
+            panel = fh.read()
+        head, _, appendix = panel.partition("== ENGINEERING APPENDIX")
+        self.assertIn("hand-made mugs", head)
+        self.assertNotIn("heap overflow", head)
+        self.assertIn("heap overflow", appendix)
+
+    def test_product_points_cite_the_dossier_and_lead_the_agenda(self):
+        self.product_and_security_finding()
+        run("--dir", self.d, "brief")
+        point = {"risk": "Gift buyers will not find it before Christmas", "severity": "high", "evidence": ["product"]}
+        self.write_all("go", cmo=answer("cmo", "hold", risks=[point]))
+        rc, out = run("--dir", self.d, "check")
+        self.assertEqual(rc, 0, out)
+        dec, out = self.decision()
+        self.assertIn("THE PRODUCT AND THE MARKET", out.upper())
 
     def test_rebrief_with_nothing_changed_needs_no_meeting(self):
         run("--dir", self.d, "brief")
@@ -232,8 +282,8 @@ class Board(unittest.TestCase):
             full = fh.read()
         with open(os.path.join(bdir, "briefs", "cfo.md"), encoding="utf-8") as fh:
             cfo = fh.read()
-        self.assertIn("Outside your area", cfo)
-        self.assertNotIn("Outside your area", full)
+        self.assertIn("Other product areas", cfo)
+        self.assertNotIn("Other product areas", full)
 
     def test_meeting_page_is_interactive_and_escaped(self):
         run("--dir", self.d, "brief")

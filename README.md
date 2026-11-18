@@ -118,7 +118,7 @@ Everything Proof writes goes into a `proof/` folder in your project.
 
 | command | job | what it does |
 | --- | --- | --- |
-| `/proof-board` | Board of directors | Nine directors, each applying the researched thinking of one person (Jobs, Vogels, Katz, Porat, Ogilvy, Patterson, Cook, Fadell, Smith), hear the evidence and vote. The meeting runs by itself in the chat and as a page; Go, Go with conditions or Hold is computed. |
+| `/proof-board` | Board of directors | Nine directors, each applying the researched thinking of one person (Jobs, Vogels, Katz, Porat, Ogilvy, Patterson, Cook, Fadell, Smith), vote on the launch. The CTO and CISO judge the engineering; the other seven judge the product from a product dossier, in their own character. The meeting runs by itself in the chat and as a page; Go, Go with conditions or Hold is computed. |
 | `/proof-check` | Pick a check | Reviews the app, suggests a profile, and plans only the skills that profile lists and the app needs. |
 | `/proof-quick` | Quick check | Offline secrets, dependency and deploy-config scans; minutes, no running app, no sub-agents. |
 | `/proof-startup` | Startup launch check | Core flows, the risks that sink a launch, and unit economics; ends with the board. |

@@ -1,7 +1,7 @@
 ---
 name: proof-board
 description: >-
-  A nine-director board hears the evidence and votes Go, Go with conditions or Hold; the meeting runs by itself. Use for "present this to the board", "board meeting", "should we launch" or "get sign-off".
+  A nine-director board votes Go, Go with conditions or Hold: the CTO and CISO judge the engineering, the other seven judge the product in their own character. Use for "present this to the board", "board meeting", "should we launch" or "get sign-off".
 argument-hint: "[--seats ceo,cto,cfo]"
 ---
 
@@ -34,15 +34,20 @@ lenses (facts, principles, behaviour and verbatim quotes with sources) are in
 
 | seat | lens | judges | veto |
 | --- | --- | --- | --- |
-| CEO | Steve Jobs | the overall call: focus, quality, saying no | none (chairs) |
-| CTO | Werner Vogels | does it work and keep working, and does it read as made by people (reads /proof-slop) | core flows, API, load, mobile flows |
+| CEO | Steve Jobs | the product overall: focus, quality, what to cut, the call | none (chairs) |
+| CTO | Werner Vogels | all the engineering: does it work and keep working, code, API, security in plain words for the board | core flows, API, load, mobile flows |
 | CISO | Steve Katz | security and customer data | security, secrets, dependencies, infra, AI |
-| CFO | Ruth Porat | unit economics, cost of fixing versus delaying | unit economics |
-| CMO | David Ogilvy | how the market meets it: claims, research, reach | none |
-| Sales | John H. Patterson | can it be demonstrated and sold | none |
-| COO | Tim Cook | running it: readiness, operations, privacy posture | launch-blocking readiness items |
-| CPO | Tony Fadell | the product experience | none |
-| Legal | Brad Smith | exposure: privacy, trust, regulation | privacy |
+| CFO | Ruth Porat | the business: who pays, how much, does each sale earn money | unit economics |
+| CMO | David Ogilvy | the market: who it is for, the promise, can people find it | none |
+| Sales | John H. Patterson | can it be demoed and sold, the first buyer and their objection | none |
+| COO | Tim Cook | running it as a business: support, onboarding, cost to serve, readiness | launch-blocking readiness items |
+| CPO | Tony Fadell | the experience: the job it does, where people get stuck | none |
+| Legal | Brad Smith | exposure and trust: claims, data, terms, regulation | privacy |
+
+The CTO and CISO read the engineering and security evidence in full. The other seven
+judge the product as a product, in their own character, from the product dossier and
+what customers will meet; they see the engineering only as one line of status that
+the CTO and CISO speak to, so the meeting is not a second security review.
 
 Each director applies that person's documented principles and quotes only the
 verbatim quotes in `personas.json`, every one with its source and date. A director
@@ -58,6 +63,15 @@ related. Most answers quote nothing.
 
 The board judges the ledger, so the testing skills (or a profile such as `/proof-startup`) and
 `/proof-report` come first. With no evidence the board can only hold.
+
+Then write the product dossier, `proof/product.md`, in at most 300 words, from what
+the repo itself says: the README, the landing page copy, pricing pages, launch or
+pitch documents. Cover what the product is, who it is for, the problem it solves,
+what it promises, how it is sold and priced, and the alternatives people use today
+if the documents name them. Facts only, each followed by the file it came from in
+brackets; write "not documented" rather than guessing. The seven product seats judge
+from it, and can cite it as `[product]`. Without it, `brief` warns and they judge
+from the evidence alone.
 
 ## Step 2: the presentation
 

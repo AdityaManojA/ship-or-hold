@@ -84,10 +84,30 @@ def _board_dir(d):
     return os.path.join(ledger.root(d), "board")
 
 
+PRODUCT_FILE = "product.md"
+# Code, dependencies, infrastructure and attacks: the CTO's and CISO's ground. The
+# other seats judge the product and see this only as one line of status.
+ENGINEERING = {"proof-sec-web", "proof-sec-secrets", "proof-sec-deps", "proof-sec-diff", "proof-infra", "proof-api",
+               "proof-auth", "proof-database", "proof-load", "proof-restraint", "proof-mobile-audit",
+               "proof-react-native", "proof-llm-device", "proof-rag", "proof-resilience", "proof-watch"}
+
+
+def load_product(d):
+    """The team's product dossier (proof/product.md), or None."""
+    path = os.path.join(ledger.root(d), PRODUCT_FILE)
+    if not os.path.exists(path):
+        return None
+    with open(path, encoding="utf-8") as fh:
+        text = fh.read().strip()
+    return text or None
+
+
 def evidence(d):
     """Everything the board sees, from the ledger, plus the set of citable refs."""
     r = verdict.compute(d)
     refs = {"verdict"}
+    if load_product(d):
+        refs.add("product")
     for f in r["findings"]:
         refs.add("%s/%s" % (f["skill"], f["id"]))
     for s in r["scores"]:
@@ -265,6 +285,89 @@ def presentation(r, seats_vetoes, focus=None):
     return "\n".join(L) + "\n"
 
 
+def _present(r):
+    return sorted(set([f["skill"] for f in r["findings"]] + [c["skill"] for c in r["coverage"]] +
+                      [x["skill"] for x in r["scores"]]))
+
+
+def _signals_line(d):
+    path = os.path.join(ledger.root(d), "review.json") if d else None
+    if not path or not os.path.exists(path):
+        return None
+    try:
+        with open(path, encoding="utf-8") as fh:
+            sig = json.load(fh).get("signals") or {}
+    except ValueError:
+        return None
+    names = {"web": "a web app", "pwa": "installable on phones", "api": "its own API", "react_native": "a mobile app",
+             "native_mobile": "a mobile app", "llm": "AI answers", "rag": "answers from your documents",
+             "database": "stored user data", "auth": "accounts and sign-in", "voice": "voice", "email": "email",
+             "i18n": "several languages", "on_device_llm": "an on-device model"}
+    have = []
+    for k in sig:
+        if k in names and names[k] not in have:
+            have.append(names[k])
+    return ", ".join(have) if have else None
+
+
+def product_presentation(r, seats_vetoes, focus, product, d=None):
+    """What a product seat judges: the product itself, what customers meet, and engineering in one line."""
+    t = r.get("target") or {}
+    L = ["# %s: the product, presented to the board" % (t.get("name") or "The product"), ""]
+    L.append("## The product [product]")
+    if product:
+        L.append(product)
+    else:
+        L.append("(The team wrote no product dossier. Judge from what is below, and ask what you would need to know.)")
+    feats = _signals_line(d)
+    if feats:
+        L.append("")
+        L.append("What the code shows it has: %s." % feats)
+    if t.get("urls"):
+        L.append("Where customers find it: %s" % ", ".join(t["urls"]))
+    L.append("")
+    blocking = [f for f in r["findings"] if f["status"] == "verified" and f["severity"] in ("critical", "high")]
+    eng = [f for f in blocking if f["skill"] in ENGINEERING]
+    L.append("## The headline")
+    L.append("- [verdict] The computed Proof verdict is **%s**." % r["verdict"])
+    L.append("- Engineering and security (the CTO's and CISO's area): %s They will speak to it; do not restate it."
+             % ("%d blocking issue(s)." % len(eng) if eng else "nothing blocking."))
+    vetoes = [v for v in seats_vetoes if v["ref"].split("/")[0] not in ENGINEERING]
+    eng_vetoes = sorted(set(v["seat"].upper() for v in seats_vetoes) - set(v["seat"].upper() for v in vetoes))
+    if eng_vetoes:
+        L.append("- The %s veto is triggered by engineering evidence, so the launch is held whatever the vote."
+                 % " and ".join(eng_vetoes))
+    for v in vetoes:
+        L.append("- Veto, %s: [%s] %s" % (v["seat"].upper(), v["ref"], v["why"]))
+    L.append("")
+    present = [sk for sk in _present(r) if sk not in ENGINEERING]
+    mine = present if focus == ["*"] else [sk for sk in present if sk in focus]
+    L.append("## What customers will meet, and what it found")
+    L.append("")
+    L.extend(_skill_lines(r, mine or ["none"], compact=True))
+    others = [sk for sk in present if sk not in mine]
+    if others:
+        by_skill = {}
+        for f in r["findings"]:
+            by_skill.setdefault(f["skill"], []).append(f)
+        L.append("### Other product areas, in one line each")
+        L.extend(_summary_line(r, sk, by_skill) for sk in others)
+        L.append("")
+    L.append("## The ask")
+    L.append("Decide whether this ships now (Go), ships once named conditions are met (Go with conditions), "
+             "or does not ship yet (Hold).")
+    return "\n".join(L) + "\n"
+
+
+PRODUCT_RULES = [
+    "- Judge it as a product, in your own character: who it is for, whether they would choose it over what "
+    "they use today, pay for it, trust it, understand it in a minute, and tell a friend.",
+    "- Code, dependencies and vulnerabilities belong to the CTO and CISO. Do not restate them as your own "
+    "risks; if the engineering status changes your vote, say so in one sentence of your summary.",
+    "- A high-severity risk must cite at least one ref in square brackets: [product] for the product itself, "
+    "or a finding, score or coverage ref from the evidence. Medium and low risks may be judgement calls.",
+]
+
 SCHEMA = """{
   "seat": "%(seat)s",
   "vote": "go" or "go_with_conditions" or "hold",
@@ -333,9 +436,12 @@ def lens_section(persona):
 
 
 def seat_brief(seat, pres, answer_path, seat_vetoes, persona=None):
+    product = seat.get("view") == "product"
     L = ["You are the %s (%s) on the board of directors. The team is presenting their product to the board "
          "and asking whether it can launch." % (seat["title"], seat["short"]), "",
          "== YOUR ROLE ==", seat["lens"], ""]
+    if product:
+        L += PRODUCT_RULES + [""]
     L += lens_section(persona)
     if seat["skills"] != ["*"]:
         L.append("The evidence closest to your role comes from: %s." % ", ".join(seat["skills"]))
@@ -360,14 +466,24 @@ def seat_brief(seat, pres, answer_path, seat_vetoes, persona=None):
     return "\n".join(L) + "\n"
 
 
-def panel_brief(seats, pres, d, seat_vetoes, personas):
+def panel_brief(seats, pres, d, seat_vetoes, personas, r=None):
     """One brief for one agent to sit as several directors. Every agent starts with a large
     fixed context, so the agent count is the main cost of a meeting; the evidence appears once."""
     L = ["You sit as %d directors on a board, one after another. The team is presenting their product and "
          "asking whether it can launch." % len(seats), "",
          "Judge each seat on its own, through its own role and lens only. Do not harmonise the seats: when two "
          "lenses disagree, the answers disagree. Write a seat's answer before you start the next seat.", "",
-         "== THE PRESENTATION ==", pres, "== END OF PRESENTATION ==", "",
+         "== THE PRESENTATION ==", pres, "== END OF PRESENTATION ==", ""]
+    eng_seats = [x for x in seats if x.get("view") != "product"]
+    if r is not None and eng_seats:
+        eng = [sk for sk in _present(r) if sk in ENGINEERING]
+        L += ["== ENGINEERING APPENDIX: for the %s seat(s) only ==" % ", ".join(x["short"] for x in eng_seats),
+              "The other seats do not judge from this appendix.", ""]
+        L += _skill_lines(r, eng or ["none"], compact=True)
+        L += ["== END OF APPENDIX ==", ""]
+    if any(x.get("view") == "product" for x in seats):
+        L += ["For the product seats:"] + PRODUCT_RULES + [""]
+    L += [
          "How to answer, for every seat:",
          "- Judge from the presentation only. Do not invent facts, numbers or findings that are not in it.",
          "- Every high-severity risk must cite at least one ref from the presentation, copied exactly as it "
@@ -389,6 +505,8 @@ def panel_brief(seats, pres, d, seat_vetoes, personas):
         if mine:
             L.append("The evidence already triggers this seat's veto: %s."
                      % "; ".join("[%s] %s" % (v["ref"], v["why"]) for v in mine))
+        if seat.get("view") == "product":
+            L.append("This is a product seat: judge from the presentation, not the engineering appendix.")
         L.append("")
     return "\n".join(L) + "\n"
 
@@ -597,11 +715,11 @@ AREAS = [
 ]
 SKILL_AREA = {sk: aid for aid, _, sks in AREAS for sk in sks}
 # One word per step for the meeting page's progress bar; the full title is the tooltip.
-SHORT = {"flows": "Flows", "reliability": "Performance", "security": "Security", "infra": "Infra",
+SHORT = {"product": "Product", "flows": "Flows", "reliability": "Performance", "security": "Security", "infra": "Infra",
          "privacy": "Privacy", "reach": "Reach", "ai": "AI", "quality": "Code", "finance": "Finance",
          "launch": "Launch"}
 SHORT_BY_TITLE = dict((title, SHORT[aid]) for aid, title, _ in AREAS)
-SHORT_BY_TITLE.update({"Other points": "Other", "The vote": "Vote"})
+SHORT_BY_TITLE.update({"Other points": "Other", "The vote": "Vote", "The product and the market": "Product"})
 BLOCKER, CONCERNS, CLEAR, NOT_COVERED = "Blocker", "Concerns", "Clear", "Not covered"
 OUTCOME_CLASS = {BLOCKER: "hold", CONCERNS: "go_with_conditions", CLEAR: "go", NOT_COVERED: "none"}
 
@@ -681,6 +799,26 @@ def agenda(r, seats, answers, triggered):
         mine = [rk for rk in a.get("risks") or [] if not any(_ref_area(x) for x in rk.get("evidence") or [])]
         if mine:
             general.append({"seat": seat["id"], "risks": mine})
+    prod = []
+    for seat in seats:
+        a = answers.get(seat["id"])
+        if a:
+            mine = [rk for rk in a.get("risks") or [] if "product" in (rk.get("evidence") or [])]
+            if mine:
+                prod.append({"seat": seat["id"], "risks": mine})
+    if prod:
+        raised = [rk for sp in prod for rk in sp["risks"]]
+        sev = [rk.get("severity") for rk in raised]
+        outcome = BLOCKER if "high" in sev else (CONCERNS if "medium" in sev else CLEAR)
+        items.insert(0, {"id": "product", "title": "The product and the market", "skills": [], "missing": [],
+                         "verified": [], "unverified": [], "ruled_out": [], "metrics": [],
+                         "coverage": dict((st, 0) for st in ledger.COVERAGE_STATUSES), "notrun": [], "vetoes": [],
+                         "outcome": outcome, "reasons": ["%d point(s) the directors raised about the product itself."
+                                                         % len(raised)], "speakers": prod})
+        product_risks = set(id(rk) for sp in prod for rk in sp["risks"])
+        general = [{"seat": g["seat"], "risks": [rk for rk in g["risks"] if id(rk) not in product_risks]}
+                   for g in general]
+        general = [g for g in general if g["risks"]]
     untested = [title for aid, title, sks in AREAS if not any(s in present or s in r["required"] for s in sks)]
     return items, general, untested
 
@@ -1497,11 +1635,17 @@ def cmd_brief(a):
     triggered = vetoes(r, seats)
     _write(os.path.join(bdir, "presentation.md"), presentation(r, triggered))
     personas = load_personas()
+    product = load_product(a.dir)
+    if not product:
+        print("Note: no proof/%s yet. Write the product dossier first (see the skill), or the product seats "
+              "judge from the evidence alone." % PRODUCT_FILE)
     qa = _load_qa(a.dir)
     paths, kept, cleared, seat_fps, meeting = [], [], 0, {}, []
     for seat in seats:
         p = os.path.join(bdir, "briefs", seat["id"] + ".md")
-        text = seat_brief(seat, presentation(r, triggered, focus=seat["skills"]),
+        pres_seat = (product_presentation(r, triggered, seat["skills"], product, a.dir)
+                     if seat.get("view") == "product" else presentation(r, triggered, focus=seat["skills"]))
+        text = seat_brief(seat, pres_seat,
                           os.path.abspath(_answer_path(a.dir, seat["id"])), triggered, personas.get(seat["id"]))
         _write(p, text)
         seat_fps[seat["id"]] = hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
@@ -1533,7 +1677,8 @@ def cmd_brief(a):
         return 0
     if not a.separate:
         panel = os.path.join(bdir, "briefs", "panel.md")
-        _write(panel, panel_brief(meeting, presentation(r, triggered, focus=["*"]), a.dir, triggered, personas))
+        _write(panel, panel_brief(meeting, product_presentation(r, triggered, ["*"], product, a.dir), a.dir,
+                                  triggered, personas, r))
         print("\nConvene %d director(s) in ONE Agent call (subagent_type general-purpose, prompt 'Read <brief> and "
               "follow it exactly. It is your whole brief.'):\n  %s" % (len(meeting), panel))
         print("\nThen: board.py check, board.py tally")
