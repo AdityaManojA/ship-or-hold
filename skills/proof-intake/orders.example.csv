@@ -1,0 +1,11 @@
+Name,Email,Financial Status,Paid at,Fulfillment Status,Currency,Subtotal,Shipping,Taxes,Total,Created at,Lineitem quantity,Lineitem name,Lineitem price
+#1001,a@example.com,paid,2026-10-01 10:02:11 +0530,fulfilled,INR,800.00,50.00,0.00,850.00,2026-10-01 10:01:40 +0530,1,Kurta - M,800.00
+#1002,b@example.com,pending,,unfulfilled,INR,1200.00,0.00,0.00,1200.00,2026-10-02 18:20:05 +0530,1,Kurta - L,700.00
+#1002,,,,,,,,,,2026-10-02 18:20:05 +0530,1,Dupatta,500.00
+#1003,c@example.com,voided,,unfulfilled,INR,900.00,0.00,0.00,900.00,2026-10-03 09:00:00 +0530,1,Kurta - S,900.00
+#1004,d@example.com,paid,2026-10-04 12:00:00 +0530,fulfilled,INR,700.00,50.00,0.00,750.00,2026-10-04 11:59:00 +0530,1,Kurta - M,700.00
+#1005,e@example.com,refunded,2026-10-05 12:00:00 +0530,fulfilled,INR,1000.00,0.00,0.00,1000.00,2026-10-05 11:00:00 +0530,1,Kurta - XL,1000.00
+#1006,f@example.com,paid,2026-10-07 15:30:00 +0530,fulfilled,INR,1100.00,0.00,0.00,1100.00,2026-10-07 15:29:00 +0530,2,Kurta - M,550.00
+#1007,g@example.com,partially_refunded,2026-10-08 08:00:00 +0530,fulfilled,INR,600.00,50.00,0.00,650.00,2026-10-08 07:59:00 +0530,1,Dupatta,600.00
+#1008,h@example.com,pending,,unfulfilled,INR,600.00,0.00,0.00,600.00,2026-10-10 20:00:00 +0530,1,Kurta - S,600.00
+#1008,,,,,,,,,,2026-10-10 20:00:00 +0530,1,Gift wrap,0.00

@@ -51,8 +51,8 @@ class Profiles(unittest.TestCase):
 
     def test_business_profile_is_the_business_side_only_in_reading_order(self):
         order = [s for s, _ in ck.select("business", {"web", "auth", "api"}, installed=ALL)]
-        self.assertEqual(order, ["proof-market", "proof-buyers", "proof-pricing", "proof-offer", "proof-finance",
-                                 "proof-go-to-market", "proof-ops"])
+        self.assertEqual(order, ["proof-intake", "proof-market", "proof-buyers", "proof-pricing", "proof-offer",
+                                 "proof-ads", "proof-finance", "proof-go-to-market", "proof-ops", "proof-fixkit"])
         # it needs no app at all
         self.assertEqual(picked("business", set()), set(order))
 
@@ -65,6 +65,20 @@ class Profiles(unittest.TestCase):
     def test_business_skills_are_fingerprinted_on_everything_they_read(self):
         for s in ck.BUSINESS:
             self.assertEqual(ck.INPUTS.get(s), "all", s)
+
+    def test_descope_marks_a_check_out_of_scope_with_its_reason(self):
+        with TempProof() as tp:
+            ledger.init_coverage(tp.dir, "proof-a11y", [("screen-reader", "Screen reader"), ("zoom-200", "Zoom")])
+            code, out = run("--dir", tp.dir, "descope", "proof-a11y", "all-unrun",
+                            "--reason", "no assistive-technology tester on this audit")
+            self.assertEqual(code, 0)
+            cov = {c["id"]: c for c in ledger.load_coverage(tp.dir, "proof-a11y")["checks"]}
+            for cid in ("screen-reader", "zoom-200"):
+                self.assertEqual(cov[cid]["status"], "not_applicable")
+                self.assertTrue(cov[cid]["note"].startswith("Out of scope for this audit: "))
+            self.assertEqual(run("--dir", tp.dir, "descope", "proof-a11y", "nope", "--reason", "a long enough reason")[0], 2)
+            self.assertEqual(run("--dir", tp.dir, "descope", "proof-a11y", "zoom-200", "--reason", "short")[0], 2)
+            self.assertEqual(run("--dir", tp.dir, "descope", "proof-seo", "x", "--reason", "a long enough reason")[0], 2)
 
     def test_startup_follows_web_or_mobile(self):
         web = picked("startup", {"web", "auth"})

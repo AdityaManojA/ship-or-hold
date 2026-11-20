@@ -130,7 +130,10 @@ class Offer(unittest.TestCase):
         self.assertEqual(sc["stack_promises_missing"]["value"], 1)   # 'partly' is not counted as missing
         self.assertFalse(ledger.metric_passes(sc["stack_promises_missing"]))
         self.assertEqual(sc["problems_answered_pct"]["value"], 90)   # 'partly' still answers its problem
-        self.assertEqual(self.coverage()["promises-exist"], "not_run")
+        # Looked at, so covered; the unbuilt item stays a high finding and is named in the note.
+        self.assertEqual(self.coverage()["promises-exist"], "covered")
+        entry = [c for c in ledger.load_coverage(self.d, SKILL)["checks"] if c["id"] == "promises-exist"][0]
+        self.assertIn("Solution 1", entry.get("note", ""))
         self.assertIn("**not built today**", self.section())
 
     def test_unbuilt_item_outside_the_stack_is_not_a_promise(self):

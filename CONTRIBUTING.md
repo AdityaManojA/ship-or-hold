@@ -32,7 +32,8 @@ tests/test_<tool>.py               one test module per tool
 
 ## Business sections
 
-A business skill (market, buyers, pricing, offer, go to market, operations) does two
+A business skill (intake, market, buyers, pricing, offer, ads, go to market, operations,
+fix kit) does two
 things with the same inputs. It records coverage, scores and computed findings in the
 ledger like any other skill, so the verdict and the board read it. And it writes one
 section file, `proof/business/<section>.md`, starting with a single `# Title` line,
@@ -45,7 +46,12 @@ The rules that keep a plan honest:
   source, or a labelled estimate. An estimate is never printed as a fact.
 - A section a skill did not produce is listed in the plan as not done, with the skill
   that produces it. Nothing fills it in.
-- Simulated buyers and directors are named as simulated wherever they are quoted.
+- Simulated buyers and board seats are named as simulated wherever they appear.
+- Client-facing text (the report pages, the market table, the fix kit tasks) never carries
+  ledger codes, evidence file names, or notes about pages that failed to load; those go in
+  the appendix.
+- Money questions start from `proof/business/intake.json`, never from an estimate of
+  volume. A client report is never printed while the verdict is Incomplete.
 
 To add a section, add the skill, then add its row to `SECTIONS` in `plan.py`, its
 name to `BUSINESS` in `skills/proof-check/check.py`, an agenda area and seats in

@@ -112,8 +112,8 @@ class Repo(unittest.TestCase):
             m = re.search(r"\*\*Finish: the report\.\*\*(.*?)(?:\n\d+\. \*\*|\n## )", text, re.S)
             self.assertTrue(m, "%s has no 'Finish: the report.' step" % d)
             step = m.group(1)
-            for must in ("/proof-report", "/proof-board", "/proof-business-plan", "summary.md",
-                         "business-plan.pdf", "without asking"):
+            for must in ("/proof-report", "/proof-fixkit", "/proof-board", "/proof-business-plan", "summary.md",
+                         "report.pdf", "appendix.pdf", "descope", "without asking"):
                 self.assertIn(must, step, "%s finish step does not name %s" % (d, must))
             low = text.lower()
             self.assertNotIn("only on a yes", low, "%s still asks before the board" % d)

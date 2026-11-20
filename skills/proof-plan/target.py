@@ -6,7 +6,8 @@ evidence schema) and a readable proof/target.md. proof-report needs target.json 
 know what it is reporting on; every testing skill may read it to learn the target
 and whether the user is authorised to test it.
 
-    python3 target.py init --name "My app" --kind web --authorised yes --url http://localhost:3000
+    python3 target.py init --name "My app" --kind web --authorised yes --url http://localhost:3000 --stage solo
+    python3 target.py stage team
     python3 target.py require add proof-web-e2e proof-sec-web
     python3 target.py require remove proof-geo
     python3 target.py recommend --kind web --public --has-llm
@@ -15,6 +16,9 @@ and whether the user is authorised to test it.
 required_skills is the user's own list. The tool never adds to it on its own. A
 skill not on the list is optional: it can still be run alone and never counts
 against the verdict.
+
+stage is who the client is: solo (one founder: the board sits as an Advisory Panel
+and actions go in buckets), team, or company. A missing stage is read as team.
 """
 
 import argparse
@@ -27,6 +31,16 @@ sys.path.insert(0, os.path.join(HERE, "..", "proof-core"))
 import ledger  # noqa: E402
 
 SKILL_RE = re.compile(r"^proof-[a-z0-9-]+$")
+STAGES = ["solo", "team", "company"]
+STAGE_HELP = {"solo": "one founder: the board sits as an Advisory Panel and actions go in buckets",
+              "team": "a small team: actions get an owner seat",
+              "company": "an established company: actions get an owner seat"}
+
+
+def stage_of(t):
+    """The client's stage; missing or unknown is team."""
+    st = (t or {}).get("stage")
+    return st if st in STAGES else "team"
 
 # The relevance map: kind -> ordered (skill, reason). recommend() filters this to
 # skills that actually exist as sibling folders, so the advice grows as skills land
@@ -122,13 +136,16 @@ RECO = {
 # The business side fits every kind of product: each skill writes one section of
 # the business plan, and the plan itself is compiled last.
 BUSINESS_RECO = [
+    ("proof-intake", "record the four real numbers first: unit cost, ad spend, sessions and orders a day"),
     ("proof-market", "map the competitors, what their customers complain about, and the gap"),
     ("proof-buyers", "put the pitch in front of a seeded panel of simulated buyers"),
     ("proof-pricing", "set the price, or work out what one visit earns when the product is free"),
     ("proof-offer", "build the offer from the objections buyers raised"),
+    ("proof-ads", "check the live ads against their landing pages and competitors' creative gaps"),
     ("proof-finance", "the unit economics behind the product"),
     ("proof-go-to-market", "positioning, channels and a first real-world test with a pass mark"),
     ("proof-ops", "day-one routines, monthly costs and what the business depends on"),
+    ("proof-fixkit", "turn every finding into copy-paste fixes and a 14-day plan"),
 ]
 PLAN_RECO = ("proof-business-plan", "compile the verdict, the board's decision and every section into the plan")
 
@@ -185,6 +202,7 @@ def _target_md(t):
     if t.get("platforms"):
         L.append("- Platforms: %s" % ", ".join(t["platforms"]))
     L.append("- Authorised to test: %s" % ("yes" if t.get("authorised") else "NO"))
+    L.append("- Stage: %s (%s)" % (stage_of(t), STAGE_HELP[stage_of(t)]))
     L.append("- Blocks Ship at: %s and above" % t.get("fail_on", "high"))
     if t.get("done_means"):
         L.append("- Done means: %s" % t["done_means"])
@@ -225,6 +243,8 @@ def cmd_init(a):
         target["done_means"] = a.done
     if a.fail_on:
         target["fail_on"] = a.fail_on
+    if a.stage:
+        target["stage"] = a.stage
     ledger.write_target(a.dir, target)
     with open(os.path.join(ledger.root(a.dir), "target.md"), "w", encoding="utf-8") as fh:
         fh.write(_target_md(ledger.load_target(a.dir)))
@@ -268,6 +288,24 @@ def cmd_require(a):
     return 0
 
 
+# -------------------------------------------------------------------- stage
+
+def cmd_stage(a):
+    t = ledger.load_target(a.dir)
+    if t is None:
+        print("error: no target.json. Run init first.", file=sys.stderr)
+        return 2
+    if a.value is None:
+        print("%s%s" % (stage_of(t), "" if t.get("stage") else " (not set, read as team)"))
+        return 0
+    t["stage"] = a.value
+    ledger.write_target(a.dir, t)
+    with open(os.path.join(ledger.root(a.dir), "target.md"), "w", encoding="utf-8") as fh:
+        fh.write(_target_md(ledger.load_target(a.dir)))
+    print("%s stage: %s (%s)" % (ledger.OK, a.value, STAGE_HELP[a.value]))
+    return 0
+
+
 # ---------------------------------------------------------------- recommend
 
 def cmd_recommend(a):
@@ -301,6 +339,7 @@ def cmd_show(a):
         return 2
     print("%s (%s)" % (t["name"], t["kind"]))
     print("  authorised: %s" % ("yes" if t.get("authorised") else "no"))
+    print("  stage: %s" % stage_of(t))
     print("  urls: %s" % (", ".join(t.get("urls", [])) or "none"))
     if t.get("repo"):
         print("  repo: %s" % t["repo"])
@@ -313,9 +352,12 @@ def main(argv=None):
     ledger.console()
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--dir", default="proof")
+    # --dir also works after the subcommand, like every other Proof tool.
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--dir", default=argparse.SUPPRESS)
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    i = sub.add_parser("init", help="write target.json and target.md")
+    i = sub.add_parser("init", help="write target.json and target.md", parents=[common])
     i.add_argument("--name", required=True)
     i.add_argument("--kind", required=True, choices=["web", "mobile", "api", "repo", "mixed"])
     i.add_argument("--authorised", required=True, choices=["yes", "no"],
@@ -326,22 +368,29 @@ def main(argv=None):
     i.add_argument("--require", action="append", help="a skill the verdict waits for (repeatable)")
     i.add_argument("--done", help="what done means for this target")
     i.add_argument("--fail-on", choices=["critical", "high", "medium", "low"])
+    i.add_argument("--stage", choices=STAGES,
+                   help="who the client is: solo (one founder), team or company; missing is read as team")
     i.add_argument("--force", action="store_true")
     i.set_defaults(func=cmd_init)
 
-    r = sub.add_parser("require", help="edit the required-skills list")
+    st = sub.add_parser("stage", help="set the client's stage (solo, team, company), or print it",
+                        parents=[common])
+    st.add_argument("value", nargs="?", choices=STAGES)
+    st.set_defaults(func=cmd_stage)
+
+    r = sub.add_parser("require", help="edit the required-skills list", parents=[common])
     r.add_argument("action", choices=["add", "remove"])
     r.add_argument("skills", nargs="+")
     r.set_defaults(func=cmd_require)
 
-    rc = sub.add_parser("recommend", help="suggest an order (all optional)")
+    rc = sub.add_parser("recommend", help="suggest an order (all optional)", parents=[common])
     rc.add_argument("--kind", default="web", choices=["web", "mobile", "api", "repo", "mixed"])
     rc.add_argument("--public", action="store_true", help="the product is or will be publicly discoverable")
     rc.add_argument("--has-llm", action="store_true", help="the product embeds a language model")
     rc.add_argument("--mobile", choices=["ios", "android"], help="also suggest mobile skills")
     rc.set_defaults(func=cmd_recommend)
 
-    sub.add_parser("show", help="print the target").set_defaults(func=cmd_show)
+    sub.add_parser("show", help="print the target", parents=[common]).set_defaults(func=cmd_show)
 
     a = ap.parse_args(argv)
     return a.func(a)

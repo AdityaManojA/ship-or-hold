@@ -4,12 +4,15 @@
 Standard library only, no network. The board sits on top of the Proof evidence:
 
     brief    turn the ledger into a presentation (the pitch the board hears) and one
-             brief per director (CEO, CTO, CISO, CFO, CMO, Sales, COO, CPO, Legal)
-    check    validate the directors' answers; every serious risk must cite evidence
-    save     file one director's answer from stdin
-    answer   record the presenter's answer to a director's question
-    tally    compute the decision (Go, Go with conditions, Hold) and write the
-             minutes and an interactive meeting page (proof/board/meeting.html)
+             brief per seat (Investor, Growth, Builder, Operator)
+    check    validate the seats' answers; every serious risk must cite evidence
+    save     file one seat's answer from stdin
+    answer   record the presenter's answer to a seat's question
+    debate-brief  give every seat the other seats' answers for a second round
+    debate-check  validate the debate files (challenges, concessions, final votes)
+    tally    compute the decision (Go, Go with conditions, Hold) from the final votes
+             and write the minutes, the one-page debate and an interactive meeting
+             page (proof/board/meeting.html)
     meeting  rebuild the meeting page only
     seats    list the board
     status   who has answered
@@ -47,6 +50,71 @@ VOTE_LABEL = {"go": "Go", "go_with_conditions": "Go with conditions", "hold": "H
 GO, GO_COND, HOLD = "Go", "Go with conditions", "Hold"
 SEV = ["high", "medium", "low"]
 REF = re.compile(r"\[([a-z0-9-]+/[^\]\s]+)\]")
+STAGES = ["solo", "team", "company"]
+BUCKETS = [("do_today", "Do today"), ("freelancer", "Hire a freelancer"), ("professional", "Ask a CA or lawyer")]
+BUCKET_LABEL = dict(BUCKETS)
+BUCKET_HELP = [
+    "- do_today: Do today. The owner can do it alone, today, with no money or help (rewrite a line of copy, "
+    "change a price, write the policy page, send the message).",
+    "- freelancer: Hire a freelancer. A paid hand for a few days: a developer for a bug or a security fix, a "
+    "designer, a copywriter, a photographer.",
+    "- professional: Ask a CA or lawyer. Anything a qualified accountant or lawyer must check or sign: tax, "
+    "registrations, contracts, privacy terms, licences, claims that could bring a regulator.",
+]
+# Where an evidence blocker lands for a solo founder when no seat put it in a bucket.
+PROFESSIONAL_SKILLS = {"proof-privacy", "proof-licenses"}
+FREELANCER_SKILLS = {"proof-web-e2e", "proof-mobile-e2e", "proof-api", "proof-load", "proof-web-perf",
+                     "proof-resilience", "proof-infra", "proof-restraint", "proof-visual", "proof-compat",
+                     "proof-watch", "proof-mobile-audit", "proof-mobile-explore", "proof-react-native",
+                     "proof-llm-device", "proof-voice", "proof-rag", "proof-ai", "proof-database", "proof-auth",
+                     "proof-sec-web", "proof-sec-secrets", "proof-sec-deps", "proof-sec-diff", "proof-a11y",
+                     "proof-mobile-a11y", "proof-design-match", "proof-pwa", "proof-i18n", "proof-store-ready"}
+
+# A rule or saying attributed to a person: "X's rule", "X said", "as X put it", "according to X".
+# Seat names and ordinary words that start a sentence are not people.
+_CAP = r"[A-Z][a-z]+(?:[-\s][A-Z][a-z]+){0,2}"
+_NAMED_RULE = [
+    re.compile(r"\b(%s)['\u2019]s?\s+(?:own\s+)?(?:rule|law|maxim|principle|dictum|razor|motto|mantra|test|saying|"
+               r"advice|creed|credo|doctrine|playbook|lesson)s?\b" % _CAP),
+    re.compile(r"\b(%s)\s+(?:once\s+|famously\s+|always\s+|often\s+)?(?:said|wrote|argued|warned|"
+               r"liked to say|used to say|would say|put it|taught|insisted)\b" % _CAP),
+    re.compile(r"\b[Aa]s\s+(%s)\s+(?:once\s+|famously\s+)?(?:put it|said|wrote|would say|liked to say|"
+               r"used to say|reminds us|taught)\b" % _CAP),
+    re.compile(r"\b(?:[Aa]ccording to|[Ii]n the words of|[Tt]o quote|[Qq]uoting)\s+(%s)\b" % _CAP),
+]
+_NOT_PEOPLE = {"investor", "growth", "builder", "operator", "board", "panel", "advisory", "team", "the", "this",
+               "that", "it", "he", "she", "they", "we", "you", "i", "one", "everyone", "someone", "nobody", "no",
+               "buyers", "buyer", "customers", "customer", "users", "user", "founder", "owner", "proof", "ledger",
+               "evidence", "report", "market", "page", "panelist", "seat", "data", "research", "a", "an",
+               "our", "their", "its", "who", "what", "which", "each", "every", "simulated", "advisor", "director",
+               "then", "so", "but", "and", "also", "here", "there", "today", "still", "yet", "if", "when",
+               "because", "while", "most", "many", "some", "all", "both", "few", "several", "first", "finally",
+               "earlier", "later", "everybody", "people", "visitors", "shoppers", "testers", "reviewers"}
+
+
+def named_rules(text):
+    """Phrases in text that attribute a rule or a saying to a named person."""
+    found = []
+    for rx in _NAMED_RULE:
+        for m in rx.finditer(str(text or "")):
+            words = re.split(r"[-\s]+", m.group(1).lower())
+            if any(w not in _NOT_PEOPLE for w in words):
+                found.append(m.group(0))
+    return found
+
+
+def stage_of(r):
+    """The client's stage from target.json; missing or unknown is team."""
+    st = ((r or {}).get("target") or {}).get("stage")
+    return st if st in STAGES else "team"
+
+
+def panel_name(stage):
+    return "Advisory Panel" if stage == "solo" else "Board"
+
+
+def member_word(stage):
+    return "advisor" if stage == "solo" else "seat"
 
 
 class BoardError(ValueError):
@@ -85,13 +153,6 @@ def _board_dir(d):
 
 
 PRODUCT_FILE = "product.md"
-# Code, dependencies, infrastructure and attacks: the CTO's and CISO's ground. The
-# other seats judge the product and see this only as one line of status.
-ENGINEERING = {"proof-sec-web", "proof-sec-secrets", "proof-sec-deps", "proof-sec-diff", "proof-infra", "proof-api",
-               "proof-auth", "proof-database", "proof-load", "proof-restraint", "proof-mobile-audit",
-               "proof-react-native", "proof-llm-device", "proof-rag", "proof-resilience", "proof-watch"}
-
-
 IDEA_FILE = os.path.join("business", "idea.md")
 
 
@@ -153,20 +214,20 @@ def vetoes(r, seats):
             if f["skill"] in domain and f["status"] == "verified" and f["severity"] in ("critical", "high"):
                 out.append({"seat": seat["id"], "ref": "%s/%s" % (f["skill"], f["id"]),
                             "why": "verified %s finding: %s" % (f["severity"], f["title"])})
-        if seat["id"] == "cfo":
+        if seat["id"] == "investor":
             for s in r["scores"]:
                 if s["skill"] == "proof-finance":
                     for m in s["metrics"]:
                         if not ledger.metric_passes(m):
-                            out.append({"seat": "cfo", "ref": "proof-finance/score:%s" % m["id"],
-                                        "why": "%s is %s, budget %s %s" % (m["id"], m["value"], m["op"], m["budget"])})
-        if seat["id"] == "coo":
+                            out.append({"seat": "investor", "ref": "proof-finance/score:%s" % m["id"],
+                                        "why": _plain_score(m)})
+        if seat["id"] == "operator":
             crit = _release_critical_ids()
             for c in r["coverage"]:
                 if c["skill"] == "proof-release":
                     for ch in c["checks"]:
                         if ch["id"] in crit and ch["status"] == "not_run":
-                            out.append({"seat": "coo", "ref": "proof-release/coverage:%s" % ch["id"],
+                            out.append({"seat": "operator", "ref": "proof-release/coverage:%s" % ch["id"],
                                         "why": "launch-blocking readiness item not done: %s" % ch["title"]})
     return out
 
@@ -238,12 +299,12 @@ def _skill_lines(r, skills, compact=False):
     return L
 
 
-def presentation(r, seats_vetoes, focus=None):
-    """The team's presentation. With `focus` (a director's skills), only that area is shown in
+def presentation(r, seats_vetoes, focus=None, stage="team"):
+    """The team's presentation. With `focus` (a seat's skills), only that area is shown in
     full and every other skill is one line, so each brief carries what that seat judges."""
     t = r.get("target") or {}
     sev = {s: sum(1 for f in r["findings"] if f["status"] == "verified" and f["severity"] == s) for s in ledger.SEVERITIES}
-    L = ["# %s: presentation to the board" % (t.get("name") or "The product"), ""]
+    L = ["# %s: presentation to the %s" % (t.get("name") or "The product", panel_name(stage)), ""]
     L.append("## The product")
     L.append("- Kind: %s" % t.get("kind", "unknown"))
     if t.get("urls"):
@@ -265,9 +326,9 @@ def presentation(r, seats_vetoes, focus=None):
     for c in checks:
         L.append("- %s %s" % ("OK" if c["ok"] else "PROBLEM:", c["text"]))
     if seats_vetoes:
-        L.append("- The evidence already triggers %d veto(es) on this board:" % len(seats_vetoes))
+        L.append("- The evidence already triggers %d veto(es):" % len(seats_vetoes))
         for v in seats_vetoes:
-            L.append("  - %s: [%s] %s" % (v["seat"].upper(), v["ref"], v["why"]))
+            L.append("  - %s: [%s] %s" % (_seat_label(v["seat"]), v["ref"], v["why"]))
     L.append("")
     L.append("## What was tested, and what it found")
     L.append("")
@@ -316,15 +377,17 @@ def _signals_line(d):
     return ", ".join(have) if have else None
 
 
-def product_presentation(r, seats_vetoes, focus, product, d=None):
-    """What a product seat judges: the product itself, what customers meet, and engineering in one line."""
+def _seat_label(seat_id):
+    return str(seat_id or "").capitalize()
+
+
+def seat_presentation(r, seats_vetoes, focus, product, d=None, stage="team"):
+    """What a seat judges: the product dossier, its own area in full and every other area in one line."""
     t = r.get("target") or {}
-    L = ["# %s: the product, presented to the board" % (t.get("name") or "The product"), ""]
+    L = ["# %s: presented to the %s" % (t.get("name") or "The product", panel_name(stage)), ""]
     L.append("## The product [product]")
-    if product:
-        L.append(product)
-    else:
-        L.append("(The team wrote no product dossier. Judge from what is below, and ask what you would need to know.)")
+    L.append(product or "(The team wrote no product dossier. Judge from what is below, and ask what you would "
+                        "need to know.)")
     feats = _signals_line(d)
     if feats:
         L.append("")
@@ -333,22 +396,15 @@ def product_presentation(r, seats_vetoes, focus, product, d=None):
         L.append("Where customers find it: %s" % ", ".join(t["urls"]))
     L.append("")
     blocking = [f for f in r["findings"] if f["status"] == "verified" and f["severity"] in ("critical", "high")]
-    eng = [f for f in blocking if f["skill"] in ENGINEERING]
     L.append("## The headline")
     L.append("- [verdict] The computed Proof verdict is **%s**." % r["verdict"])
-    L.append("- Engineering and security (the CTO's and CISO's area): %s They will speak to it; do not restate it."
-             % ("%d blocking issue(s)." % len(eng) if eng else "nothing blocking."))
-    vetoes = [v for v in seats_vetoes if v["ref"].split("/")[0] not in ENGINEERING]
-    eng_vetoes = sorted(set(v["seat"].upper() for v in seats_vetoes) - set(v["seat"].upper() for v in vetoes))
-    if eng_vetoes:
-        L.append("- The %s veto is triggered by engineering evidence, so the launch is held whatever the vote."
-                 % " and ".join(eng_vetoes))
-    for v in vetoes:
-        L.append("- Veto, %s: [%s] %s" % (v["seat"].upper(), v["ref"], v["why"]))
+    L.append("- Verified critical or high findings, all areas: %d." % len(blocking))
+    for v in seats_vetoes:
+        L.append("- Veto, %s: [%s] %s" % (_seat_label(v["seat"]), v["ref"], v["why"]))
     L.append("")
-    present = [sk for sk in _present(r) if sk not in ENGINEERING]
+    present = _present(r)
     mine = present if focus == ["*"] else [sk for sk in present if sk in focus]
-    L.append("## What customers will meet, and what it found")
+    L.append("## What was tested, and what it found" if focus == ["*"] else "## Your area, in full")
     L.append("")
     L.extend(_skill_lines(r, mine or ["none"], compact=True))
     others = [sk for sk in present if sk not in mine]
@@ -356,7 +412,7 @@ def product_presentation(r, seats_vetoes, focus, product, d=None):
         by_skill = {}
         for f in r["findings"]:
             by_skill.setdefault(f["skill"], []).append(f)
-        L.append("### Other product areas, in one line each")
+        L.append("### Outside your area, in one line each")
         L.extend(_summary_line(r, sk, by_skill) for sk in others)
         L.append("")
     L.append("## The ask")
@@ -365,154 +421,100 @@ def product_presentation(r, seats_vetoes, focus, product, d=None):
     return "\n".join(L) + "\n"
 
 
-PRODUCT_RULES = [
-    "- Judge it as a product, in your own character: who it is for, whether they would choose it over what "
-    "they use today, pay for it, trust it, understand it in a minute, and tell a friend.",
-    "- Code, dependencies and vulnerabilities belong to the CTO and CISO. Do not restate them as your own "
-    "risks; if the engineering status changes your vote, say so in one sentence of your summary.",
-    "- A high-severity risk must cite at least one ref in square brackets: [product] for the product itself, "
-    "or a finding, score or coverage ref from the evidence. Medium and low risks may be judgement calls.",
-]
-
-SCHEMA = """{
-  "seat": "%(seat)s",
-  "vote": "go" or "go_with_conditions" or "hold",
-  "confidence": a number from 0 to 1,
-  "summary": "two or three sentences, in your own voice as %(short)s, as you would say it in the room",
-  "risks": [
-    {"risk": "what could go wrong", "severity": "high" or "medium" or "low",
-     "evidence": ["refs exactly as written in square brackets in the presentation, e.g. proof-sec-web/some-id"],
-     "quote": "almost always empty; see the quoting rule in your brief"}
-  ],
-  "conditions": [
-    {"action": "what must happen", "owner": "a seat id (ceo, cto, ciso, cfo, cmo, sales, coo, cpo, legal)",
-     "by": "before launch" or "within 30 days" or a date}
-  ],
-  "questions": ["a question for the presenting team, if you have one"]
-}"""
+NO_NAMES = ("- Argue as the seat, from the evidence. No seat is a named person and no answer quotes one: never "
+            "attribute a rule or a saying to anyone (no \"X's rule\", \"X said\", \"as X put it\"). `board.py "
+            "check` rejects an answer that does.")
 
 
-PERSONAS_PATH = os.path.join(HERE, "personas.json")
-
-
-def load_personas():
-    """Researched lenses per seat, keeping only quotes marked verified."""
-    if not os.path.exists(PERSONAS_PATH):
-        return {}
-    with open(PERSONAS_PATH, encoding="utf-8") as fh:
-        data = json.load(fh)
-    out = {}
-    for seat_id, p in (data.get("seats") or {}).items():
-        p = dict(p)
-        p["quotes"] = [q for q in p.get("quotes", []) if q.get("confidence", "verified") == "verified"]
-        out[seat_id] = p
-    return out
-
-
-def lens_section(persona):
-    """The part of a director's brief that carries the researched lens."""
-    if not persona:
-        return []
-    L = ["== THE LENS YOU APPLY: %s ==" % persona["name"].upper(),
-         "You apply the documented thinking of %s (%s). You are not %s: never write in the first person as "
-         "them or claim they would endorse anything. Refer to them in the third person (\"%s's rule was...\")."
-         % (persona["name"], persona.get("known_for", ""), persona["name"], persona["name"].split()[-1]), ""]
-    if persona.get("principles"):
-        L.append("How they decided (each documented):")
-        for pr in persona["principles"]:
-            L.append("- %s (%s)" % (pr["text"], pr.get("source", "")))
-        L.append("")
-    if persona.get("board_style"):
-        L.append("How they behaved in reviews like this one:")
-        for b in persona["board_style"]:
-            L.append("- %s (%s)" % (b["text"], b.get("source", "")))
-        L.append("")
-    if persona.get("quotes"):
-        L.append("Their own words. Quote ONLY these, by id, and never alter or extend the text:")
-        for q in persona["quotes"]:
-            L.append('- [%s] "%s" (%s, %s)' % (q["id"], q["text"], q.get("source", ""), q.get("date", "")))
-        L.append("")
-        L.append("Quoting rule: most answers quote nothing. Quote only when %s's exact words are the reason "
-                 "for a high-severity call that cites evidence, so the board would weigh it differently without "
-                 "the quote. Never quote for colour, to open or close, or because a quote is loosely related. "
-                 "At most one quote in your whole answer: put its id in that risk's \"quote\" field."
-                 % persona["name"].split()[-1])
-        L.append("")
+def answer_rules(stage):
+    L = ["- Judge from the presentation only. Do not invent facts, numbers or findings that are not in it.",
+         "- Every high-severity risk must cite at least one ref from the presentation, copied exactly as it "
+         "appears inside square brackets (for example proof-sec-web/some-id, proof-finance/score:x, or product "
+         "for the dossier). Medium and low risks may be judgement calls with an empty evidence list.",
+         NO_NAMES,
+         "- Be the seat, not a cheerleader. A polite yes is worth less than a clear concern."]
+    if stage == "solo":
+        L.append("- The client is a solo founder: there are no executives to own an action. Put every condition "
+                 "in one of three buckets, in its \"bucket\" field:")
+        L += ["  " + b for b in BUCKET_HELP]
+    else:
+        L.append("- Conditions are concrete actions with an owner, one of the four seats: investor, growth, "
+                 "builder or operator.")
     return L
 
 
-def seat_brief(seat, pres, answer_path, seat_vetoes, persona=None):
-    product = seat.get("view") == "product"
-    L = ["You are the %s (%s) on the board of directors. The team is presenting their product to the board "
-         "and asking whether it can launch." % (seat["title"], seat["short"]), "",
-         "== YOUR ROLE ==", seat["lens"], ""]
-    if product:
-        L += PRODUCT_RULES + [""]
-    L += lens_section(persona)
+def answer_schema(seat, short, stage):
+    if stage == "solo":
+        cond = ('{"action": "what must happen", "bucket": "do_today" or "freelancer" or "professional", '
+                '"by": "before launch" or "within 30 days" or a date}')
+    else:
+        cond = ('{"action": "what must happen", "owner": "investor" or "growth" or "builder" or "operator", '
+                '"by": "before launch" or "within 30 days" or a date}')
+    return """{
+  "seat": "%s",
+  "vote": "go" or "go_with_conditions" or "hold",
+  "confidence": a number from 0 to 1,
+  "summary": "two or three sentences, as the %s seat would say it in the room",
+  "risks": [
+    {"risk": "what could go wrong", "severity": "high" or "medium" or "low",
+     "evidence": ["refs exactly as written in square brackets in the presentation, e.g. proof-sec-web/some-id"]}
+  ],
+  "conditions": [
+    %s
+  ],
+  "questions": ["a question for the presenting team, if you have one"]
+}""" % (seat, short, cond)
+
+
+def _seat_lines(seat, seat_vetoes, you="You"):
+    L = []
     if seat["skills"] != ["*"]:
-        L.append("The evidence closest to your role comes from: %s." % ", ".join(seat["skills"]))
+        L.append("%s area is the evidence from: %s." % ("Your" if you == "You" else "This seat's",
+                                                         ", ".join(seat["skills"])))
     if seat.get("veto"):
-        L.append("You hold a veto over: %s. A verified high or critical finding there blocks the launch "
-                 "on its own." % ", ".join(seat["veto"]))
+        L.append("%s hold%s a veto over: %s. A verified high or critical finding there blocks the launch on its "
+                 "own." % (you, "" if you == "You" else "s", ", ".join(seat["veto"])))
     mine = [v for v in seat_vetoes if v["seat"] == seat["id"]]
     if mine:
-        L.append("The evidence already triggers your veto: %s." % "; ".join("[%s] %s" % (v["ref"], v["why"]) for v in mine))
-    L += ["", "== THE PRESENTATION ==", pres, "== END OF PRESENTATION ==", "",
-          "How to answer:",
-          "- Judge from the presentation only. Do not invent facts, numbers or findings that are not in it.",
-          "- Every high-severity risk must cite at least one ref from the presentation, copied exactly as it "
-          "appears inside square brackets (for example proof-sec-web/some-id or proof-finance/score:x). "
-          "Medium and low risks may be judgement calls with an empty evidence list.",
-          "- Be the director, not a cheerleader. A polite yes is worth less than a clear concern.",
-          "- Conditions are concrete actions with an owner seat.",
-          "",
+        L.append("The evidence already triggers %s veto: %s." % ("your" if you == "You" else "this seat's",
+                                                                 "; ".join("[%s] %s" % (v["ref"], v["why"])
+                                                                           for v in mine)))
+    return L
+
+
+def seat_brief(seat, pres, answer_path, seat_vetoes, stage="team"):
+    pn = panel_name(stage)
+    L = ["You sit in the %s seat on the %s. The team is presenting their product and asking whether it can "
+         "launch. The seat is an archetype, not a person." % (seat["title"], pn), "",
+         "== YOUR SEAT ==", seat["lens"], ""]
+    L += _seat_lines(seat, seat_vetoes)
+    L += ["", "== THE PRESENTATION ==", pres, "== END OF PRESENTATION ==", "", "How to answer:"]
+    L += answer_rules(stage)
+    L += ["",
           "Create the file %s with your file-writing tool (do not only print it) containing ONLY this JSON, "
           "no markdown fence:" % answer_path, "",
-          SCHEMA % {"seat": seat["id"], "short": seat["short"]}]
+          answer_schema(seat["id"], seat["short"], stage)]
     return "\n".join(L) + "\n"
 
 
-def panel_brief(seats, pres, d, seat_vetoes, personas, r=None):
-    """One brief for one agent to sit as several directors. Every agent starts with a large
-    fixed context, so the agent count is the main cost of a meeting; the evidence appears once."""
-    L = ["You sit as %d directors on a board, one after another. The team is presenting their product and "
-         "asking whether it can launch." % len(seats), "",
-         "Judge each seat on its own, through its own role and lens only. Do not harmonise the seats: when two "
-         "lenses disagree, the answers disagree. Write a seat's answer before you start the next seat.", "",
-         "== THE PRESENTATION ==", pres, "== END OF PRESENTATION ==", ""]
-    eng_seats = [x for x in seats if x.get("view") != "product"]
-    if r is not None and eng_seats:
-        eng = [sk for sk in _present(r) if sk in ENGINEERING]
-        L += ["== ENGINEERING APPENDIX: for the %s seat(s) only ==" % ", ".join(x["short"] for x in eng_seats),
-              "The other seats do not judge from this appendix.", ""]
-        L += _skill_lines(r, eng or ["none"], compact=True)
-        L += ["== END OF APPENDIX ==", ""]
-    if any(x.get("view") == "product" for x in seats):
-        L += ["For the product seats:"] + PRODUCT_RULES + [""]
-    L += [
-         "How to answer, for every seat:",
-         "- Judge from the presentation only. Do not invent facts, numbers or findings that are not in it.",
-         "- Every high-severity risk must cite at least one ref from the presentation, copied exactly as it "
-         "appears inside square brackets. Medium and low risks may be judgement calls with an empty evidence list.",
-         "- Be the director, not a cheerleader. A polite yes is worth less than a clear concern.",
-         "- Conditions are concrete actions with an owner seat.",
-         "- Write each answer with your file-writing tool to the path given for that seat, containing ONLY "
-         "this JSON, no markdown fence (use the seat's id and title):", "",
-         SCHEMA % {"seat": "<seat id>", "short": "<seat title>"}, ""]
+def panel_brief(seats, pres, d, seat_vetoes, stage="team"):
+    """One brief for one agent to sit as several seats. Every agent starts with a large fixed
+    context, so the agent count is the main cost of a meeting; the evidence appears once."""
+    pn = panel_name(stage)
+    L = ["You sit as %d seats on the %s, one after another. The team is presenting their product and asking "
+         "whether it can launch. Each seat is an archetype, not a person." % (len(seats), pn), "",
+         "Judge each seat on its own, from its own area first. Do not harmonise the seats: when two seats weigh "
+         "things differently, the answers disagree. Write a seat's answer before you start the next seat.", "",
+         "== THE PRESENTATION ==", pres, "== END OF PRESENTATION ==", "",
+         "How to answer, for every seat:"]
+    L += answer_rules(stage)
+    L += ["- Write each answer with your file-writing tool to the path given for that seat, containing ONLY "
+          "this JSON, no markdown fence (use the seat's id):", "",
+          answer_schema("<seat id>", "<seat title>", stage), ""]
     for seat in seats:
-        L += ["== SEAT: %s (%s), id %s ==" % (seat["title"], seat["short"], seat["id"]),
+        L += ["== SEAT: %s, id %s ==" % (seat["title"], seat["id"]),
               "Write this seat's answer to: %s" % os.path.abspath(_answer_path(d, seat["id"])), "", seat["lens"], ""]
-        L += lens_section(personas.get(seat["id"]))
-        if seat["skills"] != ["*"]:
-            L.append("The evidence closest to this role comes from: %s." % ", ".join(seat["skills"]))
-        if seat.get("veto"):
-            L.append("This seat holds a veto over: %s." % ", ".join(seat["veto"]))
-        mine = [v for v in seat_vetoes if v["seat"] == seat["id"]]
-        if mine:
-            L.append("The evidence already triggers this seat's veto: %s."
-                     % "; ".join("[%s] %s" % (v["ref"], v["why"]) for v in mine))
-        if seat.get("view") == "product":
-            L.append("This is a product seat: judge from the presentation, not the engineering appendix.")
+        L += _seat_lines(seat, seat_vetoes, you="This seat")
         L.append("")
     return "\n".join(L) + "\n"
 
@@ -523,9 +525,17 @@ def _answer_path(d, seat_id):
     return os.path.join(_board_dir(d), "answers", seat_id + ".json")
 
 
-def validate_answer(obj, seat_id, refs, quote_ids=None):
+def _named_problem(where, text):
+    hits = named_rules(text)
+    if hits:
+        return ("%s attributes a rule or saying to a person (%s); no seat quotes anyone, argue from the evidence"
+                % (where, "; ".join(sorted(set(hits)))))
+    return None
+
+
+def validate_answer(obj, seat_id, refs, stage="team", owners=None):
     problems = []
-    quote_ids = set(quote_ids or [])
+    owners = set(owners or [])
     if not isinstance(obj, dict):
         return ["answer is not a JSON object"]
     if obj.get("seat") != seat_id:
@@ -540,38 +550,50 @@ def validate_answer(obj, seat_id, refs, quote_ids=None):
         problems.append("confidence must be a number from 0 to 1")
     if not isinstance(obj.get("summary"), str) or not obj["summary"].strip():
         problems.append("summary is required")
+    else:
+        p = _named_problem("summary", obj["summary"])
+        if p:
+            problems.append(p)
     for key in ("risks", "conditions", "questions"):
         if not isinstance(obj.get(key, []), list):
             problems.append("%s must be a list" % key)
-    for i, rk in enumerate(obj.get("risks") or []):
+    for i, rk in enumerate(obj.get("risks") or [] if isinstance(obj.get("risks"), list) else []):
         if not isinstance(rk, dict) or not rk.get("risk"):
             problems.append("risk %d needs a 'risk'" % (i + 1))
             continue
         if rk.get("severity") not in SEV:
             problems.append("risk %d severity must be high, medium or low" % (i + 1))
+        p = _named_problem("risk %d" % (i + 1), rk.get("risk"))
+        if p:
+            problems.append(p)
+        if rk.get("quote"):
+            problems.append("risk %d has a quote; seats quote no one, so leave \"quote\" empty or drop it" % (i + 1))
         ev = rk.get("evidence") or []
         if not isinstance(ev, list):
             problems.append("risk %d evidence must be a list" % (i + 1))
             continue
-        bad = [e for e in ev if e not in refs]
+        bad = [x for x in ev if x not in refs]
         if bad:
             problems.append("risk %d cites refs that are not in the evidence: %s" % (i + 1, ", ".join(map(str, bad))))
         if rk.get("severity") == "high" and not ev:
             problems.append("risk %d is high severity but cites no evidence" % (i + 1))
-        qid = rk.get("quote")
-        if qid and qid not in quote_ids:
-            problems.append("risk %d quotes %r, which is not one of this seat's researched quotes" % (i + 1, qid))
-        elif qid and (rk.get("severity") != "high" or not ev):
-            problems.append("risk %d quotes on a %s point without evidence or below high severity; quote only "
-                            "when the words decide a high, evidenced call" % (i + 1, rk.get("severity")))
-    quoted = [rk for rk in obj.get("risks") or [] if isinstance(rk, dict) and rk.get("quote")]
-    if len(quoted) > 1:
-        problems.append("%d quotes; use at most one, on the call it decides" % len(quoted))
     if obj.get("quotes_used"):
-        problems.append("quotes_used is not accepted; attach the one quote that decides a high risk to that risk, or none")
-    for i, cd in enumerate(obj.get("conditions") or []):
+        problems.append("quotes_used is not accepted; seats quote no one")
+    for i, cd in enumerate(obj.get("conditions") or [] if isinstance(obj.get("conditions"), list) else []):
         if not isinstance(cd, dict) or not cd.get("action"):
             problems.append("condition %d needs an 'action'" % (i + 1))
+            continue
+        bucket = cd.get("bucket")
+        if stage == "solo":
+            if bucket not in BUCKET_LABEL:
+                problems.append("condition %d needs a bucket: do_today, freelancer or professional (the client is "
+                                "a solo founder, so actions go in buckets, not to owners)" % (i + 1))
+        elif bucket and bucket not in BUCKET_LABEL:
+            problems.append("condition %d bucket must be do_today, freelancer or professional" % (i + 1))
+        owner = cd.get("owner")
+        if owner and stage != "solo" and owners and str(owner).lower() not in owners:
+            problems.append("condition %d owner %r is not a seat; use one of %s" % (i + 1, owner,
+                                                                                   ", ".join(sorted(owners))))
     if obj.get("vote") == "go_with_conditions" and not obj.get("conditions"):
         problems.append("a go_with_conditions vote needs at least one condition")
     return problems
@@ -585,12 +607,12 @@ def _load_meta(d):
         return json.load(fh)
 
 
-def _quote_ids(personas, sid):
-    return [q["id"] for q in (personas.get(sid) or {}).get("quotes", [])]
+def _save_meta(d, meta):
+    _write(os.path.join(_board_dir(d), "board.json"), json.dumps(meta, indent=2) + "\n")
 
 
-def load_answers(d, meta, refs, personas=None):
-    personas = load_personas() if personas is None else personas
+def load_answers(d, meta, refs, stage="team"):
+    owners = [s["id"] for s in load_seats()]
     good, bad = {}, {}
     for sid in meta["seats"]:
         path = _answer_path(d, sid)
@@ -600,10 +622,10 @@ def load_answers(d, meta, refs, personas=None):
         try:
             with open(path, encoding="utf-8") as fh:
                 obj = json.load(fh)
-        except ValueError as e:
-            bad[sid] = ["not valid JSON (%s)" % e]
+        except ValueError as ex:
+            bad[sid] = ["not valid JSON (%s)" % ex]
             continue
-        problems = validate_answer(obj, sid, refs, _quote_ids(personas, sid))
+        problems = validate_answer(obj, sid, refs, stage, owners)
         if problems:
             bad[sid] = problems
         else:
@@ -619,6 +641,292 @@ def _load_qa(d):
     return {}
 
 
+# ------------------------------------------------------------- debate
+
+def _debate_dir(d):
+    return os.path.join(_board_dir(d), "debate")
+
+
+def _debate_path(d, seat_id):
+    return os.path.join(_debate_dir(d), seat_id + ".json")
+
+
+def answers_fp(answers):
+    return hashlib.sha256(json.dumps(answers, sort_keys=True).encode("utf-8")).hexdigest()[:16]
+
+
+def _clear_debate(d):
+    ddir = _debate_dir(d)
+    n = 0
+    if os.path.isdir(ddir):
+        for name in os.listdir(ddir):
+            if name.endswith(".json"):
+                os.remove(os.path.join(ddir, name))
+                n += 1
+    path = os.path.join(_board_dir(d), "debate.md")
+    if os.path.exists(path):
+        os.remove(path)
+    return n
+
+
+DEBATE_SCHEMA = """{
+  "seat": "<seat id>",
+  "challenges": [
+    {"to": "<another seat's id>", "about": the number of that seat's risk you challenge, or "vote",
+     "challenge": "one or two sentences: what that seat got wrong, and why",
+     "evidence": ["at least one ref, exactly as in square brackets, e.g. proof-finance/score:x, verdict or product"]}
+  ],
+  "concessions": ["one sentence for each point another seat got right that changes your view"],
+  "final_vote": "go" or "go_with_conditions" or "hold",
+  "final_reason": "one or two sentences: why your vote stands or moved"
+}"""
+
+
+def debate_brief(seats, answers, d, stage="team"):
+    """The second round: every seat reads the others' answers and challenges, concedes and votes again."""
+    pn = panel_name(stage)
+    at = [s for s in seats if s["id"] in answers]
+    L = ["You sit as %d seats on the %s, one after another, for the second round: the debate. Each seat is an "
+         "archetype, not a person." % (len(at), pn), "",
+         "Every seat has given its first answer; they are all below. For each seat in turn, read the OTHER seats' "
+         "answers, challenge what you think is wrong, concede what they got right, and give a final vote. Keep "
+         "each seat's own view: a seat that agrees with everything has not done its job.", "",
+         "The evidence refs are the ones in square brackets in %s and in the risks below; cite them exactly."
+         % os.path.abspath(os.path.join(_board_dir(d), "presentation.md")), "",
+         "== FIRST-ROUND ANSWERS =="]
+    for seat in at:
+        a = answers[seat["id"]]
+        L += ["", "### %s (id %s): voted %s" % (seat["title"], seat["id"], VOTE_LABEL[a["vote"]]),
+              "Summary: %s" % " ".join(a["summary"].split())]
+        risks = a.get("risks") or []
+        for i, rk in enumerate(risks, 1):
+            ev = ", ".join(rk.get("evidence") or []) or "none, a judgement call"
+            L.append("- risk %d (%s): %s [evidence: %s]" % (i, rk.get("severity"), " ".join(rk["risk"].split()), ev))
+        if not risks:
+            L.append("- raised no risks")
+        for c in a.get("conditions") or []:
+            L.append("- condition: %s" % " ".join(c["action"].split()))
+    L += ["", "== END OF ANSWERS ==", "", "How to answer, for every seat:",
+          "- At least one challenge, each to another seat. \"about\" is the number of that seat's risk you "
+          "challenge (risk 1 is 1), or \"vote\" to challenge its vote as a whole.",
+          "- Every challenge cites at least one evidence ref that exists, copied exactly.",
+          "- Concede plainly where another seat is right; one sentence per concession, or none.",
+          "- final_vote is the seat's vote after hearing the others. Move it only if the debate gave a reason, "
+          "and put that reason in final_reason.",
+          "- The ledger's vetoes stand whatever the debate concludes; a debate cannot clear a verified blocker.",
+          NO_NAMES.replace("`board.py check`", "`board.py debate-check`"),
+          "- Write each seat's file with your file-writing tool to the path given, containing ONLY this JSON, no "
+          "markdown fence:", "", DEBATE_SCHEMA, ""]
+    for seat in at:
+        L += ["== SEAT: %s, id %s ==" % (seat["title"], seat["id"]),
+              "Write this seat's debate to: %s" % os.path.abspath(_debate_path(d, seat["id"])),
+              "Its first vote was %s. %s" % (VOTE_LABEL[answers[seat["id"]]["vote"]], _short(seat["lens"], 160)), ""]
+    return "\n".join(L) + "\n"
+
+
+def _about(value):
+    """A challenge's target: "vote", or a risk number as an int, or None when it is neither."""
+    if value == "vote":
+        return "vote"
+    if isinstance(value, bool):
+        return None
+    try:
+        n = int(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+    return n
+
+
+def validate_debate(obj, seat_id, answers, refs):
+    if not isinstance(obj, dict):
+        return ["debate is not a JSON object"]
+    problems = []
+    if obj.get("seat") != seat_id:
+        problems.append("seat should be %r" % seat_id)
+    ch = obj.get("challenges")
+    if not isinstance(ch, list) or not ch:
+        problems.append("at least one challenge to another seat is required")
+        ch = ch if isinstance(ch, list) else []
+    for i, c in enumerate(ch, 1):
+        if not isinstance(c, dict):
+            problems.append("challenge %d is not an object" % i)
+            continue
+        to = c.get("to")
+        if to == seat_id:
+            problems.append("challenge %d targets this seat itself; challenge another seat" % i)
+        elif to not in answers:
+            problems.append("challenge %d targets %r, which is not a seat that answered (%s)" % (
+                i, to, ", ".join(sorted(s for s in answers if s != seat_id))))
+        else:
+            about = _about(c.get("about"))
+            n = len(answers[to].get("risks") or [])
+            if about is None or (about != "vote" and not 1 <= about <= n):
+                problems.append("challenge %d is about %r, but %s raised %d risk(s); use a risk number from 1 to %d "
+                                "or \"vote\"" % (i, c.get("about"), to, n, n) if n else
+                                "challenge %d is about %r, but %s raised no risks; use \"vote\"" % (
+                                    i, c.get("about"), to))
+        if not isinstance(c.get("challenge"), str) or not c["challenge"].strip():
+            problems.append("challenge %d needs a 'challenge'" % i)
+        else:
+            p = _named_problem("challenge %d" % i, c["challenge"])
+            if p:
+                problems.append(p)
+        ev = c.get("evidence")
+        if not isinstance(ev, list) or not ev:
+            problems.append("challenge %d cites no evidence" % i)
+        else:
+            bad = [x for x in ev if x not in refs]
+            if bad:
+                problems.append("challenge %d cites refs that are not in the evidence: %s" % (
+                    i, ", ".join(map(str, bad))))
+    conc = obj.get("concessions", [])
+    if not isinstance(conc, list) or any(not isinstance(x, str) for x in conc):
+        problems.append("concessions must be a list of sentences")
+    else:
+        for k, x in enumerate(conc, 1):
+            p = _named_problem("concession %d" % k, x)
+            if p:
+                problems.append(p)
+    if obj.get("final_vote") not in VOTES:
+        problems.append("final_vote must be one of %s" % ", ".join(VOTES))
+    if not isinstance(obj.get("final_reason"), str) or not obj["final_reason"].strip():
+        problems.append("final_reason is required")
+    else:
+        p = _named_problem("final_reason", obj["final_reason"])
+        if p:
+            problems.append(p)
+    return problems
+
+
+def load_debate(d, meta, answers, refs):
+    """(valid debate files by seat, problems by seat, state). State is none, stale or held."""
+    expected = meta.get("debate_seats") or []
+    if not expected:
+        return {}, {}, "none"
+    if meta.get("debate_fp") != answers_fp(answers):
+        msg = "stale: the first-round answers changed after debate-brief; run board.py debate-brief again"
+        return {}, dict((sid, [msg]) for sid in expected), "stale"
+    good, bad = {}, {}
+    for sid in expected:
+        if sid not in answers:
+            bad[sid] = ["this seat's first-round answer is no longer valid"]
+            continue
+        path = _debate_path(d, sid)
+        if not os.path.exists(path):
+            bad[sid] = ["no debate file yet"]
+            continue
+        try:
+            with open(path, encoding="utf-8") as fh:
+                obj = json.load(fh)
+        except ValueError as ex:
+            bad[sid] = ["not valid JSON (%s)" % ex]
+            continue
+        problems = validate_debate(obj, sid, answers, refs)
+        if problems:
+            bad[sid] = problems
+        else:
+            good[sid] = obj
+    return good, bad, "held"
+
+
+def debate_record(seats, answers, debate):
+    """decision.json's debate list and vote changes, in seat order."""
+    challenges, changes = [], []
+    for seat in seats:
+        dg = debate.get(seat["id"])
+        if not dg:
+            continue
+        for c in dg["challenges"]:
+            challenges.append({"from": seat["id"], "to": c["to"], "about": _about(c.get("about")),
+                               "challenge": c["challenge"], "evidence": list(c.get("evidence") or [])})
+        first = answers[seat["id"]]["vote"]
+        if dg["final_vote"] != first:
+            changes.append({"seat": seat["id"], "from": first, "to": dg["final_vote"], "why": dg["final_reason"]})
+    return challenges, changes
+
+
+SCORE_WORDS = {"year1_operating_profit": "year-one operating profit", "contribution_per_unit": "what one sale earns",
+               "contrast_pairs_passing": "colour pairs that pass contrast", "buy_rate": "simulated buy rate"}
+OP_WORDS = {">": "above", ">=": "at least", "<": "below", "<=": "at most", "==": "exactly"}
+
+
+def _plain_score(m):
+    """A missed score in words a founder reads: 'the year-one operating profit is -580,368; it has to be above 0'."""
+    name = SCORE_WORDS.get(m["id"], m["id"].replace("_", " "))
+
+    def num(x):
+        x = float(x)
+        return "{:,.0f}".format(x) if abs(x) >= 1000 or x == int(x) else "{:,.2f}".format(x)
+    return "the %s is %s; it has to be %s %s" % (name, num(m["value"]), OP_WORDS.get(m["op"], m["op"]), num(m["budget"]))
+
+
+def _trim(text, n):
+    """Cut long text at a sentence or clause, never mid-citation: bracketed refs go first."""
+    t = " ".join(str(text or "").split())
+    t = re.sub(r"\s*\[[^\]]*\]", "", t)
+    if len(t) <= n:
+        return t
+    cut = t[:n]
+    end = max(cut.rfind(". "), cut.rfind("; "))
+    if end >= n // 2:  # a whole sentence or clause, ended with a full stop
+        return cut[:end].rstrip() + "."
+    return cut.rsplit(" ", 1)[0].rstrip(",;:.") + "..."
+
+
+def _about_text(answers, to, about, n=70):
+    if about == "vote":
+        return "its %s vote" % VOTE_LABEL[answers[to]["vote"]]
+    risks = answers[to].get("risks") or []
+    return 'risk %d, "%s"' % (about, _trim(risks[about - 1]["risk"], n)) if 1 <= about <= len(risks) else "risk %s" % about
+
+
+DEBATE_SHOWN = 2
+
+
+def debate_md(r, seats, answers, dec, debate, stage="team"):
+    """The one-page debate: who challenged whom, what was conceded, the votes that moved, the decision."""
+    t = r.get("target") or {}
+    title = dict((s["id"], s["title"]) for s in seats)
+    L = ["# Boardroom debate", "",
+         "%s for %s. First round: %s." % (panel_name(stage), t.get("name") or "the product", "; ".join(
+             "%s %s" % (title[s["id"]], VOTE_LABEL[answers[s["id"]]["vote"]]) for s in seats if s["id"] in answers)),
+         "", "## Who challenged whom", ""]
+    for seat in seats:
+        dg = debate.get(seat["id"])
+        if not dg:
+            continue
+        chs = dg["challenges"]
+        for c in chs[:DEBATE_SHOWN]:
+            refs = ", ".join((c.get("evidence") or [])[:2])
+            L.append("- **%s** to **%s**, on %s: %s%s" % (
+                title[seat["id"]], title.get(c["to"], c["to"]), _about_text(answers, c["to"], _about(c["about"])),
+                _trim(c["challenge"], 200), (" [%s]" % refs) if refs else ""))
+        if len(chs) > DEBATE_SHOWN:
+            more = len(chs) - DEBATE_SHOWN
+            L.append("- %s raised %d more challenge%s (in the appendix)." % (
+                title[seat["id"]], more, "" if more == 1 else "s"))
+    L += ["", "## What was conceded", ""]
+    n = 0
+    for seat in seats:
+        for x in ((debate.get(seat["id"]) or {}).get("concessions") or [])[:DEBATE_SHOWN]:
+            L.append("- %s: %s" % (title[seat["id"]], _trim(x, 180)))
+            n += 1
+    if not n:
+        L.append("- Nothing was conceded.")
+    L += ["", "## Votes that moved", ""]
+    for vc in dec.get("vote_changes") or []:
+        L.append("- %s: %s to %s. %s" % (title.get(vc["seat"], vc["seat"]), VOTE_LABEL[vc["from"]],
+                                         VOTE_LABEL[vc["to"]], _trim(vc["why"], 200)))
+    if not dec.get("vote_changes"):
+        L.append("- No vote moved; every seat held its first-round vote.")
+    L += ["", "## The decision", "", "**%s.** %s" % (dec["decision"], _trim(dec["reasons"][0], 240) if dec["reasons"]
+                                                     else "")]
+    if dec.get("vetoes"):
+        L.append("")
+        L.append("The vetoes come from the evidence, not from a vote, so they stand whatever the debate concluded.")
+    return "\n".join(L) + "\n"
+
+
 # ------------------------------------------------------------ decision
 
 _STOP = {"the", "and", "for", "with", "that", "this", "from", "into", "before", "after", "launch", "must",
@@ -628,20 +936,31 @@ _STOP = {"the", "and", "for", "with", "that", "this", "from", "into", "before", 
 def _tokens(text):
     return {w for w in re.findall(r"[a-z0-9]+", text.lower()) if len(w) > 3 and w not in _STOP}
 
-def decide(r, seats, answers, triggered):
+def _evidence_bucket(skill):
+    if skill in PROFESSIONAL_SKILLS:
+        return "professional"
+    if skill in FREELANCER_SKILLS:
+        return "freelancer"
+    return "do_today"
+
+
+def decide(r, seats, answers, triggered, stage="team"):
+    """The decision from the evidence and the votes in `answers` (the final votes after a debate)."""
     reasons, conditions = [], []
+    who = member_word(stage)
     n_seats = len(seats)
     votes = {v: [s for s, a in answers.items() if a["vote"] == v] for v in VOTES}
     if r["verdict"] == "Incomplete":
         decision = HOLD
-        reasons.append("The evidence is incomplete, so the board cannot approve: %s" % "; ".join(r["gaps"][:3]))
+        reasons.append("The evidence is incomplete, so the %s cannot approve: %s" % (
+            panel_name(stage), "; ".join(r["gaps"][:3])))
     elif triggered:
         decision = HOLD
         for v in triggered:
-            reasons.append("%s veto from the evidence: %s [%s]" % (v["seat"].upper(), v["why"], v["ref"]))
+            reasons.append("%s veto from the evidence: %s [%s]" % (_seat_label(v["seat"]), v["why"], v["ref"]))
     elif len(answers) * 2 < n_seats:
         decision = HOLD
-        reasons.append("No quorum: only %d of %d directors gave a valid answer." % (len(answers), n_seats))
+        reasons.append("No quorum: only %d of %d %ss gave a valid answer." % (len(answers), n_seats, who))
     elif len(votes["hold"]) * 2 > len(answers):
         decision = HOLD
         reasons.append("A majority voted to hold (%d of %d)." % (len(votes["hold"]), len(answers)))
@@ -652,24 +971,32 @@ def decide(r, seats, answers, triggered):
             if r["verdict"] == "Not yet":
                 reasons.append("The Proof verdict is Not yet, so the open blockers become conditions.")
             if votes["hold"]:
-                reasons.append("%d director(s) voted to hold; their concerns become conditions." % len(votes["hold"]))
+                reasons.append("%d %s(s) voted to hold; their concerns become conditions." % (len(votes["hold"]), who))
             if votes["go_with_conditions"]:
-                reasons.append("%d director(s) voted go with conditions." % len(votes["go_with_conditions"]))
+                reasons.append("%d %s(s) voted go with conditions." % (len(votes["go_with_conditions"]), who))
+            if not reasons:
+                reasons.append("Every %s voted go, with conditions attached." % who)
         else:
             decision = GO
-            reasons.append("Every director who answered voted go and the Proof verdict is Ship.")
-    # The action list: blockers from the evidence first, then the directors' conditions.
+            reasons.append("Every %s who answered voted go and the Proof verdict is Ship." % who)
+    # The action list: blockers from the evidence first, then the seats' conditions.
     owner_for = {}
     for seat in seats:
         for sk in seat.get("veto") or []:
             owner_for.setdefault(sk, seat["id"])
+    for seat in seats:
         for sk in seat["skills"]:
             owner_for.setdefault(sk, seat["id"])
+    solo = stage == "solo"
     for b in r["blockers"]:
         ref = "%s/%s" % (b["skill"], b["id"]) if b["kind"] == "finding" else "%s/score:%s" % (b["skill"], b["id"])
-        what = b.get("title") or ("%s back within budget" % b["id"])
-        conditions.append({"action": "Fix: %s" % what, "owner": owner_for.get(b["skill"], "ceo"),
-                           "by": "before launch", "from": "evidence", "ref": ref})
+        what = b.get("title") or ("bring the %s back to the bar" % SCORE_WORDS.get(b["id"], b["id"].replace("_", " ")))
+        c = {"action": "Fix: %s" % what, "by": "before launch", "from": "evidence", "ref": ref}
+        if solo:
+            c["bucket"] = _evidence_bucket(b["skill"])
+        else:
+            c["owner"] = owner_for.get(b["skill"], seats[0]["id"] if seats else "investor")
+        conditions.append(c)
     raised = []
     for sid in sorted(answers):
         for c in answers[sid].get("conditions") or []:
@@ -685,16 +1012,33 @@ def decide(r, seats, answers, triggered):
                 if sid not in match["raised_by"]:
                     match["raised_by"].append(sid)
                 continue
-            raised.append({"action": c["action"], "owner": (c.get("owner") or sid).lower(),
-                           "by": c.get("by") or "before launch", "from": "board", "raised_by": [sid], "_t": toks})
+            item = {"action": c["action"], "by": c.get("by") or "before launch", "from": "board",
+                    "raised_by": [sid], "_t": toks}
+            if c.get("owner") or not solo:
+                item["owner"] = str(c.get("owner") or sid).lower()
+            if c.get("bucket") in BUCKET_LABEL:
+                item["bucket"] = c["bucket"]
+            elif solo:
+                item["bucket"] = "do_today"
+            raised.append(item)
     for r_ in raised:
         r_.pop("_t")
-    # Conditions raised by more directors come first.
+    # Conditions raised by more seats come first.
     raised.sort(key=lambda c: -len(c["raised_by"]))
     conditions.extend(raised)
     return {"decision": decision, "reasons": reasons, "votes": {k: sorted(v) for k, v in votes.items()},
             "answered": sorted(answers), "missing": sorted(set(s["id"] for s in seats) - set(answers)),
-            "vetoes": triggered, "conditions": conditions, "verdict": r["verdict"]}
+            "vetoes": triggered, "conditions": conditions, "verdict": r["verdict"],
+            "stage": stage, "panel_name": panel_name(stage)}
+
+
+def _who(c):
+    """Who does an action: its bucket for a solo founder, else its owner seat."""
+    if c.get("bucket") in BUCKET_LABEL and not c.get("owner"):
+        return BUCKET_LABEL[c["bucket"]]
+    if c.get("bucket") in BUCKET_LABEL:
+        return "%s, %s" % (BUCKET_LABEL[c["bucket"]], _seat_label(c["owner"]))
+    return "owner: %s" % _seat_label(c.get("owner") or "team")
 
 
 # --------------------------------------------------------------- agenda
@@ -728,7 +1072,8 @@ SHORT = {"product": "Product", "market": "Market", "offer": "Offer", "flows": "F
          "privacy": "Privacy", "reach": "Reach", "ai": "AI", "quality": "Code", "finance": "Finance",
          "launch": "Launch"}
 SHORT_BY_TITLE = dict((title, SHORT[aid]) for aid, title, _ in AREAS)
-SHORT_BY_TITLE.update({"Other points": "Other", "The vote": "Vote", "The product and the market": "Product"})
+SHORT_BY_TITLE.update({"Other points": "Other", "The debate": "Debate", "The vote": "Vote",
+                       "The product and the market": "Product"})
 BLOCKER, CONCERNS, CLEAR, NOT_COVERED = "Blocker", "Concerns", "Clear", "Not covered"
 OUTCOME_CLASS = {BLOCKER: "hold", CONCERNS: "go_with_conditions", CLEAR: "go", NOT_COVERED: "none"}
 
@@ -773,7 +1118,7 @@ def agenda(r, seats, answers, triggered):
             if high:
                 reasons.append("%d verified high or critical finding(s)." % len(high))
             if here:
-                reasons.append("Veto triggered for %s." % ", ".join(sorted(set(v["seat"].upper() for v in here))))
+                reasons.append("Veto triggered for %s." % ", ".join(sorted(set(_seat_label(v["seat"]) for v in here))))
         elif medium or failing or [1 for sk, _ in notrun if sk in r["required"]]:
             outcome = CONCERNS
             if medium:
@@ -834,14 +1179,21 @@ def agenda(r, seats, answers, triggered):
 
 # -------------------------------------------------------------- minutes
 
-def minutes_md(r, seats, answers, dec, qa, items, general, untested):
+def _first_votes(dec, answers):
+    return dict((c["seat"], c["from"]) for c in dec.get("vote_changes") or [])
+
+
+def minutes_md(r, seats, answers, dec, qa, items, general, untested, debate=None):
     t = r.get("target") or {}
+    debate = debate or {}
+    stage = dec.get("stage") or "team"
     title_of = dict((s["id"], s["title"]) for s in seats)
-    L = ["# Board minutes: %s" % (t.get("name") or "the product"), "",
+    moved = _first_votes(dec, answers)
+    L = ["# %s minutes: %s" % (panel_name(stage), t.get("name") or "the product"), "",
          "**Decision: %s**" % dec["decision"], ""]
     for x in dec["reasons"]:
         L.append("- %s" % x)
-    L += ["", "Proof verdict: %s. Votes: %d go, %d go with conditions, %d hold%s." % (
+    L += ["", "Proof verdict: %s. Final votes: %d go, %d go with conditions, %d hold%s." % (
         dec["verdict"], len(dec["votes"]["go"]), len(dec["votes"]["go_with_conditions"]), len(dec["votes"]["hold"]),
         (", %d did not answer" % len(dec["missing"])) if dec["missing"] else ""), "", "## Agenda", ""]
     for i, it in enumerate(items, 1):
@@ -873,16 +1225,28 @@ def minutes_md(r, seats, answers, dec, qa, items, general, untested):
             ans = qa.get(seat["id"], {}).get(str(i))
             L.append("- %s: %s" % (seat["short"], q))
             L.append("  - Answer: %s" % (ans or "not yet answered"))
+    if dec.get("debate"):
+        L += ["", "## The debate", "",
+              "%d challenge(s) between the seats, %d vote(s) moved. The one-page debate is in debate.md." % (
+                  len(dec["debate"]), len(dec.get("vote_changes") or []))]
+        for vc in dec.get("vote_changes") or []:
+            L.append("- %s moved from %s to %s: %s" % (title_of.get(vc["seat"], vc["seat"]), VOTE_LABEL[vc["from"]],
+                                                     VOTE_LABEL[vc["to"]], vc["why"]))
     L += ["", "## The vote", ""]
     for seat in seats:
         a = answers.get(seat["id"])
-        L.append("- %s: %s. %s" % (seat["title"], VOTE_LABEL[a["vote"]] if a else "did not answer",
-                                   a["summary"] if a else ""))
+        if not a:
+            L.append("- %s: did not answer." % seat["title"])
+            continue
+        final = (debate.get(seat["id"]) or {}).get("final_vote") or a["vote"]
+        L.append("- %s: %s%s. %s" % (seat["title"], VOTE_LABEL[final],
+                                     (" (first round: %s)" % VOTE_LABEL[moved[seat["id"]]]) if seat["id"] in moved
+                                     else "", a["summary"]))
     L += ["", "## Actions", ""]
     for c in dec["conditions"]:
         src = ("evidence [%s]" % c["ref"]) if c["from"] == "evidence" else "raised by %s" % ", ".join(
-            x.upper() for x in c["raised_by"])
-        L.append("- [ ] %s (owner: %s, %s; %s)" % (c["action"], c["owner"].upper(), c["by"], src))
+            _seat_label(x) for x in c["raised_by"])
+        L.append("- [ ] %s (%s, %s; %s)" % (c["action"], _who(c), c["by"], src))
     return "\n".join(L) + "\n"
 
 
@@ -893,75 +1257,43 @@ def e(s):
 
 
 # Each seat has its own gradient (light top, deeper bottom), clothing colour, and a
-# hat and outfit, so the directors are told apart at a glance.
+# hat and outfit, so the four seats are told apart at a glance.
 AVATAR = {
-    "ceo":   ("#e9d5ff", "#8b5cf6", "#3b2a6b"),
-    "cto":   ("#b4f1ff", "#5b8cff", "#1f3b73"),
-    "ciso":  ("#d9e2f2", "#64748b", "#1e293b"),
-    "cfo":   ("#c7f9d4", "#2fa36b", "#14532d"),
-    "cmo":   ("#ffd1ea", "#e24a9b", "#7a1f52"),
-    "sales": ("#ffe0c7", "#f2703a", "#7c2d12"),
-    "coo":   ("#fff3b0", "#eab308", "#713f12"),
-    "cpo":   ("#c2f5ee", "#14b8a6", "#134e4a"),
-    "legal": ("#e5e7eb", "#6b7280", "#111827"),
+    "investor": ("#c7f9d4", "#2fa36b", "#14532d"),
+    "growth": ("#ffd1ea", "#e24a9b", "#7a1f52"),
+    "builder": ("#b4f1ff", "#5b8cff", "#1f3b73"),
+    "operator": ("#fff3b0", "#eab308", "#713f12"),
 }
 _HEAD = '<circle cx="50" cy="35" r="16" fill="url(#h-{id})"/>'
 _BODY = '<path d="M15 96 C15 67 30 57 50 57 C70 57 85 67 85 96 Z" fill="url(#b-{id})"/>'
 
 _BEHIND = {  # drawn before the head
-    "cto": '<path d="M30 42 C30 17 70 17 70 42 L70 54 C63 60 37 60 30 54 Z" fill="{d}" opacity=".85"/>',
+    "builder": '<path d="M30 42 C30 17 70 17 70 42 L70 54 C63 60 37 60 30 54 Z" fill="{d}" opacity=".85"/>',
 }
 _OUTFIT = {  # drawn over the body
-    "ceo": ('<path d="M33 60 L50 96 L67 60 C62 58 56 57 50 57 C44 57 38 58 33 60 Z" fill="{d}"/>'
-            '<path d="M44 57 L50 70 L56 57 Z" fill="#ffffff"/>'
-            '<path d="M48.5 60 L51.5 60 L53 79 L50 83 L47 79 Z" fill="#c0262d"/>'),
-    "cto": ('<path d="M44 58 L45 70 M56 58 L55 70" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>'
-            '<rect x="38" y="76" width="24" height="9" rx="3" fill="{d}" opacity=".55"/>'),
-    "ciso": ('<path d="M50 66 L60 70 L60 78 C60 84 55 88 50 90 C45 88 40 84 40 78 L40 70 Z" fill="{d}"/>'
-             '<path d="M45.5 78 L49 81.5 L55 74.5" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round"/>'),
-    "cfo": ('<path d="M33 60 L50 96 L67 60 C62 58 56 57 50 57 C44 57 38 58 33 60 Z" fill="{d}"/>'
+    "investor": ('<path d="M33 60 L50 96 L67 60 C62 58 56 57 50 57 C44 57 38 58 33 60 Z" fill="{d}"/>'
             '<path d="M44 57 L50 68 L56 57 Z" fill="#ffffff"/>'
             '<path d="M42 59 L50 63 L42 67 Z M58 59 L50 63 L58 67 Z" fill="#facc15"/>'
             '<circle cx="50" cy="63" r="1.8" fill="#ca8a04"/>'),
-    "cmo": ('<path d="M34 59 C42 64 58 64 66 59 L66 65 C58 70 42 70 34 65 Z" fill="{d}"/>'
+    "growth": ('<path d="M34 59 C42 64 58 64 66 59 L66 65 C58 70 42 70 34 65 Z" fill="{d}"/>'
             '<path d="M58 64 L62 64 L64 84 L58 86 Z" fill="{d}"/>'),
-    "sales": ('<path d="M42 57 L50 66 L39 66 Z M58 57 L50 66 L61 66 Z" fill="#ffffff"/>'
-              '<circle cx="50" cy="72" r="1.4" fill="{d}"/><circle cx="50" cy="78" r="1.4" fill="{d}"/>'),
-    "coo": ('<path d="M32 62 L42 59 L44 96 L33 96 Z M68 62 L58 59 L56 96 L67 96 Z" fill="#f97316"/>'
+    "builder": ('<path d="M44 58 L45 70 M56 58 L55 70" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>'
+            '<rect x="38" y="76" width="24" height="9" rx="3" fill="{d}" opacity=".55"/>'),
+    "operator": ('<path d="M32 62 L42 59 L44 96 L33 96 Z M68 62 L58 59 L56 96 L67 96 Z" fill="#f97316"/>'
             '<rect x="33" y="76" width="11" height="3.5" fill="#e5e7eb"/><rect x="56" y="76" width="11" height="3.5" fill="#e5e7eb"/>'),
-    "cpo": '<rect x="39" y="51" width="22" height="11" rx="5" fill="{d}"/>',
-    "legal": ('<path d="M33 60 L50 96 L67 60 C62 58 56 57 50 57 C44 57 38 58 33 60 Z" fill="{d}"/>'
-              '<rect x="45.5" y="57" width="4" height="13" rx="1" fill="#ffffff"/>'
-              '<rect x="50.5" y="57" width="4" height="13" rx="1" fill="#ffffff"/>'),
 }
 _HAT = {  # drawn over the head
-    "ceo": ('<rect x="29" y="19" width="42" height="5" rx="2.5" fill="{d}"/>'
-            '<rect x="36" y="2" width="28" height="19" rx="2" fill="{d}"/>'
-            '<rect x="36" y="15" width="28" height="3.5" fill="#fbbf24"/>'),
-    "cto": ('<circle cx="43" cy="36" r="4.6" fill="none" stroke="{d}" stroke-width="1.8"/>'
-            '<circle cx="57" cy="36" r="4.6" fill="none" stroke="{d}" stroke-width="1.8"/>'
-            '<path d="M47.6 36 L52.4 36" stroke="{d}" stroke-width="1.8"/>'),
-    "ciso": ('<path d="M33 31 C33 14 67 14 67 31 Z" fill="{d}"/>'
-             '<path d="M62 29 C70 29 77 31 78 33 L62 33 Z" fill="{d}"/>'
-             '<circle cx="50" cy="23" r="2.4" fill="#93c5fd"/>'),
-    "cfo": ('<path d="M35 27 C35 9 65 9 65 27 Z" fill="{d}"/>'
+    "investor": ('<path d="M35 27 C35 9 65 9 65 27 Z" fill="{d}"/>'
             '<ellipse cx="50" cy="27" rx="21" ry="3.6" fill="{d}"/>'
             '<rect x="35.5" y="21" width="29" height="3" fill="#4ade80" opacity=".8"/>'),
-    "cmo": ('<ellipse cx="46" cy="22" rx="21" ry="7.5" fill="{d}" transform="rotate(-12 46 22)"/>'
+    "growth": ('<ellipse cx="46" cy="22" rx="21" ry="7.5" fill="{d}" transform="rotate(-12 46 22)"/>'
             '<circle cx="45" cy="14" r="2.2" fill="{d}"/>'),
-    "sales": ('<path d="M34 29 C34 12 66 12 66 29 Z" fill="{d}"/>'
-              '<path d="M35 28 C27 28 19 30 18 32 C24 33 31 32 37 31 Z" fill="{d}"/>'
-              '<circle cx="50" cy="14" r="1.6" fill="#fdba74"/>'),
-    "coo": ('<path d="M32 29 C32 11 68 11 68 29 Z" fill="#facc15" stroke="{d}" stroke-width="1"/>'
+    "builder": ('<circle cx="43" cy="36" r="4.6" fill="none" stroke="{d}" stroke-width="1.8"/>'
+            '<circle cx="57" cy="36" r="4.6" fill="none" stroke="{d}" stroke-width="1.8"/>'
+            '<path d="M47.6 36 L52.4 36" stroke="{d}" stroke-width="1.8"/>'),
+    "operator": ('<path d="M32 29 C32 11 68 11 68 29 Z" fill="#facc15" stroke="{d}" stroke-width="1"/>'
             '<rect x="27" y="27" width="46" height="5" rx="2.5" fill="#facc15" stroke="{d}" stroke-width="1"/>'
             '<path d="M50 12 L50 27" stroke="{d}" stroke-width="1.6"/>'),
-    "cpo": ('<path d="M34 29 C34 9 66 9 66 29 Z" fill="{d}"/>'
-            '<rect x="33" y="24" width="34" height="7" rx="3.5" fill="{d}" stroke="#ffffff" stroke-opacity=".35"/>'
-            '<circle cx="50" cy="8" r="4" fill="{d}"/>'),
-    "legal": ('<rect x="39" y="15" width="22" height="9" rx="1.5" fill="{d}"/>'
-              '<path d="M50 5 L77 14 L50 23 L23 14 Z" fill="{d}"/>'
-              '<path d="M50 14 L68 18 L68 30" stroke="#fbbf24" stroke-width="1.4" fill="none"/>'
-              '<circle cx="68" cy="31" r="1.8" fill="#fbbf24"/>'),
 }
 
 
@@ -1250,30 +1582,20 @@ def _short(text, n=115):
     return t[:n].rsplit(" ", 1)[0].rstrip(",;:") + "..."
 
 
-def _quote_html(q, persona_name):
-    if not q:
-        return ""
-    src = e(q.get("source", ""))
-    if q.get("date"):
-        src += ", " + e(q["date"])
-    if q.get("url"):
-        src = '<a href="%s" rel="noopener">%s</a>' % (e(q["url"]), src)
-    return '<blockquote>&ldquo;%s&rdquo;<footer>%s &middot; %s</footer></blockquote>' % (e(q["text"]), e(persona_name), src)
+def _weighs(seat):
+    """One line on what a seat weighs, from the first sentence of its section in seats.md."""
+    first = _short(seat.get("lens") or "", 60)
+    return re.sub(r"^You weigh", "Weighs", first).rstrip(".") or seat["title"]
 
 
-def _speech(seat, persona, risks, suffix):
-    """A director: the short form of their top points, the quote right under the one call it decides, if any;
-    the full points in a dropdown."""
-    qmap = dict((q["id"], q) for q in (persona or {}).get("quotes", []))
-    pname = (persona or {}).get("name")
+def _speech(seat, risks, suffix):
+    """A seat: the short form of its top points; the full points in a dropdown."""
     out = ['<div class="speaker reveal"><div class="av">%s</div><div>' % avatar_svg(seat["id"], 52, suffix),
-           '<div class="name">%s%s</div>' % (e(seat["short"]), ("<small>%s lens</small>" % e(pname)) if pname else "")]
+           '<div class="name">%s</div>' % e(seat["short"])]
     rank = dict((s, k) for k, s in enumerate(ledger.SEVERITIES))
-    ordered = sorted(risks, key=lambda x: (not x.get("quote"), rank.get(x["severity"], 9)))
+    ordered = sorted(risks, key=lambda x: rank.get(x["severity"], 9))
     for rk in ordered[:2]:
         out.append('<p class="say"><span class="sev %s">%s</span>%s</p>' % (e(rk["severity"]), e(rk["severity"]), e(_short(rk["risk"]))))
-        if rk.get("quote") in qmap:
-            out.append(_quote_html(qmap[rk["quote"]], pname))
     more = []
     for rk in risks:
         refs = ", ".join(_ref_link(x) for x in rk.get("evidence") or []) or "judgement call"
@@ -1288,8 +1610,11 @@ def _dur(speakers=0, base=6500):
     return min(16000, base + 1600 * speakers)
 
 
-def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, personas=None):
-    personas = personas or {}
+def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, debate=None):
+    debate = debate or {}
+    stage = dec.get("stage") or "team"
+    pn = panel_name(stage)
+    word = member_word(stage)
     t = r.get("target") or {}
     name = t.get("name") or "The product"
     seat_by = dict((s["id"], s) for s in seats)
@@ -1302,8 +1627,8 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
 
     # Opening: who is presenting, the numbers, who is at the table
     vcls = {"Ship": "go", "Not yet": "hold"}.get(r["verdict"], "go_with_conditions")
-    S = ['<div class="opening"><div class="kicker">Board meeting &middot; Opening</div>',
-         '<h2 class="hero">%s <span>presents to the board</span></h2>' % e(name),
+    S = ['<div class="opening"><div class="kicker">%s meeting &middot; Opening</div>' % e(pn),
+         '<h2 class="hero">%s <span>presents to the %s</span></h2>' % (e(name), e(pn if stage == "solo" else "board")),
          '<div class="going-in"><span class="small">Proof verdict going in</span><b class="vword %s">%s</b></div>' % (vcls, e(r["verdict"])),
          '<div class="stats">']
     for k, (lab, n) in enumerate((("high or critical", sev["critical"] + sev["high"]), ("medium", sev["medium"]),
@@ -1312,11 +1637,9 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
     S.append('<div class="stat pop" style="--i:3"><b>%d/%d</b><span>scores in budget</span></div></div></div>' % (passing, len(metrics)))
     S.append('<div class="label-line">At the table</div><div class="roster">')
     for k, seat in enumerate(seats):
-        p = personas.get(seat["id"])
-        S.append('<div class="person" style="--i:%d"><div class="av">%s</div><div><div class="role">%s</div>'
+        S.append('<div class="person" style="--i:%d"><div class="av">%s</div><div><div class="role">Seat</div>'
                  '<div class="full">%s</div><div class="from">%s</div></div></div>' % (
-                     k, avatar_svg(seat["id"], 56, "o"), e(seat["title"]), e(p["name"]) if p else e(seat["short"]),
-                     e(p.get("known_for", "")) if p else ""))
+                     k, avatar_svg(seat["id"], 56, "o"), e(seat["title"]), e(_weighs(seat))))
     S.append('</div><div class="label-line">Agenda</div><ol class="agenda">%s</ol>' % "".join(
         '<li style="--i:%d"><span>%02d</span>%s</li>' % (k, k + 1, e(it["title"])) for k, it in enumerate(items)))
     more = []
@@ -1326,6 +1649,8 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
         more.append("<p><b>The team's bar for done:</b> %s</p>" % e(t["done_means"]))
     more.append("<p><b>Vetoes:</b> %s.</p>" % e("; ".join("%s over %s" % (s["short"], ", ".join(x.replace("proof-", "") for x in s["veto"]))
                                                               for s in seats if s["veto"])))
+    if stage == "solo":
+        more.append("<p><b>Actions go in three buckets:</b> %s.</p>" % e("; ".join(lab for _, lab in BUCKETS)))
     S.append('<details class="late"><summary>Rules of the meeting</summary><div class="more">%s</div></details>' % "".join(more))
     steps.append(("Opening", 4000 + 450 * len(seats) + 400 * len(items), "".join(S)))
 
@@ -1364,9 +1689,9 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
             S.append('<details><summary>Everything the team showed</summary><div class="more">%s</div></details>' % "".join(more))
         S.append("</div>")
         for k, sp in enumerate(it["speakers"]):
-            S.append(_speech(seat_by[sp["seat"]], personas.get(sp["seat"]), sp["risks"], "i%d%d" % (i, k)))
+            S.append(_speech(seat_by[sp["seat"]], sp["risks"], "i%d%d" % (i, k)))
         if not it["speakers"]:
-            S.append('<p class="small reveal">No director raised a point here.</p>')
+            S.append('<p class="small reveal">No seat raised a point here.</p>')
         S.append('<p class="outcome %s reveal"><b>%s</b> &middot; %s</p>' % (
             oclass[it["outcome"]], e(it["outcome"]), e(it["reasons"][0] if it["reasons"] else "")))
         steps.append((it["title"], _dur(len(it["speakers"])), "".join(S)))
@@ -1376,7 +1701,7 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
     for k, seat in enumerate(seats):
         loose = next((g["risks"] for g in general if g["seat"] == seat["id"]), [])
         if loose and seat["id"] in answers:
-            extra.append(_speech(seat, personas.get(seat["id"]), loose, "g%d" % k))
+            extra.append(_speech(seat, loose, "g%d" % k))
             n_extra += 1
     if extra:
         steps.append(("Other points", _dur(n_extra, 5000),
@@ -1390,13 +1715,12 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
             qs.append((seat, q, ans))
     answered = [x for x in qs if x[2]]
     shown_q = (answered + [x for x in qs if not x[2]])[:3]
-    S = ['<div class="kicker">Questions</div><h2>The board asks</h2>',
+    S = ['<div class="kicker">Questions</div><h2>The %s asks</h2>' % e(pn if stage == "solo" else "board"),
          '<p class="lede reveal">%d question%s, %d answered by the team.</p><div class="thread">' % (
              len(qs), "" if len(qs) == 1 else "s", len(answered))]
     for k, (seat, q, ans) in enumerate(shown_q):
-        p = personas.get(seat["id"])
         S.append('<div class="ask" style="--i:%d"><div class="av">%s</div><div class="bubble"><b>%s</b>%s</div></div>' % (
-            2 * k, avatar_svg(seat["id"], 40, "q%d" % k), e(p["name"] if p else seat["short"]) + " &middot; " + e(seat["short"]), e(q)))
+            2 * k, avatar_svg(seat["id"], 40, "q%d" % k), e(seat["short"]), e(q)))
         S.append('<div class="reply%s" style="--i:%d"><div class="bubble"><b>The team</b>%s</div></div>' % (
             "" if ans else " none", 2 * k + 1, e(ans or "No answer recorded.")))
     S.append("</div>")
@@ -1407,20 +1731,58 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
             for s, q, a in rest)))
     steps.append(("Questions", 3500 + 2400 * len(shown_q), "".join(S)))
 
+    # The debate: who challenged whom, what was conceded, the votes that moved
+    title_of = dict((x["id"], x["short"]) for x in seats)
+    moved = _first_votes(dec, answers)
+    if dec.get("debate"):
+        S = ['<div class="kicker">The debate</div><h2>The seats cross-examine</h2>',
+             '<p class="lede reveal">%d challenge%s, %d vote%s moved. Vetoes from the ledger stand whatever the debate '
+             'concludes.</p>' % (len(dec["debate"]), "" if len(dec["debate"]) == 1 else "s",
+                                 len(dec.get("vote_changes") or []),
+                                 "" if len(dec.get("vote_changes") or []) == 1 else "s")]
+        S.append('<div class="thread">')
+        k = 0
+        for seat in seats:
+            mine = [c for c in dec["debate"] if c["from"] == seat["id"]][:DEBATE_SHOWN]
+            for c in mine:
+                S.append('<div class="ask" style="--i:%d"><div class="av">%s</div><div class="bubble"><b>%s to %s, on '
+                         '%s</b>%s</div></div>' % (k, avatar_svg(seat["id"], 40, "d%d" % k), e(seat["short"]),
+                                                  e(title_of.get(c["to"], c["to"])),
+                                                  e(_about_text(answers, c["to"], c["about"], 50)),
+                                                  e(_trim(c["challenge"], 200))))
+                k += 1
+        S.append("</div>")
+        conc = [(seat, x) for seat in seats for x in ((debate.get(seat["id"]) or {}).get("concessions") or [])[:DEBATE_SHOWN]]
+        if conc:
+            S.append('<div class="team reveal"><div class="label">Conceded</div><ul>%s</ul></div>' % "".join(
+                "<li><b>%s:</b> %s</li>" % (e(seat["short"]), e(_trim(x, 160))) for seat, x in conc))
+        changes = dec.get("vote_changes") or []
+        S.append('<div class="team reveal"><div class="label">Votes that moved</div>%s</div>' % (
+            "<ul>%s</ul>" % "".join("<li><b>%s:</b> %s to %s. %s</li>" % (
+                e(title_of.get(vc["seat"], vc["seat"])), e(VOTE_LABEL[vc["from"]]), e(VOTE_LABEL[vc["to"]]),
+                e(_trim(vc["why"], 160))) for vc in changes) if changes else
+            '<p style="margin:6px 0 0">No vote moved; every seat held its first-round vote.</p>'))
+        more = "".join("<p><b>%s to %s:</b> %s<br>%s</p>" % (
+            e(title_of.get(c["from"], c["from"])), e(title_of.get(c["to"], c["to"])), e(c["challenge"]),
+            ", ".join(_ref_link(x) for x in c["evidence"])) for c in dec["debate"])
+        S.append('<details class="late"><summary>Every challenge</summary><div class="more">%s</div></details>' % more)
+        steps.append(("The debate", 4000 + 1800 * min(k, 6), "".join(S)))
+
     # The vote
     nv = dict((k, len(v)) for k, v in dec["votes"].items())
     tot = max(1, sum(nv.values()) + len(dec["missing"]))
     # Ballots turn over one at a time; the tally fills once the last one is face up.
-    S = ['<div class="kicker">The vote</div><h2>The board votes</h2><div class="ballots">']
+    S = ['<div class="kicker">The vote</div><h2>The %s votes</h2><div class="ballots">' % e(
+        pn if stage == "solo" else "board")]
     for k, seat in enumerate(seats):
         a = answers.get(seat["id"])
-        vote = a["vote"] if a else "none"
-        p = personas.get(seat["id"])
+        vote = ((debate.get(seat["id"]) or {}).get("final_vote") or a["vote"]) if a else "none"
+        note = ("moved from %s" % VOTE_LABEL[moved[seat["id"]]]) if seat["id"] in moved else ""
         S.append('<div class="ballot" style="--i:%d"><div class="flip">'
                  '<div class="face back"><div class="av">%s</div><div class="who">%s</div><div class="small">votes</div></div>'
                  '<div class="face front %s"><div class="who">%s</div><div class="call">%s</div><div class="small">%s</div></div>'
                  '</div></div>' % (k, avatar_svg(seat["id"], 44, "v%d" % k), e(seat["short"]), vote, e(seat["short"]),
-                                   e(VOTE_LABEL.get(vote, "No answer")), e(p["name"]) if p else ""))
+                                   e(VOTE_LABEL.get(vote, "No answer")), e(note)))
     lag = "--lag:%d" % len(seats)
     S.append('</div><div class="tally" style="%s">' % lag)
     for key, var in (("go", "--clear"), ("go_with_conditions", "--concerns"), ("hold", "--blocker")):
@@ -1434,7 +1796,7 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
     if dec["missing"]:
         S.append('<div class="count none"><b>%d</b><span>no answer</span></div>' % len(dec["missing"]))
     S.append("</div>")
-    S.append('<details class="late" style="%s"><summary>What each director said</summary><div class="more">%s</div></details>' % (
+    S.append('<details class="late" style="%s"><summary>What each seat said</summary><div class="more">%s</div></details>' % (
         lag, "".join("<p><b>%s:</b> %s</p>" % (e(s["short"]), e(answers[s["id"]]["summary"])) for s in seats if s["id"] in answers)))
     steps.append(("The vote", 4500 + 450 * len(seats), "".join(S)))
 
@@ -1463,22 +1825,26 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
         " &middot; %d blocker%s from the evidence" % (n_block, "" if n_block == 1 else "s") if n_block else ""))
     steps.append(("Decision", 9000, "".join(S)))
 
-    # Actions
-    groups = [("From the evidence", [c for c in dec["conditions"] if c["from"] == "evidence"])]
-    owners = []
-    for c in dec["conditions"]:
-        if c["from"] != "evidence" and c["owner"] not in owners:
-            owners.append(c["owner"])
-    for o in owners:
-        groups.append((seat_by[o]["short"] if o in seat_by else o.upper(),
-                       [c for c in dec["conditions"] if c["from"] != "evidence" and c["owner"] == o]))
+    # Actions: by bucket for a solo founder, else the evidence first and then by owner seat
+    if stage == "solo":
+        groups = [(lab, [c for c in dec["conditions"] if c.get("bucket") == key]) for key, lab in BUCKETS]
+    else:
+        groups = [("From the evidence", [c for c in dec["conditions"] if c["from"] == "evidence"])]
+        owners = []
+        for c in dec["conditions"]:
+            if c["from"] != "evidence" and c.get("owner") not in owners:
+                owners.append(c.get("owner"))
+        for o in owners:
+            groups.append((seat_by[o]["short"] if o in seat_by else _seat_label(o),
+                           [c for c in dec["conditions"] if c["from"] != "evidence" and c.get("owner") == o]))
     S = ['<div class="kicker">Actions</div><h2>What happens next</h2>',
          '<p class="lede reveal">%d action%s. The blockers from the evidence come first.</p><div class="actions reveal">' % (
              len(dec["conditions"]), "" if len(dec["conditions"]) == 1 else "s")]
     n = 0
-    first = [c for c in groups[0][1]][:6]
+    first = [c for c in dec["conditions"] if c["from"] == "evidence"][:6] or dec["conditions"][:3]
     for c in first:
-        S.append('<label><input type="checkbox" data-id="a%d"><span>%s</span></label>' % (n, e(_short(c["action"], 110))))
+        tag = (' <span class="small">(%s)</span>' % e(BUCKET_LABEL[c["bucket"]])) if stage == "solo" and c.get("bucket") in BUCKET_LABEL else ""
+        S.append('<label><input type="checkbox" data-id="a%d"><span>%s%s</span></label>' % (n, e(_short(c["action"], 110)), tag))
         n += 1
     S.append("</div>")
     rest_html = []
@@ -1488,12 +1854,12 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
             continue
         rest_html.append('<div class="owner">%s</div>' % e(title))
         for c in items_:
-            src = "raised by %s" % ", ".join(x.upper() for x in c.get("raised_by", [])) if c["from"] != "evidence" else c.get("ref", "")
+            src = "raised by %s" % ", ".join(_seat_label(x) for x in c.get("raised_by", [])) if c["from"] != "evidence" else c.get("ref", "")
             rest_html.append('<label><input type="checkbox" data-id="a%d"><span>%s <span class="small">(%s)</span></span></label>' % (
                 n, e(c["action"]), e(src)))
             n += 1
     if rest_html:
-        S.append('<details class="reveal"><summary>All actions by owner</summary><div class="more actions">%s</div></details>' %
+        S.append('<details class="reveal"><summary>All actions by %s</summary>' % ("bucket" if stage == "solo" else "owner") + '<div class="more actions">%s</div></details>' %
                  "".join(rest_html))
     S.append('<button class="replay" id="replay" type="button">Watch again</button>')
     steps.append(("Actions", 8000, "".join(S)))
@@ -1508,52 +1874,46 @@ def meeting_html(r, seats, answers, dec, qa, fp, items, general, untested, perso
         "<!doctype html>", '<html lang="en"><head><meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
         '<meta name="robots" content="noindex">',
-        "<title>%s: board meeting</title><style>%s</style></head>" % (e(name), MEETING_CSS),
+        "<title>%s: %s meeting</title><style>%s</style></head>" % (e(name), e(pn.lower()), MEETING_CSS),
         '<body data-fp="%s">' % e(fp),
-        '<header class="top"><div class="brand"><h1>%s</h1><span class="meta">Board meeting &middot; %s</span>'
+        '<header class="top"><div class="brand"><h1>%s</h1><span class="meta">%s meeting &middot; %s</span>'
         '<button type="button" id="go-on" class="go-on" hidden>Paused while you read &middot; Continue &rsaquo;</button></div>'
-        '<ol class="segments" aria-label="Meeting progress">%s</ol></header>' % (e(name), e(ledger.now()[:10]), segs),
+        '<ol class="segments" aria-label="Meeting progress">%s</ol></header>' % (e(name), e(pn), e(ledger.now()[:10]), segs),
         "<main>%s</main>" % body,
         report_link,
-        '<p class="fine">The directors are sub-agents applying the documented thinking of the people named, quoting them with '
-        'sources. None is that person or speaks for them. The evidence and the computed decision are the record.</p>',
+        '<p class="fine">The four seats are sub-agents reading the evidence as four archetypes (money, growth, the build, '
+        'running it), not people, and they quote no one. The evidence and the computed decision are the record.</p>',
         "<script>%s</script></body></html>" % MEETING_JS,
     ]) + "\n"
 
 
 # ------------------------------------------------------------- transcript
 
-def transcript(r, seats, answers, dec, qa, items, general, untested, personas=None, width=88):
+def transcript(r, seats, answers, dec, qa, items, general, untested, debate=None, width=88):
     """The same meeting as plain text, for the terminal or a chat."""
     import textwrap
-    personas = personas or {}
+    debate = debate or {}
+    stage = dec.get("stage") or "team"
+    pn = panel_name(stage)
     t = r.get("target") or {}
     seat_by = dict((s["id"], s) for s in seats)
+    moved = _first_votes(dec, answers)
     W = lambda s, ind="": textwrap.fill(s, width=width, initial_indent=ind, subsequent_indent=ind + "  ")
-    L = ["=" * width, "BOARD MEETING: %s" % (t.get("name") or "the product"), "=" * width, ""]
+    L = ["=" * width, "%s MEETING: %s" % (pn.upper(), t.get("name") or "the product"), "=" * width, ""]
     L.append(W("The team presents. Proof verdict going in: %s. Verified findings: %d high or critical, %d medium." % (
         r["verdict"], sum(1 for f in r["findings"] if f["status"] == "verified" and f["severity"] in ("critical", "high")),
         sum(1 for f in r["findings"] if f["status"] == "verified" and f["severity"] == "medium"))))
-    L.append("At the table: " + ", ".join(
-        "%s (%s lens)" % (s["short"], personas[s["id"]]["name"]) if s["id"] in personas else s["short"] for s in seats))
-    L.append("Agenda: " + "; ".join("%d. %s" % (i, it["title"]) for i, it in enumerate(items, 1)))
+    L.append(W("At the table: " + "; ".join("%s (%s)" % (s["short"], _weighs(s).lower()) for s in seats)))
+    L.append(W("Agenda: " + "; ".join("%d. %s" % (i, it["title"]) for i, it in enumerate(items, 1))))
     if untested:
         L.append(W("Not tested, not discussed: %s." % ", ".join(untested)))
 
     def speak(seat_id, risks):
-        seat = seat_by[seat_id]
-        p = personas.get(seat_id) or {}
-        qmap = dict((q["id"], q) for q in p.get("quotes", []))
-        lens = " (%s lens)" % p["name"] if p.get("name") else ""
-        out = ["  %s%s:" % (seat["short"], lens)]
+        out = ["  %s:" % seat_by[seat_id]["short"]]
         for rk in risks:
             out.append(W("- %s: %s" % (rk["severity"].upper(), rk["risk"]), "    "))
             if rk.get("evidence"):
                 out.append(W("evidence: %s" % ", ".join(rk["evidence"]), "      "))
-            q = qmap.get(rk.get("quote"))
-            if q:
-                out.append(W('quoting %s: "%s" (%s%s)' % (p["name"], q["text"], q.get("source", ""),
-                                                          (", " + q["date"]) if q.get("date") else ""), "      "))
         return out
 
     for i, it in enumerate(items, 1):
@@ -1569,7 +1929,7 @@ def transcript(r, seats, answers, dec, qa, items, general, untested, personas=No
                                                              verdict._n(m["budget"]),
                                                              "in budget" if ledger.metric_passes(m) else "OVER BUDGET"), "  "))
         if it["speakers"]:
-            L.append("Board:")
+            L.append("Seats:")
             for sp in it["speakers"]:
                 L += speak(sp["seat"], sp["risks"])
         L.append(W("Outcome: %s. %s" % (it["outcome"].upper(), " ".join(it["reasons"]))))
@@ -1588,11 +1948,34 @@ def transcript(r, seats, answers, dec, qa, items, general, untested, personas=No
             qs.append(W("Team: %s" % (ans or "no answer recorded"), "    "))
     if qs:
         L += ["", "-" * width, "QUESTIONS", "-" * width] + qs
+    if dec.get("debate"):
+        L += ["", "-" * width, "THE DEBATE", "-" * width]
+        for seat in seats:
+            mine = [c for c in dec["debate"] if c["from"] == seat["id"]]
+            for c in mine[:DEBATE_SHOWN]:
+                L.append(W("%s to %s, on %s: %s" % (seat["short"], seat_by[c["to"]]["short"] if c["to"] in seat_by
+                                                    else c["to"], _about_text(answers, c["to"], c["about"], 60),
+                                                    _trim(c["challenge"], 220)), "  "))
+            if len(mine) > DEBATE_SHOWN:
+                L.append("    (and %d more from %s)" % (len(mine) - DEBATE_SHOWN, seat["short"]))
+        for seat in seats:
+            for x in ((debate.get(seat["id"]) or {}).get("concessions") or [])[:DEBATE_SHOWN]:
+                L.append(W("%s concedes: %s" % (seat["short"], _trim(x, 180)), "  "))
+        for vc in dec.get("vote_changes") or []:
+            L.append(W("%s moves from %s to %s: %s" % (seat_by[vc["seat"]]["short"], VOTE_LABEL[vc["from"]].upper(),
+                                                     VOTE_LABEL[vc["to"]].upper(), _trim(vc["why"], 200)), "  "))
+        if not dec.get("vote_changes"):
+            L.append("  No vote moved.")
     L += ["", "-" * width, "THE VOTE", "-" * width]
     for seat in seats:
         a = answers.get(seat["id"])
-        L.append(W("%s: %s. %s" % (seat["short"], VOTE_LABEL[a["vote"]].upper() if a else "DID NOT ANSWER",
-                                    a["summary"] if a else ""), "  "))
+        if not a:
+            L.append(W("%s: DID NOT ANSWER." % seat["short"], "  "))
+            continue
+        final = (debate.get(seat["id"]) or {}).get("final_vote") or a["vote"]
+        L.append(W("%s: %s%s. %s" % (seat["short"], VOTE_LABEL[final].upper(),
+                                     (" (first round %s)" % VOTE_LABEL[moved[seat["id"]]]) if seat["id"] in moved else "",
+                                     a["summary"]), "  "))
     L += ["", "=" * width, "DECISION: %s" % dec["decision"].upper(), "=" * width]
     for x in dec["reasons"]:
         L.append(W("- %s" % x))
@@ -1600,7 +1983,7 @@ def transcript(r, seats, answers, dec, qa, items, general, untested, personas=No
     if top:
         L += ["", "Top actions:"]
         for c in top:
-            L.append(W("- %s (owner %s)" % (c["action"], c["owner"].upper()), "  "))
+            L.append(W("- %s (%s)" % (c["action"], _who(c)), "  "))
         if len(dec["conditions"]) > len(top):
             L.append("  ... %d more in the minutes" % (len(dec["conditions"]) - len(top)))
     L.append("")
@@ -1621,7 +2004,7 @@ def cmd_seats(a):
         print(json.dumps([{k: s[k] for k in ("id", "title", "short", "skills", "veto")} for s in seats], indent=2))
         return 0
     for s in seats:
-        print("  %-6s %-36s veto: %s" % (s["id"], s["title"], ", ".join(s["veto"]) or "none"))
+        print("  %-9s %-10s veto: %s" % (s["id"], s["title"], ", ".join(s["veto"]) or "none"))
     return 0
 
 
@@ -1632,6 +2015,8 @@ def cmd_brief(a):
     r, refs = evidence(a.dir)
     if r.get("target") is None:
         raise BoardError("no target.json; run /proof-plan first so the board knows what it is judging.")
+    stage = stage_of(r)
+    pn = panel_name(stage)
     fp = fingerprint(r)
     bdir = _board_dir(a.dir)
     meta_path = os.path.join(bdir, "board.json")
@@ -1642,26 +2027,23 @@ def cmd_brief(a):
     old_seat_fps = old.get("seat_fingerprints") or {}
     ans_dir = os.path.join(bdir, "answers")
     triggered = vetoes(r, seats)
-    _write(os.path.join(bdir, "presentation.md"), presentation(r, triggered))
-    personas = load_personas()
+    _write(os.path.join(bdir, "presentation.md"), presentation(r, triggered, stage=stage))
     product = load_product(a.dir)
     if not product:
-        print("Note: no proof/%s yet. Write the product dossier first (see the skill), or the product seats "
+        print("Note: no proof/%s yet. Write the product dossier first (see the skill), or the seats "
               "judge from the evidence alone." % PRODUCT_FILE)
     qa = _load_qa(a.dir)
     paths, kept, cleared, seat_fps, meeting = [], [], 0, {}, []
     for seat in seats:
         p = os.path.join(bdir, "briefs", seat["id"] + ".md")
-        pres_seat = (product_presentation(r, triggered, seat["skills"], product, a.dir)
-                     if seat.get("view") == "product" else presentation(r, triggered, focus=seat["skills"]))
-        text = seat_brief(seat, pres_seat,
-                          os.path.abspath(_answer_path(a.dir, seat["id"])), triggered, personas.get(seat["id"]))
+        pres_seat = seat_presentation(r, triggered, seat["skills"], product, a.dir, stage)
+        text = seat_brief(seat, pres_seat, os.path.abspath(_answer_path(a.dir, seat["id"])), triggered, stage)
         _write(p, text)
         seat_fps[seat["id"]] = hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
         ans = _answer_path(a.dir, seat["id"])
         same = old_seat_fps.get(seat["id"]) == seat_fps[seat["id"]]
         if os.path.exists(ans) and same and not a.fresh:
-            kept.append(seat["id"])  # nothing this director judges has changed: keep the answer
+            kept.append(seat["id"])  # nothing this seat judges has changed: keep the answer
             continue
         if os.path.exists(ans):
             os.remove(ans)
@@ -1671,44 +2053,57 @@ def cmd_brief(a):
         meeting.append(seat)
     _write(os.path.join(bdir, "qa.json"), json.dumps(qa, indent=2, ensure_ascii=False) + "\n")
     os.makedirs(ans_dir, exist_ok=True)
-    with open(meta_path, "w", encoding="utf-8") as fh:
-        json.dump({"fingerprint": fp, "seat_fingerprints": seat_fps, "seats": [s["id"] for s in seats],
-                   "created": ledger.now()}, fh, indent=2)
+    meta = {"fingerprint": fp, "seat_fingerprints": seat_fps, "seats": [s["id"] for s in seats],
+            "stage": stage, "created": ledger.now()}
+    if paths or a.fresh:
+        _clear_debate(a.dir)  # a new first round makes the old debate stale
+    else:
+        for k in ("debate_fp", "debate_seats"):
+            if k in old:
+                meta[k] = old[k]
+    _save_meta(a.dir, meta)
     if cleared:
-        print("Cleared %d answer(s) whose evidence changed (the board judges the current evidence)." % cleared)
+        print("Cleared %d answer(s) whose evidence changed (the %s judges the current evidence)." % (cleared, pn))
     if kept:
         print("Kept %d answer(s) whose evidence is unchanged: %s." % (len(kept), ", ".join(kept)))
     print("%s presentation written to %s" % (ledger.OK, os.path.join(bdir, "presentation.md")))
     if triggered:
-        print("The evidence already triggers %d veto(es); the board will hold whatever the votes say." % len(triggered))
+        print("The evidence already triggers %d veto(es); the %s will hold whatever the votes say." % (
+            len(triggered), pn))
     if not paths:
-        print("\nNo director needs to meet again: every answer stands. Next: board.py tally")
+        print("\nNo seat needs to meet again: every answer stands. Next: board.py debate-brief (or tally)")
         return 0
     if not a.separate:
         panel = os.path.join(bdir, "briefs", "panel.md")
-        _write(panel, panel_brief(meeting, product_presentation(r, triggered, ["*"], product, a.dir), a.dir,
-                                  triggered, personas, r))
-        print("\nConvene %d director(s) in ONE Agent call (subagent_type general-purpose, prompt 'Read <brief> and "
-              "follow it exactly. It is your whole brief.'):\n  %s" % (len(meeting), panel))
-        print("\nThen: board.py check, board.py tally")
+        _write(panel, panel_brief(meeting, seat_presentation(r, triggered, ["*"], product, a.dir, stage), a.dir,
+                                  triggered, stage))
+        print("\nConvene %d seat(s) of the %s in ONE Agent call (subagent_type general-purpose, prompt 'Read <brief> "
+              "and follow it exactly. It is your whole brief.'):\n  %s" % (len(meeting), pn, panel))
+        print("\nThen: board.py check, board.py debate-brief, board.py debate-check, board.py tally")
         return 0
-    print("\nConvene %s: send ONE message with one Agent call per director below "
+    print("\nConvene %s: send ONE message with one Agent call per seat below "
           "(subagent_type general-purpose, prompt 'Read <brief> and follow it exactly. It is your whole brief.'):"
-          % ("the board" if not kept else "only these %d director(s)" % len(paths)))
+          % ("the %s" % pn if not kept else "only these %d seat(s)" % len(paths)))
     for p in paths:
         print("  " + p)
-    print("\nThen: board.py check, board.py tally")
+    print("\nThen: board.py check, board.py debate-brief, board.py debate-check, board.py tally")
     return 0
 
 
+def _context(d):
+    meta = _load_meta(d)
+    r, refs = evidence(d)
+    stage = stage_of(r)
+    good, bad = load_answers(d, meta, refs, stage)
+    return meta, r, refs, stage, good, bad
+
+
 def cmd_check(a):
-    meta = _load_meta(a.dir)
-    r, refs = evidence(a.dir)
+    meta, r, refs, stage, good, bad = _context(a.dir)
     if fingerprint(r) != meta["fingerprint"]:
         print("%s the evidence changed since the brief. Run board.py brief again." % ledger.BAD)
         return 1
-    good, bad = load_answers(a.dir, meta, refs)
-    print("%d of %d directors answered validly." % (len(good), len(meta["seats"])))
+    print("%d of %d seats answered validly." % (len(good), len(meta["seats"])))
     for sid, probs in bad.items():
         print("  %s %s: %s" % (ledger.BAD, sid, "; ".join(probs)))
     return 0 if not bad else 1
@@ -1718,12 +2113,12 @@ def cmd_save(a):
     meta = _load_meta(a.dir)
     if a.seat not in meta["seats"]:
         raise BoardError("%s is not on this board" % a.seat)
-    _, refs = evidence(a.dir)
+    r, refs = evidence(a.dir)
     try:
         obj = json.loads(sys.stdin.read())
     except ValueError as ex:
         raise BoardError("stdin is not valid JSON: %s" % ex)
-    probs = validate_answer(obj, a.seat, refs, _quote_ids(load_personas(), a.seat))
+    probs = validate_answer(obj, a.seat, refs, stage_of(r), [s["id"] for s in load_seats()])
     if probs:
         raise BoardError("refusing to save %s: %s" % (a.seat, "; ".join(probs)))
     _write(_answer_path(a.dir, a.seat), json.dumps(obj, indent=2, ensure_ascii=False) + "\n")
@@ -1732,9 +2127,7 @@ def cmd_save(a):
 
 
 def cmd_answer(a):
-    meta = _load_meta(a.dir)
-    _, refs = evidence(a.dir)
-    good, _ = load_answers(a.dir, meta, refs)
+    meta, r, refs, stage, good, _ = _context(a.dir)
     if a.seat not in good:
         raise BoardError("%s has no valid answer to respond to" % a.seat)
     qs = good[a.seat].get("questions") or []
@@ -1743,47 +2136,102 @@ def cmd_answer(a):
     qa = _load_qa(a.dir)
     qa.setdefault(a.seat, {})[str(a.number - 1)] = a.text
     _write(os.path.join(_board_dir(a.dir), "qa.json"), json.dumps(qa, indent=2, ensure_ascii=False) + "\n")
-    print("%s answered %s question %d" % (ledger.OK, a.seat.upper(), a.number))
+    print("%s answered %s question %d" % (ledger.OK, _seat_label(a.seat), a.number))
     return 0
+
+
+def cmd_debate_brief(a):
+    meta, r, refs, stage, good, bad = _context(a.dir)
+    if fingerprint(r) != meta["fingerprint"]:
+        raise BoardError("the evidence changed since the brief. Run board.py brief again.")
+    if len(good) < 2:
+        raise BoardError("the debate needs at least two valid first-round answers (%d now). Run board.py check."
+                         % len(good))
+    seats = [s for s in load_seats() if s["id"] in good]
+    _clear_debate(a.dir)
+    os.makedirs(_debate_dir(a.dir), exist_ok=True)
+    path = os.path.join(_board_dir(a.dir), "briefs", "debate.md")
+    _write(path, debate_brief(seats, good, a.dir, stage))
+    meta["debate_fp"] = answers_fp(good)
+    meta["debate_seats"] = [s["id"] for s in seats]
+    _save_meta(a.dir, meta)
+    if bad:
+        print("Note: no valid first-round answer from %s, so they sit out the debate." % ", ".join(sorted(bad)))
+    print("%s debate brief written for %d seat(s)." % (ledger.OK, len(seats)))
+    print("\nRun the debate in ONE Agent call (subagent_type general-purpose, prompt 'Read <brief> and follow it "
+          "exactly. It is your whole brief.'):\n  %s" % path)
+    print("\nThen: board.py debate-check, board.py tally")
+    return 0
+
+
+def cmd_debate_check(a):
+    meta, r, refs, stage, good, _ = _context(a.dir)
+    dgood, dbad, state = load_debate(a.dir, meta, good, refs)
+    if state == "none":
+        print("%s no debate yet. Run board.py debate-brief first." % ledger.BAD)
+        return 1
+    print("%d of %d seats debated validly." % (len(dgood), len(meta.get("debate_seats") or [])))
+    for sid, probs in dbad.items():
+        print("  %s %s: %s" % (ledger.BAD, sid, "; ".join(probs)))
+    return 0 if not dbad else 1
 
 
 def _build(d):
     meta = _load_meta(d)
     seats = [s for s in load_seats() if s["id"] in meta["seats"]]
     r, refs = evidence(d)
+    stage = stage_of(r)
     stale = fingerprint(r) != meta["fingerprint"]
     r["report_html"] = os.path.isfile(os.path.join(ledger.root(d), "report.html"))
-    good, bad = load_answers(d, meta, refs)
+    good, bad = load_answers(d, meta, refs, stage)
+    dgood, dbad, _ = load_debate(d, meta, good, refs)
+    final = dict((sid, dict(ans, vote=dgood[sid]["final_vote"]) if sid in dgood else ans)
+                 for sid, ans in good.items())
     triggered = vetoes(r, seats)
-    dec = decide(r, seats, good, triggered)
+    dec = decide(r, seats, final, triggered, stage)
+    challenges, changes = debate_record(seats, good, dgood)
+    dec["debate"] = challenges
+    dec["vote_changes"] = changes
+    dec["first_votes"] = dict((sid, ans["vote"]) for sid, ans in good.items())
     qa = _load_qa(d)
     bdir = _board_dir(d)
-    personas = load_personas()
     items, general, untested = agenda(r, seats, good, triggered)
-    text = transcript(r, seats, good, dec, qa, items, general, untested, personas)
-    _write(os.path.join(bdir, "minutes.md"), minutes_md(r, seats, good, dec, qa, items, general, untested))
+    text = transcript(r, seats, good, dec, qa, items, general, untested, dgood)
+    _write(os.path.join(bdir, "minutes.md"), minutes_md(r, seats, good, dec, qa, items, general, untested, dgood))
     _write(os.path.join(bdir, "transcript.txt"), text)
     _write(os.path.join(bdir, "meeting.html"),
-           meeting_html(r, seats, good, dec, qa, meta["fingerprint"], items, general, untested, personas))
+           meeting_html(r, seats, good, dec, qa, meta["fingerprint"], items, general, untested, dgood))
+    debate_path = os.path.join(bdir, "debate.md")
+    if dgood:
+        _write(debate_path, debate_md(r, seats, good, dec, dgood, stage))
+    elif os.path.exists(debate_path):
+        os.remove(debate_path)
     with open(os.path.join(bdir, "decision.json"), "w", encoding="utf-8") as fh:
-        json.dump(dict(dec, generated=ledger.now(), invalid=bad), fh, indent=2, ensure_ascii=False)
-    return dec, bad, stale, bdir, text
+        json.dump(dict(dec, generated=ledger.now(), invalid=bad, debate_invalid=dbad), fh, indent=2,
+                  ensure_ascii=False)
+    return dec, bad, stale, bdir, text, dbad
 
 
 def cmd_tally(a):
-    dec, bad, stale, bdir, text = _build(a.dir)
+    dec, bad, stale, bdir, text, dbad = _build(a.dir)
     if not a.quiet:
         print(text)
     if stale:
-        print("%s the evidence changed since the brief; the decision uses today's evidence but the directors "
+        print("%s the evidence changed since the brief; the decision uses today's evidence but the seats "
               "judged the old one. Run board.py brief again for a fresh meeting." % ledger.BAD)
-    print("Board decision: %s" % dec["decision"])
+    if dbad:
+        print("%s %d debate file(s) not counted (their first-round vote stands): %s. See board.py debate-check." % (
+            ledger.BAD, len(dbad), ", ".join(sorted(dbad))))
+    print("%s decision: %s" % (dec["panel_name"], dec["decision"]))
     for x in dec["reasons"]:
         print("  - %s" % x)
-    print("Votes: %d go, %d go with conditions, %d hold, %d missing" % (
-        len(dec["votes"]["go"]), len(dec["votes"]["go_with_conditions"]), len(dec["votes"]["hold"]), len(dec["missing"])))
+    print("Votes: %d go, %d go with conditions, %d hold, %d missing%s" % (
+        len(dec["votes"]["go"]), len(dec["votes"]["go_with_conditions"]), len(dec["votes"]["hold"]),
+        len(dec["missing"]), (" (%d moved in the debate)" % len(dec["vote_changes"])) if dec["vote_changes"] else ""))
     print("%d action(s). Minutes: %s  Meeting: %s" % (
         len(dec["conditions"]), os.path.join(bdir, "minutes.md"), os.path.join(bdir, "meeting.html")))
+    if dec["debate"]:
+        print("Debate: %s" % os.path.join(bdir, "debate.md"))
     print("Next: /proof-business-plan puts this decision, the numbers and every section into one plan.")
     if a.open:
         open_page(os.path.join(bdir, "meeting.html"))
@@ -1795,7 +2243,7 @@ def open_page(path):
 
 
 def cmd_meeting(a):
-    _, _, _, bdir, _ = _build(a.dir)
+    bdir = _build(a.dir)[3]
     print("%s wrote %s" % (ledger.OK, os.path.join(bdir, "meeting.html")))
     if a.open:
         open_page(os.path.join(bdir, "meeting.html"))
@@ -1805,7 +2253,7 @@ def cmd_meeting(a):
 def cmd_play(a):
     """Play the meeting in the terminal, line by line, with no input needed."""
     import time
-    _, _, _, _, text = _build(a.dir)
+    text = _build(a.dir)[4]
     for line in text.splitlines():
         print(line)
         sys.stdout.flush()
@@ -1815,14 +2263,12 @@ def cmd_play(a):
 
 
 def cmd_status(a):
-    meta = _load_meta(a.dir)
-    _, refs = evidence(a.dir)
-    good, bad = load_answers(a.dir, meta, refs)
+    meta, r, refs, stage, good, bad = _context(a.dir)
     for sid in meta["seats"]:
         if sid in good:
-            print("  %s %-6s %s" % (ledger.OK, sid, VOTE_LABEL[good[sid]["vote"]]))
+            print("  %s %-9s %s" % (ledger.OK, sid, VOTE_LABEL[good[sid]["vote"]]))
         else:
-            print("  %s %-6s %s" % (ledger.BAD, sid, "; ".join(bad.get(sid, []))))
+            print("  %s %-9s %s" % (ledger.BAD, sid, "; ".join(bad.get(sid, []))))
     return 0
 
 
@@ -1830,38 +2276,48 @@ def main(argv=None):
     ledger.console()
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--dir", default="proof")
+    # --dir also works after the subcommand, like every other Proof tool.
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--dir", default=argparse.SUPPRESS)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    s = sub.add_parser("seats", help="list the board")
+
+    def add(name, help_):
+        return sub.add_parser(name, help=help_, parents=[common])
+
+    s = add("seats", "list the board")
     s.add_argument("--json", action="store_true")
     s.set_defaults(func=cmd_seats)
-    b = sub.add_parser("brief", help="write the presentation and one brief per director")
-    b.add_argument("--seats", help="comma-separated subset, e.g. ceo,cto,cfo")
+    b = add("brief", "write the presentation and one brief per seat")
+    b.add_argument("--seats", help="comma-separated subset, e.g. investor,builder")
     b.add_argument("--keep-answers", action="store_true",
-                   help="kept for old scripts; answers are now kept by default while a director's evidence is unchanged")
+                   help="kept for old scripts; answers are now kept by default while a seat's evidence is unchanged")
     b.add_argument("--fresh", action="store_true", help="clear every answer and convene the whole board")
     b.add_argument("--separate", action="store_true",
-                   help="one agent per director: more independent readings, about nine times the fixed agent cost")
+                   help="one agent per seat: more independent readings, about four times the fixed agent cost")
     b.set_defaults(func=cmd_brief)
-    sub.add_parser("check", help="validate the directors' answers").set_defaults(func=cmd_check)
-    sv = sub.add_parser("save", help="file one director's answer from stdin")
+    add("check", "validate the seats' answers").set_defaults(func=cmd_check)
+    sv = add("save", "file one seat's answer from stdin")
     sv.add_argument("seat")
     sv.set_defaults(func=cmd_save)
-    an = sub.add_parser("answer", help="record the team's answer to a director's question")
+    an = add("answer", "record the team's answer to a seat's question")
     an.add_argument("seat")
     an.add_argument("number", type=int, help="question number, starting at 1")
     an.add_argument("text")
     an.set_defaults(func=cmd_answer)
-    t = sub.add_parser("tally", help="compute the decision, print the meeting, write minutes and the meeting page")
+    add("debate-brief", "give every seat the other seats' answers for the debate round").set_defaults(
+        func=cmd_debate_brief)
+    add("debate-check", "validate the debate files").set_defaults(func=cmd_debate_check)
+    t = add("tally", "compute the decision, print the meeting, write minutes, the debate and the meeting page")
     t.add_argument("--quiet", action="store_true", help="print only the decision, not the whole meeting")
     t.add_argument("--open", action="store_true", help="open the meeting page in the default browser")
     t.set_defaults(func=cmd_tally)
-    m = sub.add_parser("meeting", help="rebuild the meeting page")
+    m = add("meeting", "rebuild the meeting page")
     m.add_argument("--open", action="store_true", help="open it in the default browser")
     m.set_defaults(func=cmd_meeting)
-    pl = sub.add_parser("play", help="play the meeting in the terminal, paced, with no input needed")
+    pl = add("play", "play the meeting in the terminal, paced, with no input needed")
     pl.add_argument("--speed", type=float, default=1.0, help="2 is twice as fast; 0 prints at once")
     pl.set_defaults(func=cmd_play)
-    sub.add_parser("status", help="who has answered").set_defaults(func=cmd_status)
+    add("status", "who has answered").set_defaults(func=cmd_status)
     a = ap.parse_args(argv)
     try:
         return a.func(a)

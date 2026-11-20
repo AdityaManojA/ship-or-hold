@@ -45,6 +45,21 @@ TARGET init --name "Acme Shop" --kind web --authorised yes \
 `--authorised no` is recorded, and the security and load skills will refuse to act
 against a live target until it is `yes`. Read-only skills still run.
 
+Also ask, or infer from what the user has said, who the client is, and record it as
+`--stage`:
+
+- `solo`: one founder doing it alone. `/proof-board` then sits as the **Advisory
+  Panel**, and every action goes into a bucket (do today, hire a freelancer, ask a CA
+  or lawyer) instead of to an executive.
+- `team`: a small team. Actions get an owner seat. This is what a missing stage
+  means.
+- `company`: an established business. Actions get an owner seat.
+
+```bash
+TARGET init --name "Acme Shop" --kind web --authorised yes --stage solo
+TARGET stage team      # change it later; with no value it prints the current stage
+```
+
 ## Step 3: suggest an order
 
 ```bash

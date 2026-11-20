@@ -30,7 +30,7 @@ def base_market():
             {"theme": "Dull menu", "product_fixes": False, "core": False, "sources": [src(4)]},
         ],
         "gap": "Nobody promises a delivery time.", "threat": "The app adds a lunch plan.",
-        "could_not_verify": ["One review page needed a login."],
+        "research_notes": ["One review page needed a login, so its reviews were not read."],
     }
 
 
@@ -76,9 +76,18 @@ class Market(unittest.TestCase):
         with open(os.path.join(self.d, "business", "market.md"), encoding="utf-8") as fh:
             text = fh.read()
         self.assertTrue(text.startswith("# Market and competition\n"))
-        self.assertIn("4 listed: 2 direct, 1 indirect, 1 substitute.", text)
+        self.assertIn("4 compared: 2 direct, 1 indirect, 1 substitute.", text)
+        self.assertNotIn("looked at but", text)
         # prices 0, 90, 120, 180 -> median 105
-        self.assertIn("Lowest Rs 0, median Rs 105, highest Rs 180, across 4 of 4 rows.", text)
+        self.assertIn("Lowest Rs 0, median Rs 105, highest Rs 180, across 4 competitor(s).", text)
+        # research notes go to the appendix, never to the market section
+        self.assertNotIn("login", text)
+        self.assertNotIn("could not be verified", text.lower())
+        with open(os.path.join(self.d, "business", "research-notes.md"), encoding="utf-8") as fh:
+            notes = fh.read()
+        self.assertTrue(notes.startswith("# Research notes\n"))
+        self.assertIn("Appendix only", notes)
+        self.assertIn("- One review page needed a login, so its reviews were not read.", notes)
         self.assertIn("[source](https://example.com/r/1)", text)
         self.assertIn("**Dull menu**: 1 source(s) (thin: under 3 sources)", text)
         self.assertLess(text.index("Alpha Meals"), text.index("Gamma App"))
@@ -91,6 +100,7 @@ class Market(unittest.TestCase):
         cov = {c["id"]: c["status"] for c in ledger.load_coverage(self.d, "proof-market")["checks"]}
         self.assertEqual(set(cov.values()), {"covered"})
         self.assertEqual(len(cov), 7)
+        self.assertIn("research-notes", cov)
         for name in ("competitors.csv", "market.json"):
             self.assertTrue(os.path.isfile(os.path.join(self.d, "evidence", "proof-market", name)))
 
@@ -119,7 +129,7 @@ class Market(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(self.d, "business")))
 
     def test_missing_inputs_are_errors(self):
-        for key in ("business", "complaints", "gap", "threat", "could_not_verify"):
+        for key in ("business", "complaints", "gap", "threat", "research_notes"):
             spec = base_market()
             del spec[key]
             code, out = self.record(spec=spec)
@@ -181,8 +191,14 @@ class Market(unittest.TestCase):
         self.assertEqual(ledger.load_finding(self.d, "proof-market", "market-all-free")["severity"], "low")
         with open(os.path.join(self.d, "business", "market.md"), encoding="utf-8") as fh:
             text = fh.read()
-        self.assertIn("1 row(s) had no price found", text)
+        self.assertIn("2 compared: 1 direct, 0 indirect, 1 substitute.", text)
+        self.assertIn("1 more was looked at but publishes no comparable price.", text)
+        self.assertNotIn("Gamma App", text)
+        self.assertIn("across 2 competitor(s)", text)
         self.assertIn("Every alternative with a price found is free to the buyer.", text)
+        with open(os.path.join(self.d, "business", "research-notes.md"), encoding="utf-8") as fh:
+            notes = fh.read()
+        self.assertIn("- Gamma App (indirect, line 4, https://example.com/gamma)", notes)
 
     def test_row_without_link_or_date(self):
         rows = list(ROWS)
@@ -219,12 +235,64 @@ class Market(unittest.TestCase):
     def test_coverage_left_not_run_when_part_is_absent(self):
         spec = base_market()
         spec["complaints"] = []
-        spec["could_not_verify"] = []
+        spec["research_notes"] = []
         self.record(rows=ROWS[:1], spec=spec)
-        cov = {c["id"]: c["status"] for c in ledger.load_coverage(self.d, "proof-market")["checks"]}
+        checks = {c["id"]: c for c in ledger.load_coverage(self.d, "proof-market")["checks"]}
+        cov = {k: c["status"] for k, c in checks.items()}
         self.assertEqual(cov["competitors-listed"], "covered")
-        for cid in ("substitutes-listed", "prices-compared", "complaints-themed", "unverified-listed"):
+        for cid in ("substitutes-listed", "prices-compared", "complaints-themed"):
             self.assertEqual(cov[cid], "not_run", cid)
+        self.assertEqual(cov["research-notes"], "not_applicable")
+        self.assertIn("no walls", checks["research-notes"]["note"])
+        self.assertFalse(os.path.exists(os.path.join(self.d, "business", "research-notes.md")))
+
+    def test_could_not_verify_is_an_alias(self):
+        spec = base_market()
+        spec["could_not_verify"] = spec.pop("research_notes")
+        code, out = self.record(spec=spec)
+        self.assertEqual(code, 0, out)
+        cov = {c["id"]: c["status"] for c in ledger.load_coverage(self.d, "proof-market")["checks"]}
+        self.assertEqual(cov["research-notes"], "covered")
+        self.assertTrue(os.path.isfile(os.path.join(self.d, "business", "research-notes.md")))
+        spec["research_notes"] = ["x"]
+        code, out = self.record(spec=spec)
+        self.assertEqual(code, 2)
+        self.assertIn("both", out)
+
+    def test_scraping_failures_are_refused_in_client_text(self):
+        for phrase in ("refused the reader", "Timed out", "time out", "blocked by the site", "login wall",
+                       "could not be reached", "could not be read", "page did not load", "CAPTCHA", "HTTP 403",
+                       "error 429"):
+            rows = list(ROWS)
+            rows[2] = rows[2].replace("Restaurant delivery", "Restaurant delivery (%s)" % phrase)
+            code, out = self.record(rows=rows)
+            self.assertEqual(code, 2, phrase)
+            self.assertIn("line 4 (Gamma App)", out)
+            self.assertIn("'what_it_sells'", out)
+            self.assertIn("research_notes", out)
+        for field in ("gap", "threat"):
+            spec = base_market()
+            spec[field] = "Their page timed out."
+            code, out = self.record(spec=spec)
+            self.assertEqual(code, 2, field)
+            self.assertIn("'%s'" % field, out)
+        spec = base_market()
+        spec["complaints"][1]["theme"] = "Review page blocked"
+        code, out = self.record(spec=spec)
+        self.assertEqual(code, 2)
+        self.assertIn("complaint 2, field 'theme'", out)
+        self.assertFalse(os.path.exists(os.path.join(self.d, "business", "market.md")))
+        # a url with 403 in it is not prose and is fine
+        rows = list(ROWS)
+        rows[0] = rows[0].replace("https://example.com/alpha", "https://example.com/alpha/403")
+        self.assertEqual(self.record(rows=rows)[0], 0)
+
+    def test_ordinary_business_words_are_not_mistaken_for_scraping_failures(self):
+        # Found on a real run: a complaint theme about refunds being refused was rejected.
+        spec = base_market()
+        spec["complaints"][0]["theme"] = "Returns, exchanges and refunds are refused or drag on"
+        spec["threat"] = "Marketplace sellers undercut at Rs 429; a card blocked at checkout loses the sale"
+        self.assertEqual(self.record(spec=spec)[0], 0)
 
 
 if __name__ == "__main__":

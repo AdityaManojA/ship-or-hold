@@ -7,10 +7,11 @@
   "price_for": "one lunch delivered to the desk",
   "free": false,
   "age": [22, 45],
+  "gender": "any",
   "segments": [
-    {"name": "Junior staff, first job", "share": 0.45, "income": [25000, 45000]},
-    {"name": "Mid-level staff", "share": 0.40, "income": [50000, 110000]},
-    {"name": "Team leads and managers", "share": 0.15, "income": [120000, 250000]}
+    {"name": "Junior staff, first job", "share": 0.45, "age": [22, 28], "income": [25000, 45000]},
+    {"name": "Mid-level staff", "share": 0.40, "age": [26, 40], "income": [50000, 110000]},
+    {"name": "Team leads and managers", "share": 0.15, "age": [30, 45], "income": [120000, 250000]}
   ],
   "behaviours": [
     {"name": "Brings lunch from home", "share": 0.35, "how": "Packs a box most mornings and eats at the desk."},

@@ -8,6 +8,10 @@ the "Market and competition" section of the business plan and records coverage, 
 score and computed findings in the Proof ledger. It never fetches anything and it
 never fills a gap in the inputs.
 
+What went wrong during the research (a page that would not load, a login wall) is a
+research note: it goes to proof/business/research-notes.md, the appendix, and never
+into market.md. Client-facing fields that admit such a failure are refused.
+
     python3 market.py template --out DIR
     python3 market.py check competitors.csv market.json     # print only
     python3 market.py record competitors.csv market.json    # write section + ledger
@@ -19,6 +23,7 @@ import argparse
 import csv
 import json
 import os
+import re
 import shutil
 import sys
 
@@ -29,6 +34,8 @@ import num  # noqa: E402
 
 SKILL = "proof-market"
 TITLE = "# Market and competition"
+NOTES_TITLE = "# Research notes"
+NOTES_MARKER = "Research notes recorded by proof-market"
 MARKER = "Recorded by proof-market"
 COLUMNS = ["name", "type", "url", "where", "price", "what_it_sells", "their_line",
            "rating", "review_count", "source_date"]
@@ -43,13 +50,32 @@ CHECKS = [
     ("complaints-themed", "Customer complaints are grouped into themes with linked quotes"),
     ("gap-stated", "The gap, or the lack of one, is stated"),
     ("threat-stated", "The main threat is stated"),
-    ("unverified-listed", "What could not be verified is listed"),
+    ("research-notes", "Pages the research could not read are noted in the appendix"),
 ]
+# Phrases that admit a scraping failure. They belong in research_notes, never in client-facing text.
+# They name the research failing to load a page, so ordinary business words still pass:
+# "refunds are refused", "card blocked at checkout", "Rs 429" are about the market, not the research.
+FAILURE = re.compile(
+    r"(?:refused|blocked|denied)\s+(?:the\s+|our\s+|my\s+)?(?:reader|browser|fetch(?:er)?|crawler|scraper|request|"
+    r"connection|access)|blocked\s+by\s+the\s+(?:site|page|server|host)|(?:page|site)\s+(?:was\s+)?blocked|"
+    r"\btimed?\s+out\b|log-?in\s+wall|sign[- ]?in\s+wall|"
+    r"could\s+not\s+be\s+(?:reached|read|loaded|opened|fetched)|(?:page|site)\s+did\s+not\s+load|captcha|"
+    r"(?:http|error|status)\s*(?:code\s*)?(?:403|429)\b|\b(?:403|429)\s+(?:forbidden|too\s+many)", re.I)
+# competitors.csv fields shown to the client (the url and the date are not prose).
+CLIENT_COLUMNS = ["name", "type", "where", "price", "what_it_sells", "their_line", "rating", "review_count"]
 FINDING_PREFIX = "market-"
 
 
 class MarketError(ValueError):
     pass
+
+
+def _no_failure(text, where):
+    m = FAILURE.search(str(text or ""))
+    if m:
+        raise MarketError("%s says %r, which reads as a page the research could not load. Client-facing text "
+                          "never mentions that: move the note to research_notes in market.json (the appendix), "
+                          "retry the page in the browser or swap in a backup competitor." % (where, m.group(0)))
 
 
 def _blank(v):
@@ -101,6 +127,8 @@ def read_competitors(path, currency):
             kind = cells["type"].lower()
             if kind not in TYPES:
                 raise MarketError("%s: type must be direct, indirect or substitute, got %r" % (where, cells["type"]))
+            for col in CLIENT_COLUMNS:
+                _no_failure(cells[col], "competitors.csv %s, field '%s'" % (where, col))
             row = {c: cells[c] for c in COLUMNS}
             row["type"] = kind
             row["line"] = i
@@ -127,7 +155,12 @@ def read_market(path):
     if not isinstance(m.get("currency"), str) or not m["currency"].strip():
         raise MarketError("'currency' is missing from market.json. Give the prefix every price is in, "
                           "such as \"Rs \" or \"$\". There is no default currency.")
-    for key in ("complaints", "gap", "threat", "could_not_verify"):
+    if "research_notes" in m and "could_not_verify" in m:
+        raise MarketError("market.json has both 'research_notes' and 'could_not_verify'; they are the same "
+                          "list (could_not_verify is the old name). Keep research_notes only.")
+    if "research_notes" not in m and "could_not_verify" in m:
+        m["research_notes"] = m.pop("could_not_verify")
+    for key in ("complaints", "gap", "threat", "research_notes"):
         if key not in m:
             raise MarketError("'%s' is missing from market.json. Leave it empty if the research found "
                               "nothing, but never leave it out." % key)
@@ -136,13 +169,16 @@ def read_market(path):
     for key in ("gap", "threat"):
         if not isinstance(m[key], str):
             raise MarketError("'%s' must be text" % key)
-    if not isinstance(m["could_not_verify"], list) or not all(isinstance(x, str) for x in m["could_not_verify"]):
-        raise MarketError("'could_not_verify' must be a list of text lines")
+    if not isinstance(m["research_notes"], list) or not all(isinstance(x, str) for x in m["research_notes"]):
+        raise MarketError("'research_notes' must be a list of text lines")
+    _no_failure(m["gap"], "market.json field 'gap'")
+    _no_failure(m["threat"], "market.json field 'threat'")
     for n, c in enumerate(m["complaints"], start=1):
         label = "complaint %d" % n
         if not isinstance(c, dict) or not isinstance(c.get("theme"), str) or not c["theme"].strip():
             raise MarketError("%s needs a 'theme'" % label)
         label = "complaint %r" % c["theme"]
+        _no_failure(c["theme"], "market.json complaint %d, field 'theme'" % n)
         for flag in ("product_fixes", "core"):
             if not isinstance(c.get(flag), bool):
                 raise MarketError("%s needs '%s' set to true or false" % (label, flag))
@@ -153,7 +189,8 @@ def read_market(path):
                 raise MarketError("%s has a source with no quote. Remove it rather than describe it." % label)
             if not _is_link(s.get("url")):
                 raise MarketError("%s has a quote with no link. A quote that cannot be linked is not "
-                                  "evidence; remove it or move it to could_not_verify." % label)
+                                  "evidence; remove it or move it to research_notes." % label)
+            _no_failure(s["quote"], "market.json complaint %d, field 'quote'" % n)
             if len(str(s["quote"])) > MAX_QUOTE:
                 raise MarketError("%s has a quote over %d characters. Keep quotes short and word for word."
                                   % (label, MAX_QUOTE))
@@ -181,6 +218,7 @@ def _median(xs):
 def analyse(rows, market):
     counts = {t: sum(1 for r in rows if r["type"] == t) for t in TYPES}
     priced = [r["price_value"] for r in rows if r["price_value"] is not None]
+    shown = [r for r in rows if r["price_value"] is not None]
     linked = [r for r in rows if r["has_url"] and r["has_date"]]
     pct = 100.0 * len(linked) / len(rows)
     pct = 100.0 if len(linked) == len(rows) else min(round(pct, 1), 99.9)
@@ -197,6 +235,10 @@ def analyse(rows, market):
         "business": market["business"].strip(), "currency": market["currency"],
         "price_for": str(market.get("price_for") or "").strip(),
         "rows": sorted(rows, key=lambda r: (TYPES.index(r["type"]), r["line"])),
+        "shown": sorted(shown, key=lambda r: (TYPES.index(r["type"]), r["line"])),
+        "left_out": sorted([r for r in rows if r["price_value"] is None], key=lambda r: r["line"]),
+        "shown_counts": {t: sum(1 for r in shown if r["type"] == t) for t in TYPES},
+        "shown_linked": sum(1 for r in shown if r["has_url"] and r["has_date"]),
         "counts": counts, "total": len(rows),
         "priced": len(priced), "unpriced": len(rows) - len(priced),
         "price_low": min(priced) if priced else None,
@@ -207,7 +249,7 @@ def analyse(rows, market):
         "complaints": complaints,
         "gap": gap, "gap_found": bool(gap) and gap.lower() != "none",
         "threat": market["threat"].strip(),
-        "could_not_verify": [x.strip() for x in market["could_not_verify"] if x.strip()],
+        "research_notes": [x.strip() for x in market["research_notes"] if x.strip()],
         "revenue_facts": market.get("revenue_facts") or [],
     }
     a["findings"] = _findings(a)
@@ -291,30 +333,39 @@ def _price_text(a, r):
 
 def render(a):
     L = [TITLE, "", "For: %s. Public sources only. Every row links to the page it came from." % a["business"], ""]
-    c = a["counts"]
-    L += ["%d listed: %d direct, %d indirect, %d substitute." % (a["total"], c["direct"], c["indirect"], c["substitute"]),
-          "", "## Who already solves this", "",
-          "| Name | Type | Where | Price | What it sells | Their line | Rating | Reviews | Source |",
-          "| --- | --- | --- | ---: | --- | --- | --- | --- | --- |"]
-    for r in a["rows"]:
+    c = a["shown_counts"]
+    shown = a["shown"]
+    more = len(a["left_out"])
+    L += ["%d compared: %d direct, %d indirect, %d substitute." % (len(shown), c["direct"], c["indirect"], c["substitute"])]
+    if more:
+        L.append("%d more %s looked at but %s no comparable price." % (
+            more, "was" if more == 1 else "were", "publishes" if more == 1 else "publish"))
+    L += ["", "## Who already solves this", ""]
+    if shown:
+        L += ["| Name | Type | Where | Price | What it sells | Their line | Rating | Reviews | Source |",
+              "| --- | --- | --- | ---: | --- | --- | --- | --- | --- |"]
+    else:
+        L.append("No competitor looked at publishes a comparable price.")
+    for r in shown:
         src = "[link](%s)" % r["url"] if r["has_url"] else "no link"
         src += ", read %s" % r["source_date"] if r["has_date"] else ", no date"
         L.append("| %s | %s | %s | %s | %s | %s | %s | %s | %s |" % (
             _cell(r["name"]), r["type"], _cell(r["where"]), _price_text(a, r), _cell(r["what_it_sells"]),
             _cell(r["their_line"]), _cell(r["rating"]), _cell(r["review_count"]), src))
-    L += ["", "Sources linked and dated: %d of %d rows (%s%%)." % (
-        a["linked"], a["total"], ("%.1f" % a["sources_linked_pct"]).rstrip("0").rstrip(".")), ""]
+    if shown:
+        pct = 100.0 * a["shown_linked"] / len(shown)
+        L += ["", "Sources linked and dated: %d of %d rows (%s%%)." % (
+            a["shown_linked"], len(shown), ("%.1f" % (pct if pct >= 100 else min(pct, 99.9))).rstrip("0").rstrip("."))]
+    L.append("")
 
     L += ["## What they charge", ""]
     if a["priced"]:
         what = " Prices are for %s." % a["price_for"] if a["price_for"] else ""
-        L.append("Lowest %s, median %s, highest %s, across %d of %d rows.%s" % (
+        L.append("Lowest %s, median %s, highest %s, across %d competitor(s).%s" % (
             _money(a["currency"], a["price_low"]), _money(a["currency"], a["price_median"]),
-            _money(a["currency"], a["price_high"]), a["priced"], a["total"], what))
+            _money(a["currency"], a["price_high"]), a["priced"], what))
     else:
-        L.append("No price was found for any row.")
-    if a["unpriced"]:
-        L.append("%d row(s) had no price found and are left out of the range." % a["unpriced"])
+        L.append("No comparable price is published.")
     if a["all_free"]:
         L.append("Every alternative with a price found is free to the buyer.")
     L.append("")
@@ -344,13 +395,28 @@ def render(a):
             L.append("- %s (%s; %s)" % (" ".join(str(f["claim"]).split()), str(f["status"]).strip(), src))
         L.append("")
 
-    L += ["## What could not be verified", ""]
-    if a["could_not_verify"]:
-        L += ["- %s" % x for x in a["could_not_verify"]]
+    L += ["_%s from competitors.csv and market.json. A page read on one day can change the next: "
+          "open the links before relying on a price or a rating._" % MARKER]
+    return "\n".join(L) + "\n"
+
+
+def render_notes(a):
+    """The appendix: what the research could not read, and the rows left out of the client table."""
+    L = [NOTES_TITLE, "", "Appendix only, for %s. These notes never go in the market section." % a["business"], ""]
+    L += ["## What the research could not read or verify", ""]
+    if a["research_notes"]:
+        L += ["- %s" % " ".join(x.split()) for x in a["research_notes"]]
     else:
-        L.append("Nothing was listed. That is unusual for desk research; treat it as not yet checked.")
-    L += ["", "_%s from competitors.csv and market.json. A page read on one day can change the next: "
-              "open the links before relying on a price or a rating._" % MARKER]
+        L.append("The research hit no walls.")
+    L.append("")
+    if a["left_out"]:
+        L += ["## Looked at, left out of the price comparison", "",
+              "These publish no comparable price, so they are not in the client table or the price range.", ""]
+        for r in a["left_out"]:
+            L.append("- %s (%s, line %d%s)" % (" ".join(r["name"].split()), r["type"], r["line"],
+                                                ", %s" % r["url"].strip() if r["has_url"] else ""))
+        L.append("")
+    L.append("_%s from market.json and competitors.csv._" % NOTES_MARKER)
     return "\n".join(L) + "\n"
 
 
@@ -420,6 +486,14 @@ def cmd_record(a):
     with open(out, "w", encoding="utf-8") as fh:
         fh.write(render(result))
     section = os.path.relpath(out, base).replace(os.sep, "/")
+    notes_path = os.path.join(base, "business", "research-notes.md")
+    notes_rel = None
+    if result["research_notes"] or result["left_out"]:
+        with open(notes_path, "w", encoding="utf-8") as fh:
+            fh.write(render_notes(result))
+        notes_rel = os.path.relpath(notes_path, base).replace(os.sep, "/")
+    elif os.path.isfile(notes_path):
+        os.remove(notes_path)  # a stale appendix from an earlier record
 
     ledger.write_scores(a.dir, SKILL, [
         {"id": "sources_linked_pct", "value": result["sources_linked_pct"], "unit": "percent",
@@ -435,9 +509,15 @@ def cmd_record(a):
         "complaints-themed": any(t["count"] for t in result["complaints"]),
         "gap-stated": bool(result["gap"]),
         "threat-stated": bool(result["threat"]),
-        "unverified-listed": bool(result["could_not_verify"]),
+        "research-notes": bool(result["research_notes"]),
     }
     for cid, _ in CHECKS:
+        if cid == "research-notes":
+            if covered[cid]:
+                ledger.mark_coverage(a.dir, SKILL, cid, "covered", evidence=evidence + [notes_rel])
+            else:
+                ledger.mark_coverage(a.dir, SKILL, cid, "not_applicable", note="the research hit no walls")
+            continue
         if covered[cid]:
             ledger.mark_coverage(a.dir, SKILL, cid, "covered", evidence=evidence)
 
@@ -450,10 +530,12 @@ def cmd_record(a):
         ledger.verify(a.dir, SKILL, f["id"], by="evidence-file")
 
     print(_summary(result))
-    not_run = [cid for cid, _ in CHECKS if not covered[cid]]
+    not_run = [cid for cid, _ in CHECKS if not covered[cid] and cid != "research-notes"]
     if not_run:
         print("Not covered by these inputs: %s" % ", ".join(not_run))
     print("%s wrote %s and recorded coverage, 1 score and %d finding(s)." % (ledger.OK, out, len(result["findings"])))
+    if notes_rel:
+        print("Research notes and rows with no comparable price are in %s (appendix only)." % notes_path)
     return 0
 
 

@@ -58,14 +58,17 @@ AI-search join only with `--public`, for a product meant to be found.
    so spawn one only if the user asks. A check that truly cannot apply is marked not applicable with a
    reason inside the skill, so it stops holding the verdict at Incomplete.
 5. **Finish: the report.** Always, whatever the verdict and without asking, in this
-   order: `/proof-report` for the computed verdict; `/proof-board`, which ends with
-   `board.py tally --open` and the meeting page; then `/proof-business-plan`: write
-   `proof/summary.md` (half a page, with one line per director) and run `plan.py compile`,
-   which writes `proof/business-plan.md`, `proof/one-pager.md` and
-   `proof/business-plan.pdf` with every director's answer in it. Show the user the
-   verdict, the board's decision and the summary in full, and send the PDF. Then
-   `/proof-audit-trail`. A business section this check did not run is listed in the plan
-   as not done, never filled in.
+   order: `/proof-report` for the computed verdict; `/proof-fixkit` for the copy-paste fixes
+   and the 14-day plan; `/proof-board` with its debate round, which ends with
+   `board.py tally --open`; then `/proof-business-plan`: write `proof/summary.md` (half a
+   page, with one line per seat) and run `plan.py compile`, which writes
+   `proof/business-plan.md`, `proof/one-pager.md`, the client report `proof/report.pdf`
+   (6 to 8 pages) and `proof/appendix.pdf`. A client report never leads with Incomplete:
+   finish every check first, or descope one that does not apply to this client with
+   `check.py descope <skill> <check> --reason "..."`. Show the user the verdict, the
+   decision and the summary in full, and send the report. Then `/proof-audit-trail`. A
+   business section this check did not run is listed in the plan as not done, never
+   filled in.
 
 ## The second run costs less
 
