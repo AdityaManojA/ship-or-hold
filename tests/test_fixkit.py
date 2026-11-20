@@ -329,7 +329,7 @@ class RealRunLessons(unittest.TestCase):
             "The owner is a single point of failure": "Line up a backup for the owner",
             "meta description missing on index.html": "Paste the meta description from the kit on the home page",
             "no h1 on collection-short-nighty.html":
-                "Make the page's name its main heading (h1) on the collection short nighty page",
+                "Make the page's name its main heading (h1) on the short nighty collection page",
             "Nobody knows where 'GST registration' stands": "Find out where this stands: GST registration",
         }
         for title, job in cases.items():
@@ -344,6 +344,41 @@ class RealRunLessons(unittest.TestCase):
         self.assertEqual(len(tasks), 1)
         self.assertEqual(tasks[0]["severity"], "high")
         self.assertIn("(found in 2 places)", tasks[0]["task"])
+
+    def test_shopify_pages_privacy_and_long_colour_lists_read_plainly(self):
+        self.assertEqual(fk._plain("no h1 on collection-pj-set.html", []),
+                         "Make the page's name its main heading (h1) on the pj set collection page")
+        self.assertEqual(fk._plain("1 tracker(s) load before consent: connect.facebook.net", []),
+                         "Add a cookie consent banner and hold the trackers until people agree")
+        self.assertIn("'token' value in the /callback address",
+                      fk._plain("Personal data in the URL at /callback: parameter 'token'", []))
+
+        def f(i, where):
+            return {"skill": "proof-a11y", "id": i, "title": "Low contrast (2.78:1) at %s" % where,
+                    "severity": "medium", "category": ""}
+        tasks = fk.build_tasks([f("c%d" % n, "place %d" % n) for n in range(6)], [], [])
+        self.assertEqual(len(tasks), 1)
+        self.assertEqual(tasks[0]["task"], "Change the colours of 6 pieces of text and buttons to the ones in the kit "
+                                           "(each one is listed there)")
+
+    def test_ad_findings_become_plain_jobs(self):
+        def f(i, title, sev="medium"):
+            return {"skill": "proof-ads", "id": i, "title": title, "severity": sev, "category": ""}
+        tasks = fk.build_tasks([f("m1", "Ad and landing page talk about different things"),
+                                f("m2", "Ad and landing page talk about different things"),
+                                f("g1", "Competitors lean on price/discount; your ads never mention it"),
+                                f("g2", "Competitors lean on cash on delivery; your ads never mention it"),
+                                f("n1", 'No landing page captured for the ad "Melbam"', "low")], [], [])
+        self.assertEqual(sorted(t["task"] for t in tasks), [
+            "Send each ad to a page that shows what its headline promises (found in 2 places)",
+            "Test ads that mention price/discount and cash on delivery"])
+
+    def test_the_trade_mark_search_asked_twice_is_one_task(self):
+        def f(i, title, skill):
+            return {"skill": skill, "id": i, "title": title, "severity": "low", "category": ""}
+        tasks = fk.build_tasks([f("a", "The trademark check on the name is still to do", "proof-go-to-market"),
+                                f("b", "Nobody knows where 'Trademark for the name Melbam' stands", "proof-ops")], [], [])
+        self.assertEqual([t["task"] for t in tasks], ["Search the trade mark register for the brand name (found in 2 places)"])
 
     def test_one_job_on_several_pages_is_one_task_naming_them_all(self):
         def f(i, title, sev="medium", skill="proof-seo"):

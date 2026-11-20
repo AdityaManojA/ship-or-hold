@@ -596,6 +596,13 @@ class Board(unittest.TestCase):
 class ClientText(unittest.TestCase):
     """Lessons from a real run: the debate and the veto are read by a founder, not by a developer."""
 
+    def test_a_missing_number_reads_plainly_in_the_decision(self):
+        gap = "proof-intake still has 1 check not run: unit-cost. Run them, or mark each not_applicable with a reason."
+        self.assertEqual(board._plain_gap(gap), "the landed cost of one unit is still missing")
+        other = "proof-a11y still has 2 checks not run: zoom-200, form-errors. Run them, or mark each not_applicable."
+        self.assertEqual(board._plain_gap(other), "a11y: zoom 200 is not checked yet; form errors is not checked yet")
+        self.assertNotIn("not_applicable", board._plain_gap(other))
+
     def test_trim_never_leaves_half_a_citation(self):
         text = ("A hold stops the only source of real conversion data; the loss comes from the ad budget, which a "
                 "capped test fixes. [product, proof-finance/score:year1_operating_profit] More words follow here.")

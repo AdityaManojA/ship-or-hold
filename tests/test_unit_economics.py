@@ -250,5 +250,14 @@ class UnitEconomics(unittest.TestCase):
             self.assertIn("price", json.load(fh))
 
 
+class UnitPlural(unittest.TestCase):
+    """A real run printed "order of one nightwear sets a day"."""
+
+    def test_the_head_word_of_a_unit_is_made_plural(self):
+        self.assertEqual(ue._many("order of one nightwear set"), "orders of one nightwear set")
+        self.assertEqual(ue._many("cup"), "cups")
+        self.assertEqual(ue._many("orders"), "orders")
+
+
 if __name__ == "__main__":
     unittest.main()

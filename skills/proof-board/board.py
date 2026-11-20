@@ -921,6 +921,9 @@ def debate_md(r, seats, answers, dec, debate, stage="team"):
         L.append("- No vote moved; every seat held its first-round vote.")
     L += ["", "## The decision", "", "**%s.** %s" % (dec["decision"], _trim(dec["reasons"][0], 240) if dec["reasons"]
                                                      else "")]
+    if len(dec.get("reasons") or []) > 1:  # name every veto, not only the first reason
+        L.append("")
+        L += ["- %s" % _trim(why, 240) for why in dec["reasons"][1:4]]
     if dec.get("vetoes"):
         L.append("")
         L.append("The vetoes come from the evidence, not from a vote, so they stand whatever the debate concluded.")
@@ -944,6 +947,26 @@ def _evidence_bucket(skill):
     return "do_today"
 
 
+# What a missing check means to an owner, for the decision line in the client report.
+GAP_WORDS = {
+    "unit-cost": "the landed cost of one unit is still missing",
+    "ad-spend": "the monthly ad spend is still missing",
+    "sessions": "the visits a day are still missing",
+    "orders": "the orders a day are still missing",
+}
+
+
+def _plain_gap(gap):
+    """A verdict gap ("proof-x still has 1 check not run: a, b. Run them, ...") in plain words."""
+    m = re.match(r"^(proof-[\w-]+) still has \d+ checks? not run: (.+?)\. Run them", gap)
+    if not m:
+        return re.sub(r"\bproof-([\w-]+)", lambda x: x.group(1).replace("-", " "), gap.split(". Run ")[0])
+    skill, checks = m.group(1), [c.strip() for c in m.group(2).split(",")]
+    words = [GAP_WORDS.get(c, "%s is not checked yet" % c.replace("-", " ")) for c in checks]
+    return "; ".join(words) if all(c in GAP_WORDS for c in checks) else "%s: %s" % (
+        skill[len("proof-"):].replace("-", " "), "; ".join(words))
+
+
 def decide(r, seats, answers, triggered, stage="team"):
     """The decision from the evidence and the votes in `answers` (the final votes after a debate)."""
     reasons, conditions = [], []
@@ -952,8 +975,10 @@ def decide(r, seats, answers, triggered, stage="team"):
     votes = {v: [s for s, a in answers.items() if a["vote"] == v] for v in VOTES}
     if r["verdict"] == "Incomplete":
         decision = HOLD
-        reasons.append("The evidence is incomplete, so the %s cannot approve: %s" % (
-            panel_name(stage), "; ".join(r["gaps"][:3])))
+        reasons.append("The evidence is incomplete, so the %s cannot approve: %s." % (
+            panel_name(stage), "; ".join(_plain_gap(g) for g in r["gaps"][:3])))
+        for v in triggered:  # the vetoes still say what has to change once the evidence is in
+            reasons.append("%s veto from the evidence: %s [%s]" % (_seat_label(v["seat"]), v["why"], v["ref"]))
     elif triggered:
         decision = HOLD
         for v in triggered:

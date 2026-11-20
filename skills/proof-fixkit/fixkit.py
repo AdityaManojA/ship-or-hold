@@ -441,6 +441,8 @@ PAGE_NAMES = {"index": "home", "home": "home"}
 PLAIN_RULES = [
     (r"^(\d+) of (\d+) pass because of (\w+)$", r'Answer the "\3" objection that \1 of \2 simulated buyers raised'),
     (r"^(.+?) is a single point of failure$", r"Line up a backup for \1"),
+    # The brand check and operations both ask for the trade mark search: one job, so one wording.
+    (r"^Nobody knows where 'Trade ?mark\b.*' stands$", r"Search the trade mark register for the brand name"),
     (r"^Nobody knows where '(.+)' stands$", r"Find out where this stands: \1"),
     (r"^One person owns every routine$", r"Write down each routine so someone else can run it for a week"),
     (r"^Weak citability signal: (.+)$", r"Add short, quotable facts to the main pages"),
@@ -454,15 +456,32 @@ PLAIN_RULES = [
     (r"^\d+ h1 elements.* on the (.+) page$", r"Keep one main heading (h1) on the \1 page"),
     (r"^title is \d+ chars.* on the (.+) page$", r"Paste the new title from the kit on the \1 page"),
     (r"^The price sits outside what buyers called acceptable$", r"Test a lower price or a two-set bundle"),
+    (r"^Trackers are present but no consent banner was found$",
+     r"Add a cookie consent banner and hold the trackers until people agree"),
+    (r"^\d+ tracker\(s\) load before consent: (.+)$",
+     r"Add a cookie consent banner and hold the trackers until people agree"),
+    (r"^Personal data in the URL at (.+): parameter '(.+)'$",
+     r"Find out what the '\2' value in the \1 address holds, and keep personal data out of web addresses"),
+    (r"^Ad and landing page talk about different things$",
+     r"Send each ad to a page that shows what its headline promises"),
+    (r"^Competitors lean on (.+); your ads never mention it$", r"Test an ad that mentions \1"),
     (r"^The loudest complaints are ones this product does not fix$",
      r"Answer the loudest complaint in the market on the product page"),
 ]
-SKIP_RULES = [r"^Promotion is planned while a blocker is open"]  # the blocker itself is already a task
+# Not jobs for the owner: the blocker itself is already a task, and a page the audit did not save is
+# a gap in the audit, listed in the appendix.
+SKIP_RULES = [r"^Promotion is planned while a blocker is open", r"^No landing page captured for the ad"]
 
 
 def _page_name(m):
     stem = m.group(1)
-    return "on the %s page" % PAGE_NAMES.get(stem, stem.replace("-", " "))
+    if stem in PAGE_NAMES:
+        return "on the %s page" % PAGE_NAMES[stem]
+    # Shopify-style captures are named <kind>-<handle>: "collection-pj-set" is the pj set collection page.
+    kind, _, handle = stem.partition("-")
+    if kind in ("collection", "product", "page", "blog") and handle:
+        return "on the %s %s page" % (handle.replace("-", " "), kind)
+    return "on the %s page" % stem.replace("-", " ")
 
 
 def _plain(title, ids):
@@ -488,9 +507,16 @@ GROUP_RULES = [
     (r"^(Make the page's name its main heading \(h1\)) on the (.+) page$", "{job} on the {items} pages"),
     (r"^(Keep one main heading \(h1\)) on the (.+) page$", "{job} on the {items} pages"),
     (r"^(Line up a backup) for (.+)$", "{job} for each of these: {items}"),
+    (r"^(Test an ad that mentions) (.+)$", "Test ads that mention {items}"),
     (r"^(Change the colour) of the (.+?) \(now [\d.]+:1\) to the one in the kit$",
      "Change the colours of the {items} to the ones in the kit"),
 ]
+# More things than this and the task gives the count and points at the kit, not a long list.
+GROUP_LIST_MAX = 4
+GROUP_MANY = {
+    "Change the colour": "Change the colours of {n} pieces of text and buttons to the ones in the kit (each one is "
+                         "listed there)",
+}
 
 
 def _and(items):
@@ -520,7 +546,10 @@ def _group(tasks):
         else:
             out.append(t)
     for g in groups.values():
-        if len(g["items"]) > 1:
+        n = len(g["items"])
+        if n > GROUP_LIST_MAX and g["job"] in GROUP_MANY:
+            g["task"]["task"] = GROUP_MANY[g["job"]].format(n=n)
+        elif n > 1:
             g["task"]["task"] = GROUP_RULES[g["rule"]][1].format(job=g["job"], items=_and(g["items"]))
     return out
 

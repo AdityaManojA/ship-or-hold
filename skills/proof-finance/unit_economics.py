@@ -167,7 +167,7 @@ def analyse(spec):
     startup, startup_items = _sum_items(spec.get("startup"), "startup")
 
     if "plan_per_day" not in spec:
-        raise NumbersError("'plan_per_day' is missing (how many %ss you expect to sell a day)" % unit)
+        raise NumbersError("'plan_per_day' is missing (how many %s you expect to sell a day)" % _many(unit))
     plan_per_day = num.parse_number(spec["plan_per_day"], field="plan_per_day")
 
     cod = _cod(spec.get("cod"))
@@ -334,6 +334,13 @@ def _money(x, cur=None):
     return "-%s%s" % (cur, "{:,.0f}".format(-x)) if x < 0 else "%s%s" % (cur, "{:,.0f}".format(x))
 
 
+def _many(unit):
+    """The plural of a unit: "order of one set" becomes "orders of one set", "cup" becomes "cups"."""
+    head, sep, rest = unit.partition(" of ")
+    head = head if head.endswith("s") else head + "s"
+    return head + sep + rest
+
+
 def _money2(x, cur=None):
     cur = CURRENCY if cur is None else cur
     return "-%s%s" % (cur, "{:,.2f}".format(-x)) if x < 0 else "%s%s" % (cur, "{:,.2f}".format(x))
@@ -346,7 +353,7 @@ def _count(x):
 def render_scenarios(a):
     cur, u = a["currency"], a["unit"]
     L = ["## Three scenarios", "",
-         "| scenario | %ss a day | revenue a month | operating profit a month | profit margin | ad spend per %s |" % (u, u),
+         "| scenario | %s a day | revenue a month | operating profit a month | profit margin | ad spend per %s |" % (_many(u), u),
          "| --- | ---: | ---: | ---: | ---: | ---: |"]
     for name, row in scenarios(a):
         if row is None:
@@ -360,8 +367,8 @@ def render_scenarios(a):
     L.append("")
     be = a["breakeven_per_day"]
     if a.get("ads_monthly") is not None and not math.isinf(be) and be > 0:
-        L += ["At break-even (%s %ss a day) the monthly ad spend of %s works out at %s per %s." % (
-            _count(be), u, _money(a["ads_monthly"], cur), _money2(a["ads_monthly"] / (be * a["days_per_month"]), cur), u), ""]
+        L += ["At break-even (%s %s a day) the monthly ad spend of %s works out at %s per %s." % (
+            _count(be), _many(u), _money(a["ads_monthly"], cur), _money2(a["ads_monthly"] / (be * a["days_per_month"]), cur), u), ""]
     return L
 
 
@@ -372,10 +379,10 @@ def render_cod(a):
     cur, u = a["currency"], a["unit"]
     per_cod = c["rto_cost"] * c["returns_per_delivered"]
     return ["## Cash on delivery and return to origin", "",
-            "- %.0f%% of %ss are cash on delivery, and %.0f%% of COD %ss shipped come back (RTO)." % (
-                c["share"] * 100, u, c["rto_rate"] * 100, u),
-            "- Each delivered COD %s carries %.0f%% / (100%% - %.0f%%) = %.3f returned %ss at %s each: %s." % (
-                u, c["rto_rate"] * 100, c["rto_rate"] * 100, c["returns_per_delivered"], u,
+            "- %.0f%% of %s are cash on delivery, and %.0f%% of COD %s shipped come back (RTO)." % (
+                c["share"] * 100, _many(u), c["rto_rate"] * 100, _many(u)),
+            "- Each delivered COD %s carries %.0f%% / (100%% - %.0f%%) = %.3f returned %s at %s each: %s." % (
+                u, c["rto_rate"] * 100, c["rto_rate"] * 100, c["returns_per_delivered"], _many(u),
                 _money2(c["rto_cost"], cur), _money2(per_cod, cur)),
             "- Spread over every delivered %s: %.0f%% x %s = %s of RTO cost, and %.0f%% x %s COD fee = %s." % (
                 u, c["share"] * 100, _money2(per_cod, cur), _money2(c["rto_per_order"], cur),
@@ -396,7 +403,7 @@ def render(a):
           "| Cost per %s%s | %s |" % ("delivered " if a.get("cod") else "", u, _money(a["variable"])),
           "| Earns per %s before fixed costs | %s (%.0f%%) |" % (u, _money(a["contribution"]), a["contribution_pct"] * 100),
           "| Fixed costs a month | %s |" % _money(a["fixed_monthly"]),
-          "| Break-even | %s %ss a day |" % ("never" if math.isinf(a["breakeven_per_day"]) else "{:,.0f}".format(math.ceil(a["breakeven_per_day"])), u),
+          "| Break-even | %s %s a day |" % ("never" if math.isinf(a["breakeven_per_day"]) else "{:,.0f}".format(math.ceil(a["breakeven_per_day"])), _many(u)),
           "| Profit margin at plan | %.0f%% |" % (a["margin_at_plan"] * 100),
           "| Year 1 operating profit | %s |" % _money(a["year1_profit"]),
           "| Startup spend | %s |" % _money(a["startup"]),
@@ -405,22 +412,22 @@ def render(a):
           ""]
     if a["capacity_per_day"] is not None and not math.isinf(a["breakeven_per_day"]):
         fits = a["breakeven_per_day"] <= a["capacity_per_day"]
-        L.append("Break-even needs %.0f %ss a day against a capacity of %.0f: %s" % (
-            math.ceil(a["breakeven_per_day"]), u, a["capacity_per_day"], "fits" if fits else "DOES NOT FIT"))
+        L.append("Break-even needs %.0f %s a day against a capacity of %.0f: %s" % (
+            math.ceil(a["breakeven_per_day"]), _many(u), a["capacity_per_day"], "fits" if fits else "DOES NOT FIT"))
         L.append("")
     if a.get("intake"):
-        L += ["The product cost, the ad spend and today's %ss a day come from the intake (%s)." % (
-            u, a["intake"].get("period") or "period not given"), ""]
+        L += ["The product cost, the ad spend and today's %s a day come from the intake (%s)." % (
+            _many(u), a["intake"].get("period") or "period not given"), ""]
     L += render_cod(a)
     L += render_scenarios(a)
     if a.get("ramped", True):
-        L += ["## Year 1, month by month", "", "| month | %ss | profit | cumulative |" % u, "| ---: | ---: | ---: | ---: |"]
+        L += ["## Year 1, month by month", "", "| month | %s | profit | cumulative |" % _many(u), "| ---: | ---: | ---: | ---: |"]
         for mo in a["months"]:
             L.append("| %d | %s | %s | %s |" % (mo["month"], "{:,.0f}".format(mo["units"]), _money(mo["profit"]), _money(mo["cumulative"])))
         L.append("")
     else:
-        L += ["No ramp was given, so every month of year one is the same: %s %ss a day and %s operating "
-              "profit a month, %s for the year." % (_count(a["plan_per_day"]), u, _money(a["operating_profit_month"]),
+        L += ["No ramp was given, so every month of year one is the same: %s %s a day and %s operating "
+              "profit a month, %s for the year." % (_count(a["plan_per_day"]), _many(u), _money(a["operating_profit_month"]),
                                                    _money(a["year1_profit"])), ""]
     L += ["## What if", "",
           "- Price drops 10%%: operating profit a month becomes %s" % _money(a["whatifs"]["price_down_10pct"]),
