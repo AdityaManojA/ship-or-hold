@@ -1,0 +1,144 @@
+{
+  "business": "Matcha cafe",
+  "currency": "Rs ",
+  "model": "paid",
+  "price": "180",
+  "price_for": "one cup",
+  "variable_cost": "62",
+  "answers": [
+    {
+      "too_cheap": 60,
+      "cheap": 90,
+      "expensive": 130,
+      "too_expensive": 180
+    },
+    {
+      "too_cheap": 70,
+      "cheap": 100,
+      "expensive": 145,
+      "too_expensive": 200
+    },
+    {
+      "too_cheap": 80,
+      "cheap": 110,
+      "expensive": 160,
+      "too_expensive": 220
+    },
+    {
+      "too_cheap": 90,
+      "cheap": 120,
+      "expensive": 160,
+      "too_expensive": 240
+    },
+    {
+      "too_cheap": 100,
+      "cheap": 130,
+      "expensive": 175,
+      "too_expensive": 220
+    },
+    {
+      "too_cheap": 110,
+      "cheap": 140,
+      "expensive": 190,
+      "too_expensive": 240
+    },
+    {
+      "too_cheap": 120,
+      "cheap": 150,
+      "expensive": 190,
+      "too_expensive": 260
+    },
+    {
+      "too_cheap": 130,
+      "cheap": 160,
+      "expensive": 205,
+      "too_expensive": 280
+    },
+    {
+      "too_cheap": 140,
+      "cheap": 170,
+      "expensive": 220,
+      "too_expensive": 260
+    },
+    {
+      "too_cheap": 150,
+      "cheap": 180,
+      "expensive": 220,
+      "too_expensive": 280
+    },
+    {
+      "too_cheap": 160,
+      "cheap": 190,
+      "expensive": 235,
+      "too_expensive": 300
+    },
+    {
+      "too_cheap": 170,
+      "cheap": 200,
+      "expensive": 250,
+      "too_expensive": 320
+    },
+    {
+      "too_cheap": 180,
+      "cheap": 210,
+      "expensive": 250,
+      "too_expensive": 300
+    },
+    {
+      "too_cheap": 190,
+      "cheap": 220,
+      "expensive": 265,
+      "too_expensive": 320
+    }
+  ],
+  "competitor_prices": [
+    {
+      "name": "Cafe on the corner",
+      "price": "160",
+      "includes": "one cup, no loyalty card",
+      "url": "https://example.com/corner-menu"
+    },
+    {
+      "name": "Chain store",
+      "price": "220",
+      "includes": "one cup, larger size",
+      "url": "https://example.com/chain-menu"
+    },
+    {
+      "name": "Tea stall",
+      "price": "90",
+      "includes": "one small cup, takeaway only",
+      "url": "https://example.com/stall"
+    }
+  ],
+  "candidates": [
+    "160",
+    "200"
+  ],
+  "ladder": [
+    {
+      "name": "Single cup",
+      "price": "180",
+      "why_step_up": ""
+    },
+    {
+      "name": "Cup and a pastry",
+      "price": "290",
+      "why_step_up": "Breakfast in one order"
+    }
+  ],
+  "opening_offer": {
+    "what": "Second cup half price in the opening fortnight",
+    "ends": "14 days after opening"
+  },
+  "tests": [
+    {
+      "price": "180",
+      "how": "Sell at the weekend market for two Saturdays and count cups sold."
+    },
+    {
+      "price": "200",
+      "how": "Same stall, the following two Saturdays."
+    }
+  ]
+}

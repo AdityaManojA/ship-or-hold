@@ -1,0 +1,195 @@
+{
+  "business": "Matcha cafe",
+  "currency": "Rs ",
+  "name": "The first-cup promise",
+  "core": "A proper cup of matcha in under four minutes, or the next one is free.",
+  "problems": [
+    {
+      "id": "p1",
+      "stage": "before",
+      "problem": "I do not know if it will taste like the one I had in Kyoto",
+      "source": "panel"
+    },
+    {
+      "id": "p2",
+      "stage": "before",
+      "problem": "It costs more than my usual coffee",
+      "source": "panel"
+    },
+    {
+      "id": "p3",
+      "stage": "before",
+      "problem": "I do not know where you are or when you open",
+      "source": "owner"
+    },
+    {
+      "id": "p4",
+      "stage": "before",
+      "problem": "The last place like this closed after two months",
+      "source": "competitors"
+    },
+    {
+      "id": "p5",
+      "stage": "during",
+      "problem": "The queue at lunch is too long",
+      "source": "competitors"
+    },
+    {
+      "id": "p6",
+      "stage": "during",
+      "problem": "I cannot tell which drink to order",
+      "source": "panel"
+    },
+    {
+      "id": "p7",
+      "stage": "during",
+      "problem": "There is nowhere to sit with a laptop",
+      "source": "panel"
+    },
+    {
+      "id": "p8",
+      "stage": "during",
+      "problem": "I want oat milk and they charge extra everywhere",
+      "source": "competitors"
+    },
+    {
+      "id": "p9",
+      "stage": "after",
+      "problem": "I forget to come back",
+      "source": "owner"
+    },
+    {
+      "id": "p10",
+      "stage": "after",
+      "problem": "I cannot make it this well at home",
+      "source": "estimate"
+    },
+    {
+      "id": "p11",
+      "stage": "after",
+      "problem": "Parking nearby is hard",
+      "source": "panel"
+    }
+  ],
+  "solutions": [
+    {
+      "problem": "p1",
+      "solution": "Free taster sip before you order",
+      "value": 5,
+      "cost": 1,
+      "exists": "yes",
+      "role": "core"
+    },
+    {
+      "problem": "p2",
+      "solution": "Loyalty card: sixth cup free",
+      "value": 4,
+      "cost": 2,
+      "exists": "yes",
+      "role": "bonus"
+    },
+    {
+      "problem": "p3",
+      "solution": "Map pin and opening hours on every post",
+      "value": 4,
+      "cost": 1,
+      "exists": "yes",
+      "role": "bonus"
+    },
+    {
+      "problem": "p5",
+      "solution": "Order ahead by message, collect at the hatch",
+      "value": 5,
+      "cost": 2,
+      "exists": "partly",
+      "role": "core"
+    },
+    {
+      "problem": "p6",
+      "solution": "Three-drink menu board with a picture of each",
+      "value": 4,
+      "cost": 1,
+      "exists": "yes",
+      "role": "core"
+    },
+    {
+      "problem": "p8",
+      "solution": "Oat milk at no extra charge",
+      "value": 4,
+      "cost": 2,
+      "exists": "yes",
+      "role": "bonus"
+    },
+    {
+      "problem": "p1",
+      "solution": "Next cup free if you do not like it",
+      "value": 5,
+      "cost": 2,
+      "exists": "yes",
+      "role": "guarantee"
+    },
+    {
+      "problem": "p7",
+      "solution": "Seating for twenty with sockets",
+      "value": 4,
+      "cost": 5,
+      "exists": "no",
+      "role": "later"
+    },
+    {
+      "problem": "p9",
+      "solution": "A reminder message on the day your card is nearly full",
+      "value": 3,
+      "cost": 2,
+      "exists": "no",
+      "role": "later"
+    },
+    {
+      "problem": "p10",
+      "solution": "Take-home tin and a one-page method",
+      "value": 4,
+      "cost": 2,
+      "exists": "yes",
+      "role": "bonus"
+    },
+    {
+      "problem": "p11",
+      "solution": "Street parking is the council's",
+      "value": 3,
+      "cost": 5,
+      "exists": "no",
+      "role": "not_ours"
+    }
+  ],
+  "unsolved": [
+    {
+      "problem": "p4",
+      "why": "Only staying open answers this. Nothing in the offer can."
+    }
+  ],
+  "guarantee": {
+    "promise": "If you do not like your first cup, the next one is free.",
+    "cost_if_claimed": "62",
+    "expected_claim_rate": "0.05"
+  },
+  "urgency": {
+    "what": "Opening fortnight: the taster sip comes with a free refill",
+    "true": true,
+    "ends": "14 days after opening"
+  },
+  "scores": {
+    "before": {
+      "outcome": 6,
+      "belief": 4,
+      "speed": 5,
+      "ease": 5
+    },
+    "after": {
+      "outcome": 7,
+      "belief": 7,
+      "speed": 8,
+      "ease": 7
+    }
+  },
+  "retest": "Show the new pitch to the same buyer panel and compare how many say they would buy."
+}

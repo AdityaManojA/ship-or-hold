@@ -37,10 +37,10 @@ lenses (facts, principles, behaviour and verbatim quotes with sources) are in
 | CEO | Steve Jobs | the product overall: focus, quality, what to cut, the call | none (chairs) |
 | CTO | Werner Vogels | all the engineering: does it work and keep working, code, API, security in plain words for the board | core flows, API, load, mobile flows |
 | CISO | Steve Katz | security and customer data | security, secrets, dependencies, infra, AI |
-| CFO | Ruth Porat | the business: who pays, how much, does each sale earn money | unit economics |
-| CMO | David Ogilvy | the market: who it is for, the promise, can people find it | none |
+| CFO | Ruth Porat | the business: who pays, how much, does each sale earn money, which revenue is live | unit economics, pricing |
+| CMO | David Ogilvy | the market: the gap, what buyers said, the promise, the plan to reach them | none |
 | Sales | John H. Patterson | can it be demoed and sold, the first buyer and their objection | none |
-| COO | Tim Cook | running it as a business: support, onboarding, cost to serve, readiness | launch-blocking readiness items |
+| COO | Tim Cook | running it as a business: routines, dependencies, cost to serve, readiness | launch-blocking readiness items, operations |
 | CPO | Tony Fadell | the experience: the job it does, where people get stuck | none |
 | Legal | Brad Smith | exposure and trust: claims, data, terms, regulation | privacy |
 
@@ -61,8 +61,10 @@ related. Most answers quote nothing.
 
 ## Step 1: evidence first
 
-The board judges the ledger, so the testing skills (or a profile such as `/proof-startup`) and
-`/proof-report` come first. With no evidence the board can only hold.
+The board judges the ledger, so the business and testing skills (or a profile such as
+`/proof-startup` or `/proof-business`) and `/proof-report` come first. With no evidence
+the board can only hold. When `proof/business/idea.md` exists and there is no product
+dossier yet, the board reads the idea file in its place.
 
 Then write the product dossier, `proof/product.md`, in at most 300 words, from what
 the repo itself says: the README, the landing page copy, pricing pages, launch or
@@ -128,9 +130,10 @@ python3 "${CLAUDE_SKILL_DIR}/board.py" tally --open
 as it comes, step by step, without waiting for the user**:
 
 1. **Opening:** the verdict going in, who is at the table, the agenda.
-2. **Each agenda item** (one per audit area: user flows, reliability, security,
-   infrastructure, privacy and legal, reach, AI, code health, finance, launch
-   readiness): what the team showed; each director who spoke, with their point, the
+2. **Each agenda item** (one per area: market and buyers, offer and pricing, user
+   flows, reliability, security, infrastructure, privacy and legal, reach, AI, code
+   health, finance, then go to market, operations and launch readiness): what the
+   team showed; each director who spoke, with their point, the
    evidence, and, only where it decided a high-severity call, the one quote it
    rested on ("Katz's view: ... He said: '...' (source, year)"); and the computed outcome: Blocker, Concerns, Clear or Not
    covered.
@@ -168,5 +171,7 @@ is not market validation, legal sign-off or a forecast.
 ## Output / next
 
 `proof/board/presentation.md`, `briefs/`, `answers/`, `qa.json`, `minutes.md`,
-`transcript.txt`, `decision.json` and `meeting.html`. Work through the actions,
-re-run the skills they touch, and convene the board again.
+`transcript.txt`, `decision.json` and `meeting.html`. Then `/proof-business-plan`: it
+puts the decision, the vote and the actions into the business plan and the half-page
+summary, which is the result the user is shown. Work through the actions, re-run the
+skills they touch, and convene the board again.

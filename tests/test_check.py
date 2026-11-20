@@ -49,6 +49,23 @@ class Profiles(unittest.TestCase):
         self.assertNotIn("proof-ai", got)
         self.assertNotIn("proof-api", got)
 
+    def test_business_profile_is_the_business_side_only_in_reading_order(self):
+        order = [s for s, _ in ck.select("business", {"web", "auth", "api"}, installed=ALL)]
+        self.assertEqual(order, ["proof-market", "proof-buyers", "proof-pricing", "proof-offer", "proof-finance",
+                                 "proof-go-to-market", "proof-ops"])
+        # it needs no app at all
+        self.assertEqual(picked("business", set()), set(order))
+
+    def test_startup_carries_the_whole_business_side(self):
+        self.assertTrue(set(ck.BUSINESS) <= picked("startup", {"web"}))
+        self.assertTrue(set(ck.BUSINESS) <= picked("startup", {"react_native"}))
+        # a code-only profile does not
+        self.assertFalse(set(ck.BUSINESS) & (picked("webapp", WEB_AI) | picked("security", WEB_AI)))
+
+    def test_business_skills_are_fingerprinted_on_everything_they_read(self):
+        for s in ck.BUSINESS:
+            self.assertEqual(ck.INPUTS.get(s), "all", s)
+
     def test_startup_follows_web_or_mobile(self):
         web = picked("startup", {"web", "auth"})
         self.assertIn("proof-web-e2e", web)

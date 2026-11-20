@@ -118,6 +118,45 @@ RECO = {
         ("proof-audit-trail", "package the whole run into a signed evidence folder"),
     ],
 }
+
+# The business side fits every kind of product: each skill writes one section of
+# the business plan, and the plan itself is compiled last.
+BUSINESS_RECO = [
+    ("proof-market", "map the competitors, what their customers complain about, and the gap"),
+    ("proof-buyers", "put the pitch in front of a seeded panel of simulated buyers"),
+    ("proof-pricing", "set the price, or work out what one visit earns when the product is free"),
+    ("proof-offer", "build the offer from the objections buyers raised"),
+    ("proof-finance", "the unit economics behind the product"),
+    ("proof-go-to-market", "positioning, channels and a first real-world test with a pass mark"),
+    ("proof-ops", "day-one routines, monthly costs and what the business depends on"),
+]
+PLAN_RECO = ("proof-business-plan", "compile the verdict, the board's decision and every section into the plan")
+
+
+def _with_business(rows):
+    """A kind's list with the business skills where finance sat, and the plan near the end."""
+    names = {n for n, _ in BUSINESS_RECO} | {PLAN_RECO[0]}
+    out, placed = [], False
+    for name, why in rows:
+        if name == "proof-finance":
+            out.extend(BUSINESS_RECO)
+            placed = True
+        elif name == "proof-audit-trail":
+            if not placed:
+                out.extend(BUSINESS_RECO)
+                placed = True
+            out.append(PLAN_RECO)
+            out.append((name, why))
+        elif name not in names:
+            out.append((name, why))
+    if not placed:
+        out.extend(BUSINESS_RECO)
+    if PLAN_RECO not in out:
+        out.append(PLAN_RECO)
+    return out
+
+
+RECO = {kind: _with_business(rows) for kind, rows in RECO.items()}
 RECO["mixed"] = RECO["web"]
 
 PUBLIC_ONLY = {"proof-seo", "proof-geo"}

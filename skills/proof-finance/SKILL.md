@@ -25,12 +25,19 @@ python3 "${CLAUDE_SKILL_DIR}/unit_economics.py" numbers.json --record     # also
 
 Write a `numbers.json` (start from `--template`):
 
-- `price` per unit, and `unit` (what one sale is).
+- `currency`: the prefix money is printed with, such as `"$"` or `"Rs "`. Set it; the
+  report prints every amount with it.
+- `price` per unit, and `unit` (what one sale is). For a product that is free to its
+  user, the unit is `1,000 visits` and the price is what 1,000 visits earn, from
+  `/proof-pricing`.
 - `variable`: the costs that come with each sale, as `{label, cost}` entries.
 - `fixed_monthly`: the costs that do not change with volume.
 - `startup`: the one-off costs to open.
 - `plan_per_day`: how many units a day you expect to sell.
-- optional `capacity_per_day`, `days_per_month`, `ramp_months` (a slow start).
+- optional `capacity_per_day`, `days_per_month`, and one way to say the start is slow:
+  `ramp_months` (a straight line up to plan) or `ramp_per_day` (12 numbers, the volume
+  you expect in each month of year one). Month one is almost never the plan; if no
+  real figure exists, say the ramp is an estimate wherever its results are quoted.
 
 Every cost is an estimate; mark it as one and get real quotes. A missing required
 field is an error, so the tool never quietly fills a gap with zero.
@@ -66,4 +73,5 @@ accountant. This is not financial advice.
 ## Output / next
 
 `proof/finance.md`, scores under `proof/scores/proof-finance.json`, coverage, and a
-finding if a unit loses money. Then `/proof-report`.
+finding if a unit loses money. `/proof-business-plan` includes `proof/finance.md` as
+the plan's numbers section. Then `/proof-report`.

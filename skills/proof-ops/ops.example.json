@@ -1,0 +1,60 @@
+{
+  "business": "Tiffin Loop",
+  "currency": "Rs ",
+  "team": [
+    {"who": "Owner", "hours_per_week": 50, "does": "Menu, buying, orders, money, customer messages"},
+    {"who": "Cook", "hours_per_week": 36, "does": "Cooking and packing, six mornings a week"},
+    {"who": "Rider", "hours_per_week": 15, "does": "Lunch delivery run, weekdays"}
+  ],
+  "routines": [
+    {"name": "Morning cook and pack", "when": "daily", "owner": "Cook", "time_minutes": 180,
+     "steps": ["Check the order count sent the night before", "Cook the day's menu", "Pack and label each box by floor", "Hand the boxes to the rider by 12:15"]},
+    {"name": "Delivery run", "when": "daily", "owner": "Rider", "time_minutes": 75,
+     "steps": ["Collect the labelled boxes", "Deliver floor by floor", "Message the owner when the last box is handed over"]},
+    {"name": "Order cut-off and buying list", "when": "daily", "owner": "Owner", "time_minutes": 40,
+     "steps": ["Close orders at 8 pm", "Send the count to the cook", "Write tomorrow's buying list"]},
+    {"name": "Weekly menu and supplier order", "when": "weekly", "owner": "Owner", "time_minutes": 90,
+     "steps": ["Set next week's menu", "Place the vegetable and grocery order", "Post the menu to subscribers"]},
+    {"name": "Month-end money check", "when": "monthly", "owner": "Owner", "time_minutes": 120,
+     "steps": ["Match payments received to subscriptions", "Pay the cook, the rider and the suppliers", "Write down what was left"]},
+    {"name": "Missed or late delivery", "when": "on_event", "owner": "Owner", "time_minutes": 20,
+     "steps": ["Message the customer within 15 minutes", "Credit the day as the promise says", "Note the cause"]}
+  ],
+  "monthly_costs": [
+    {"label": "Kitchen rent", "cost": "12000", "source": "invoice"},
+    {"label": "Cook", "cost": "18000", "source": "owner"},
+    {"label": "Rider", "cost": "7000", "source": "owner"},
+    {"label": "Cooking gas and power", "cost": "3500", "source": "estimate"},
+    {"label": "Boxes and labels", "cost": "4200", "source": "quote"},
+    {"label": "Payment collection fees", "cost": "1500", "source": "estimate"}
+  ],
+  "dependencies": [
+    {"name": "The cook", "kind": "person", "used_for": "All cooking", "permission": "written",
+     "if_lost": "No food goes out that day", "fallback": "Owner cooks a two-dish menu; a second cook is on call at a day rate",
+     "likelihood": 2, "impact": 5},
+    {"name": "Rented kitchen", "kind": "supplier", "used_for": "Where the food is made", "permission": "written",
+     "if_lost": "Nowhere licensed to cook", "fallback": "Owner has a quote from a second shared kitchen 2 km away",
+     "likelihood": 1, "impact": 5},
+    {"name": "Food business licence", "kind": "licence", "used_for": "Permission to sell cooked food", "permission": "written",
+     "if_lost": "Selling must stop until it is renewed", "fallback": "Renewal date is in the calendar 60 days ahead",
+     "likelihood": 1, "impact": 5},
+    {"name": "Payment collection service", "kind": "payment", "used_for": "Weekly subscription payments", "permission": "public_terms",
+     "if_lost": "Customers cannot pay online", "fallback": "Bank transfer to the business account with a reference",
+     "likelihood": 2, "impact": 3},
+    {"name": "Tech park access for the rider", "kind": "platform", "used_for": "Reaching the desks", "permission": "written",
+     "if_lost": "Boxes stop at the gate", "fallback": "Hand over at the lobby desk, customers collect",
+     "likelihood": 2, "impact": 4}
+  ],
+  "support": {"channel": "A phone number that takes messages, printed on every box", "response_target_hours": 2, "who": "Owner"},
+  "legal": [
+    {"item": "Business registration", "status": "done", "note": "Owner holds the certificate"},
+    {"item": "Food business licence", "status": "done", "note": "Owner holds it; renewal date noted"},
+    {"item": "Written terms for the weekly subscription and refunds", "status": "to_do", "note": "Take the draft to a lawyer"},
+    {"item": "Agreement with the cook and the rider", "status": "to_do", "note": "Ask an accountant how each should be paid"}
+  ],
+  "kpis": [
+    {"name": "Boxes delivered by 1 pm", "target": "98 of every 100", "how_measured": "Rider's last-box message time, each day"},
+    {"name": "Subscribers who renew for a second week", "target": "7 of every 10", "how_measured": "Payment record, weekly"},
+    {"name": "Food cost per box", "target": "No more than Rs 55", "how_measured": "Week's buying bills divided by boxes sent"}
+  ]
+}

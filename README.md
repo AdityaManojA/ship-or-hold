@@ -1,21 +1,38 @@
 # Proof
 
-Fifty-five Claude skills that test a product before you ship it, then present it to a board of directors. Free, MIT, no
-signup, no API key, nothing to connect.
+Sixty-three Claude skills that tell you whether to ship or hold: is this a business, and does the product work. A
+board of directors votes on the evidence, and the result is a business plan and a half-page summary you can act
+on. Free, MIT, no signup, no API key, nothing to connect.
 
-Most testing tools let the model say something passed. Proof does not. Every skill
-records evidence (a screenshot, a failing test, a measured number, a captured
-response) in a shared ledger, and the verdict is computed from that ledger by a
-small Python tool: Ship, Not yet, or Incomplete. A finding only counts once it is
-verified, and a missing input is an error, never a silent pass.
+**The result of a run is three files:**
 
-It covers web and mobile testing, API contracts, security, secrets, dependencies
+| file | what it is |
+| --- | --- |
+| `proof/summary.md` | half a page: the verdict, the three numbers behind it, the biggest risk, the one thing to do this week |
+| `proof/business-plan.md` | the verdict, the board's decision and actions, the key numbers, then every section: market, buyers, pricing, the offer, the numbers, go to market, operations, launch readiness, the product itself, and what is not done yet |
+| `proof/one-pager.md` | the same numbers, word for word, for someone deciding in two minutes |
+
+Behind them sit the board meeting (`proof/board/meeting.html`, which plays itself) and the technical report
+(`proof/report.md`), for whoever wants the detail.
+
+Most tools let the model say something passed, or let it write a confident plan from nothing. Proof does
+neither. Every skill records evidence (a competitor's price page, a buyer's answer, a measured number, a
+screenshot, a captured response) in a shared ledger, and the verdict is computed from that ledger by a small
+Python tool: Ship, Not yet, or Incomplete. A finding only counts once it is verified, a missing input is an
+error and never a silent pass, an estimate stays labelled as an estimate, and a section nobody produced is
+listed as not done instead of being filled in.
+
+The business side covers who already solves the problem and what their customers complain about, what a
+seeded panel of simulated buyers says to the pitch, the price (or what one visit earns when the product is
+free), the offer, the unit economics, how it reaches people, and what it depends on to run.
+
+The product side covers web and mobile testing, API contracts, security, secrets, dependencies
 and infrastructure config, privacy, performance, accessibility, browser
 compatibility, visual regression, translations, transactional email, load, test
 strength, SEO and AI-search readiness, LLM-feature safety, launch readiness, and
-the unit economics behind the product. When the testing is done, a board of nine
-directors (CEO, CTO, CISO, CFO, CMO, Sales, COO, CPO and Legal) hears the evidence
-and votes on the launch, in a meeting that runs by itself.
+launch readiness. When the evidence is in, a board of nine
+directors (CEO, CTO, CISO, CFO, CMO, Sales, COO, CPO and Legal) hears it
+and votes on the launch, in a meeting that runs by itself, and the plan is compiled with their decision in it.
 
 ## Install
 
@@ -89,8 +106,9 @@ Each one runs only what that kind of product needs, so you never spend a run on 
 
 | say | command | runs |
 | --- | --- | --- |
+| "is this a business" | `/proof-business` | the business side only, no running app: market, buyers, price, offer, numbers, go to market, operations; the board votes; the plan is compiled |
+| "are we ready to launch" | `/proof-startup` | all of the above plus the core flows and the launch-sinking risks |
 | "quick check" | `/proof-quick` | offline scans of secrets, dependencies and deploy config; minutes, no running app |
-| "are we ready to launch" | `/proof-startup` | core flows, launch-sinking risks, unit economics, then the board votes |
 | "check my web app" | `/proof-webapp` | flows, web security, privacy, speed, accessibility |
 | "check my mobile app" | `/proof-mobile` | device flows, the build, store rules, phone accessibility |
 | "check my API" | `/proof-backend` | contract, security, data, deploy config |
@@ -114,7 +132,11 @@ Or start with `/proof-plan`, which records what is under test and asks you to
 confirm you own it or have permission to test it, then pick the skills you need.
 Everything Proof writes goes into a `proof/` folder in your project.
 
-## The fifty-five
+The business skills need three things only you know, and ask for them once: how it makes money, who the
+customer is, and what it costs to run. They never guess them. Two of them use sub-agents and say so first:
+the market research reads many public pages, and the buyer panel is one sub-agent per buyer (20 by default).
+
+## The sixty-three
 
 | command | job | what it does |
 | --- | --- | --- |
@@ -126,6 +148,14 @@ Everything Proof writes goes into a `proof/` folder in your project.
 | `/proof-mobile` | Mobile app check | Device flows, the build, React Native/Expo, store rejection risks and phone accessibility. |
 | `/proof-backend` | Backend check | API contract, web security, sign-in, data, deploy config, LLM cost and RAG, as the service needs. |
 | `/proof-security` | Security check | Secrets, dependencies, web security, sign-in, data, infra and privacy only. |
+| `/proof-business-plan` | The result | Compiles the verdict, the board's decision, the key numbers and every section into the business plan, checks the half-page summary states the verdict, and writes a one-pager with the same numbers. |
+| `/proof-business` | Business check | The business side only, no running app: the seven business skills in order, then the board and the plan. |
+| `/proof-market` | Market | Competitors and substitutes from public sources with every fact linked, the price range, their customers' complaints by theme, the gap, and what could not be verified. |
+| `/proof-buyers` | Buyer panel | A seeded panel of simulated buyers hears the pitch: who would buy, why the rest pass in their own words, what would change their mind, and a re-test of a revised pitch on the same buyers. |
+| `/proof-pricing` | Pricing | The price from buyers' answers, competitors and the margin. For a product free to its user: what 1,000 visits earn, with live, unproven and paused revenue lines kept apart. |
+| `/proof-offer` | Offer | Every obstacle between the buyer and the result, each scored as a solution, the stack that is cheap to deliver, and what the offer cannot fix yet. |
+| `/proof-go-to-market` | Go to market | Positioning, the channels and what each costs, name checks, a first real-world test with its pass mark written first, and no promotion while a blocker is open. |
+| `/proof-ops` | Operations | Day-one routines, monthly costs, and a register of what the business depends on, with permission and fallback for each. |
 | `/proof-ultracheck` | Ultra check | Every skill that fits the app, optional ones included. Long; opt in deliberately. |
 | `/proof-plan` | Planner | Records what is under test, whether you are authorised to test it, and which skills the verdict waits for. |
 | `/proof-report` | Verdict | Computes Ship, Not yet or Incomplete. Writes Markdown, HTML and SARIF reports, and compares runs. |
@@ -180,9 +210,13 @@ Start with `/proof-plan`. It writes `proof/target.json`, which every other skill
 reads. Then either pick the skills you need or run a profile:
 
 ```
-plan -> the skills you choose -> report -> board -> audit-trail
-plan -> a profile (startup, webapp, mobile, ...) -> report -> board -> audit-trail
+plan -> the skills you choose -> report -> board -> business-plan -> audit-trail
+plan -> a profile (business, startup, webapp, mobile, ...) -> report -> board -> business-plan -> audit-trail
 ```
+
+`/proof-business-plan` is the last real step. It reads the ledger, the board's decision and each section the
+business skills wrote under `proof/business/`, and compiles the plan. You are shown the verdict, the board's
+decision and the summary in full; the technical report is the appendix.
 
 Each skill writes into a `proof/` folder in your project: findings, coverage (what
 was looked at), scores, and the evidence files behind them. Every skill also runs on
@@ -216,8 +250,9 @@ have permission to test it.
 
 | profile | use it for | always runs | joins when the review finds it |
 | --- | --- | --- | --- |
+| `/proof-business` | an idea or a live product, business side only | market, buyers, pricing, offer, finance, go to market, operations | |
+| `/proof-startup` | an MVP about to launch | everything in `/proof-business`, plus core flows (web or mobile), secrets, deps | sign-in, database, privacy (web), store rules (mobile), email, LLM safety; SEO/GEO with `--public` |
 | `/proof-quick` | any repo, before a push | secrets, deps, infra | |
-| `/proof-startup` | an MVP about to launch | core flows (web or mobile), secrets, deps, finance | sign-in, database, privacy (web), store rules (mobile), email, LLM safety; SEO/GEO with `--public` |
 | `/proof-webapp` | a web app or PWA | web flows, secrets, deps, web security, privacy, speed, accessibility | API, sign-in, database, PWA, email, translations, LLM safety; SEO/GEO with `--public` |
 | `/proof-mobile` | an iOS or Android app | device flows, build audit, store rules, phone accessibility, secrets, deps | React Native/Expo, API, sign-in, LLM safety, on-device model, voice |
 | `/proof-backend` | an API or service | API contract, web security, secrets, deps, infra | sign-in, database, email, LLM safety and cost, RAG |
@@ -242,7 +277,9 @@ An example run: an online shop, running locally, with a checkout.
    listed. Fix it, re-run the flow, and it says Ship. `rundiff.py compare` shows what
    changed between the runs.
 6. **`/proof-board`** holds the meeting described below.
-7. **`/proof-audit-trail`** packs the run with a hash for every file.
+7. **`/proof-business-plan`** compiles the plan, the summary and the one-pager with the
+   board's decision in them, when the business skills were part of the run.
+8. **`/proof-audit-trail`** packs the run with a hash for every file.
 
 ## The board meeting
 
@@ -451,6 +488,14 @@ skills/proof-slop/              SKILL.md, slop.py
 skills/proof-seo/               SKILL.md, seo_score.py, page.example.html
 skills/proof-geo/               SKILL.md, geo_score.py, scoring.md, llms.example.txt
 skills/proof-ai/                SKILL.md, redteam.py, eval_import.py
+skills/proof-business-plan/     SKILL.md, plan.py
+skills/proof-business/          SKILL.md
+skills/proof-market/            SKILL.md, market.py, competitors.example.csv, market.example.json
+skills/proof-buyers/            SKILL.md, buyers.py, customer.example.json, pitch.example.md
+skills/proof-pricing/           SKILL.md, pricing.py, pricing.example.json, pricing-free.example.json
+skills/proof-offer/             SKILL.md, offer.py, offer.example.json
+skills/proof-go-to-market/      SKILL.md, gtm.py, gtm.example.json
+skills/proof-ops/               SKILL.md, ops.py, ops.example.json
 skills/proof-finance/           SKILL.md, unit_economics.py
 skills/proof-release/           SKILL.md, release.py, checklist.md
 skills/proof-audit-trail/       SKILL.md, pack.py

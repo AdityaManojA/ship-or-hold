@@ -1,0 +1,34 @@
+{
+  "business": "Example office lunch delivery",
+  "currency": "Rs ",
+  "price_for": "one lunch",
+  "complaints": [
+    {
+      "theme": "Lunch arrives late",
+      "product_fixes": true,
+      "core": true,
+      "sources": [
+        {"quote": "Ordered for 1pm, it came at 2.15.", "url": "https://example.com/reviews/1", "date": "2026-10-12"},
+        {"quote": "Third late delivery this month.", "url": "https://example.com/reviews/2", "date": "2026-10-20"},
+        {"quote": "By the time it shows up my break is over.", "url": "https://example.com/reviews/3", "date": "2026-11-01"}
+      ]
+    },
+    {
+      "theme": "Same menu every week",
+      "product_fixes": false,
+      "core": false,
+      "sources": [
+        {"quote": "Dal and rice again, five days running.", "url": "https://example.com/reviews/4", "date": "2026-10-28"}
+      ]
+    }
+  ],
+  "gap": "Nobody listed promises a delivery time and refunds the meal when it is missed.",
+  "threat": "The food app could add a fixed-time office lunch plan and already has the riders.",
+  "could_not_verify": [
+    "Example Office Canteen has no public reviews; its price came from a photographed menu.",
+    "The review page for Example Food App needed a login and was not read."
+  ],
+  "revenue_facts": [
+    {"claim": "Example Daily Meals says it serves 4,000 meals a day.", "url": "https://example.com/daily-meals/about", "status": "their own claim, not confirmed"}
+  ]
+}

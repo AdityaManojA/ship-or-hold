@@ -105,4 +105,7 @@ that no bug exists. Re-run the repros that matter before relying on it.
 
 `proof/report.md` and `proof/verdict.json`. If the verdict is Not yet, fix the
 blockers and run the relevant skill again. If Incomplete, do what each gap says.
-`/proof-audit-trail` packages the whole run with hashes once you are done.
+When the business skills were part of the run, `/proof-board` and then
+`/proof-business-plan` come next: the plan carries this verdict, the board's decision
+and every section, and it is the result the user is shown. `/proof-audit-trail`
+packages the whole run with hashes once you are done.

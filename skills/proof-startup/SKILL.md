@@ -1,13 +1,13 @@
 ---
 name: proof-startup
 description: >-
-  Lean launch check for a startup MVP: core flows, launch-sinking risks and unit economics, then the board votes. Use for "startup check", "are we ready to launch", "MVP check" or "can we ship this".
+  Launch check for a startup: core flows, launch-sinking risks and the whole business side, then the board votes and the business plan is compiled. Use for "startup check", "are we ready to launch", "MVP check" or "can we ship this".
 argument-hint: "[--public] [--add proof-x] [--skip proof-x]"
 ---
 
 # proof-startup
 
-What a founder needs to know before opening the doors, and nothing that can wait: does the product work, will it embarrass you, and does it make money. It reads web or mobile from the review and runs the matching flows.
+What a founder needs to know before opening the doors: does the product work, will it embarrass you, and is it a business. It reads web or mobile from the review and runs the matching flows, then the business side: who else is there, whether anyone would buy, at what price, whether the numbers work, how it reaches people and how it runs. The result is a business plan and a half-page summary, with the technical report behind it.
 
 What the user typed after `/proof-startup`: `$ARGUMENTS`
 
@@ -17,7 +17,10 @@ What the user typed after `/proof-startup`: `$ARGUMENTS`
 | --- | --- |
 | `/proof-web-e2e` or `/proof-mobile-e2e` | the core user flows, from what the review found |
 | `/proof-sec-secrets`, `/proof-sec-deps` | leaked keys and vulnerable packages |
+| `/proof-market`, `/proof-buyers` | competitors and the gap; what a panel of simulated buyers says to the pitch |
+| `/proof-pricing`, `/proof-offer` | the price, or what one visit earns when it is free; the offer built from buyers' objections |
 | `/proof-finance` | unit economics: margin, break-even, cash needed |
+| `/proof-go-to-market`, `/proof-ops` | positioning, channels and a first real test; routines, costs and dependencies |
 
 Only when the review finds it:
 
@@ -56,11 +59,11 @@ Common additions when the user asks: `/proof-web-perf` (speed), `/proof-a11y` (a
    what earlier runs learnt, and `check.py next` skips every skill whose inputs have
    not changed, so only the changed areas run. After redeploying a live target, mark
    its live skills with `check.py refresh <skill>`.
-5. **Finish.** `/proof-report`, then `/proof-board` whatever the verdict (it ends with `board.py tally --open`, which opens the meeting page), then `/proof-audit-trail`.
+5. **Finish.** `/proof-report`, then `/proof-board` whatever the verdict (it ends with `board.py tally --open`, which opens the meeting page), then `/proof-business-plan`: it compiles the verdict, the board's decision and every section into `proof/business-plan.md`, `proof/summary.md` and `proof/one-pager.md`. Show the user the verdict, the decision and the summary in full; that is the result of the run. Then `/proof-audit-trail`.
 
 ## Example
 
-For a Next.js MVP with email sign-in, a Postgres database and an LLM chat feature, the plan holds 9 skills:
+For a Next.js MVP with email sign-in, a Postgres database and an LLM chat feature, the plan holds 15 skills:
 
 ```
 /proof-web-e2e  end-to-end user flows
@@ -71,18 +74,25 @@ For a Next.js MVP with email sign-in, a Postgres database and an LLM chat featur
 /proof-privacy  trackers, consent and personal data
 /proof-email  transactional emails
 /proof-ai  LLM feature safety
+/proof-market  competitors, what their customers complain about, and the gap
+/proof-buyers  a seeded panel of simulated buyers hears the pitch
+/proof-pricing  the price, or what one visit earns when the product is free
+/proof-offer  the offer built from the objections buyers raised
 /proof-finance  unit economics
+/proof-go-to-market  positioning, channels and a first real-world test with a pass mark
+/proof-ops  day-one routines, monthly costs and what the business depends on
 ```
 
 ## Not the right fit?
 
-Not launching yet? `/proof-quick` for a fast scan. Need depth in one area? `/proof-webapp`, `/proof-mobile` or `/proof-security`.
+Only the business side, with no app to test yet? `/proof-business`. Not launching yet? `/proof-quick` for a fast scan. Need depth in one area? `/proof-webapp`, `/proof-mobile` or `/proof-security`.
 
 ## Honest limits
 
-Lean by design: performance, accessibility, load and code quality are left out unless added, and the report says so. Unit economics need real numbers from the user; the finance skill never guesses them. Ship means every required check passed on the build you tested.
+Performance, accessibility, load and code quality are left out unless added, and the report says so. The business skills need facts only the user has (how it makes money, who buys, what it costs); they never guess them, and an estimate stays labelled as one. Simulated buyers and directors are not customers or investors. Ship means every required check passed on the build you tested.
 
 ## Output / next
 
 `proof/review.json`, `proof/check.json`, `required_skills` in `proof/target.json`, and
-each skill's own evidence. Then `/proof-report`.
+each skill's own evidence, the sections under `proof/business/`, then `proof/board/`,
+`proof/summary.md`, `proof/business-plan.md` and `proof/one-pager.md`.

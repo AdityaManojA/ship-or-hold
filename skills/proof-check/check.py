@@ -12,6 +12,7 @@ does not need.
     python3 check.py profiles                        # the profiles, and which one fits this app
     python3 check.py plan --profile webapp           # review, then the web-app skills that fit
     python3 check.py plan --profile startup --public # also SEO and AI search, for a public launch
+    python3 check.py plan --profile business         # the business side only, no running app
     python3 check.py plan --profile mobile --add proof-resilience --skip proof-finance
     python3 check.py status
     python3 check.py next                            # skips skills whose inputs have not changed
@@ -48,7 +49,7 @@ def _always(_):
 
 
 # Every skill a profile can use, in run order (flows first, then security, then
-# quality, then reach and money), with what it is for and when it fits the app.
+# quality, then reach, then the business itself), with what it is for and when it fits the app.
 # `s` is the set of review signals, plus "public" when the product is meant to be
 # found. A profile only ever runs the skills on its list that fit.
 SKILLS = [
@@ -89,11 +90,22 @@ SKILLS = [
     ("proof-licenses", "dependency licences and a software bill of materials", _always),
     ("proof-seo", "search engine optimisation", lambda s: "public" in s and bool(WEB_SIG & s)),
     ("proof-geo", "AI-search citability", lambda s: "public" in s and bool(WEB_SIG & s)),
-    ("proof-release", "launch checklist; items only a person can prove", _always),
+    ("proof-market", "competitors, what their customers complain about, and the gap", _always),
+    ("proof-buyers", "a seeded panel of simulated buyers hears the pitch", _always),
+    ("proof-pricing", "the price, or what one visit earns when the product is free", _always),
+    ("proof-offer", "the offer built from the objections buyers raised", _always),
     ("proof-finance", "unit economics", _always),
+    ("proof-go-to-market", "positioning, channels and a first real-world test with a pass mark", _always),
+    ("proof-ops", "day-one routines, monthly costs and what the business depends on", _always),
+    ("proof-release", "launch checklist; items only a person can prove", _always),
 ]
 WHY = {name: why for name, why, _ in SKILLS}
 FITS = {name: fits for name, _, fits in SKILLS}
+
+# The business side of a run: each writes one section of the business plan and
+# records its evidence in the same ledger as everything else.
+BUSINESS = ["proof-market", "proof-buyers", "proof-pricing", "proof-offer", "proof-finance",
+            "proof-go-to-market", "proof-ops"]
 
 # The profiles. Each is a short list on purpose: what a product of that kind
 # cannot ship without, nothing it merely could check. Everything else stays one
@@ -106,10 +118,17 @@ PROFILES = {
     },
     "startup": {
         "title": "startup launch check",
-        "for": "an MVP about to launch: the core flows, the risks that sink a launch, and whether each sale makes money",
+        "for": "an MVP about to launch: the core flows, the risks that sink a launch, and the business itself "
+               "(market, buyers, price, offer, numbers, reach and operations)",
         "skills": ["proof-web-e2e", "proof-mobile-e2e", "proof-sec-secrets", "proof-sec-deps", "proof-auth",
                    "proof-database", "proof-privacy", "proof-store-ready", "proof-email", "proof-ai",
-                   "proof-seo", "proof-geo", "proof-finance"],
+                   "proof-seo", "proof-geo"] + BUSINESS,
+    },
+    "business": {
+        "title": "business check",
+        "for": "the business side only, no running app needed: who else is there, will anyone buy, at what price, "
+               "do the numbers work, how it reaches people and how it runs",
+        "skills": list(BUSINESS),
     },
     "webapp": {
         "title": "web app check",
@@ -270,8 +289,11 @@ INFRA_RE = re.compile(r"^(Dockerfile.*|.*\.dockerfile|\.dockerignore|(docker-)?c
                       r"Chart\.yaml|kustomization\.ya?ml)$")
 INFRA_DIRS = (".github/workflows/", ".circleci/", "k8s/", "kubernetes/", "helm/", "deploy/")
 # What each skill reads. Everything not listed reads the source ("code"); the
-# finance skill also reads the docs its inputs come from ("all").
-INPUTS = {"proof-sec-deps": "deps", "proof-licenses": "deps", "proof-infra": "infra", "proof-finance": "all"}
+# finance skill and the other business skills also read the docs their inputs come
+# from ("all").
+INPUTS = {"proof-sec-deps": "deps", "proof-licenses": "deps", "proof-infra": "infra", "proof-finance": "all",
+          "proof-market": "all", "proof-buyers": "all", "proof-pricing": "all", "proof-offer": "all",
+          "proof-go-to-market": "all", "proof-ops": "all"}
 
 
 def _walk(roots):

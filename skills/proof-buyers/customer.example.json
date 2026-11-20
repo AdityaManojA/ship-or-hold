@@ -1,0 +1,32 @@
+{
+  "business": "Example office lunch delivery",
+  "target": "office workers who buy lunch on workdays",
+  "where": "Pune, India",
+  "currency": "Rs ",
+  "income_period": "a month",
+  "price_for": "one lunch delivered to the desk",
+  "free": false,
+  "age": [22, 45],
+  "segments": [
+    {"name": "Junior staff, first job", "share": 0.45, "income": [25000, 45000]},
+    {"name": "Mid-level staff", "share": 0.40, "income": [50000, 110000]},
+    {"name": "Team leads and managers", "share": 0.15, "income": [120000, 250000]}
+  ],
+  "behaviours": [
+    {"name": "Brings lunch from home", "share": 0.35, "how": "Packs a box most mornings and eats at the desk."},
+    {"name": "Orders on a food app", "share": 0.40, "how": "Opens an app around noon and picks whatever has an offer."},
+    {"name": "Eats at the canteen", "share": 0.25, "how": "Walks down with colleagues and takes the set plate."}
+  ],
+  "objections": [
+    "New food services are good for a month and then the quality drops.",
+    "I do not want to pay for a whole month up front.",
+    "My lunch time moves around with meetings.",
+    "I have never heard of this company."
+  ],
+  "habits": [
+    "Decides what to eat at the last minute.",
+    "Tracks every rupee spent on food.",
+    "Eats with the same two colleagues every day.",
+    "Skips lunch when work is busy."
+  ]
+}

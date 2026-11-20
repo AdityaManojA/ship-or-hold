@@ -41,6 +41,24 @@ board held the launch: the CISO's and Legal's vetoes fired from verified high
 findings, and every director voted Hold. To hold your own, run `/proof-board`
 after the testing skills.
 
+## The business demo
+
+```bash
+python3 examples/run_business_demo.py
+```
+
+Runs the business side end to end on each skill's own example inputs (a lunch-box
+delivery business that does not exist): market, buyers, pricing, the offer, the
+numbers, go to market and operations, then the verdict and the plan. It writes the
+three files a run ends with into `examples/business-demo/proof/`: `summary.md`,
+`business-plan.md` and `one-pager.md`.
+
+Two things differ from a real run, and the output says so: the buyer answers and the
+summary are written by the script (in a real run a sub-agent plays each buyer and
+Claude writes the summary), and the board has not met, which the plan lists under
+"What is not done yet". Nothing leaves the machine and no sub-agent is started. The
+same run is a test (`tests/test_business_demo.py`).
+
 ## GitHub Action
 
 `github-workflow.yml` is a workflow to copy into your own repo as

@@ -92,14 +92,20 @@ ENGINEERING = {"proof-sec-web", "proof-sec-secrets", "proof-sec-deps", "proof-se
                "proof-react-native", "proof-llm-device", "proof-rag", "proof-resilience", "proof-watch"}
 
 
+IDEA_FILE = os.path.join("business", "idea.md")
+
+
 def load_product(d):
-    """The team's product dossier (proof/product.md), or None."""
-    path = os.path.join(ledger.root(d), PRODUCT_FILE)
-    if not os.path.exists(path):
-        return None
-    with open(path, encoding="utf-8") as fh:
-        text = fh.read().strip()
-    return text or None
+    """The team's product dossier (proof/product.md), else the idea file the business
+    plan starts from (proof/business/idea.md), or None."""
+    for rel in (PRODUCT_FILE, IDEA_FILE):
+        path = os.path.join(ledger.root(d), rel)
+        if os.path.exists(path):
+            with open(path, encoding="utf-8") as fh:
+                text = fh.read().strip()
+            if text:
+                return text
+    return None
 
 
 def evidence(d):
@@ -695,6 +701,8 @@ def decide(r, seats, answers, triggered):
 
 # The meeting walks the audits area by area, in the order a board would take them.
 AREAS = [
+    ("market", "Market and buyers", ["proof-market", "proof-buyers"]),
+    ("offer", "Offer and pricing", ["proof-pricing", "proof-offer"]),
     ("flows", "Product and user flows",
      ["proof-web-e2e", "proof-mobile-e2e", "proof-mobile-explore", "proof-explore", "proof-compat", "proof-visual",
       "proof-design-match", "proof-pwa"]),
@@ -711,11 +719,12 @@ AREAS = [
     ("ai", "AI features", ["proof-ai", "proof-rag"]),
     ("quality", "Code health", ["proof-restraint", "proof-slop"]),
     ("finance", "Finance", ["proof-finance", "proof-llm-cost"]),
-    ("launch", "Launch readiness and operations", ["proof-release", "proof-email", "proof-store-ready"]),
+    ("launch", "Go to market, operations and launch readiness",
+     ["proof-go-to-market", "proof-ops", "proof-release", "proof-email", "proof-store-ready"]),
 ]
 SKILL_AREA = {sk: aid for aid, _, sks in AREAS for sk in sks}
 # One word per step for the meeting page's progress bar; the full title is the tooltip.
-SHORT = {"product": "Product", "flows": "Flows", "reliability": "Performance", "security": "Security", "infra": "Infra",
+SHORT = {"product": "Product", "market": "Market", "offer": "Offer", "flows": "Flows", "reliability": "Performance", "security": "Security", "infra": "Infra",
          "privacy": "Privacy", "reach": "Reach", "ai": "AI", "quality": "Code", "finance": "Finance",
          "launch": "Launch"}
 SHORT_BY_TITLE = dict((title, SHORT[aid]) for aid, title, _ in AREAS)
@@ -1775,6 +1784,7 @@ def cmd_tally(a):
         len(dec["votes"]["go"]), len(dec["votes"]["go_with_conditions"]), len(dec["votes"]["hold"]), len(dec["missing"])))
     print("%d action(s). Minutes: %s  Meeting: %s" % (
         len(dec["conditions"]), os.path.join(bdir, "minutes.md"), os.path.join(bdir, "meeting.html")))
+    print("Next: /proof-business-plan puts this decision, the numbers and every section into one plan.")
     if a.open:
         open_page(os.path.join(bdir, "meeting.html"))
     return {GO: 0, GO_COND: 0, HOLD: 1}[dec["decision"]]

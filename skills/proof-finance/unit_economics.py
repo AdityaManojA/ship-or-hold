@@ -53,6 +53,9 @@ def analyse(spec):
     if "price" not in spec:
         raise NumbersError("'price' is missing")
     price = num.parse_number(spec["price"], field="price")
+    currency = spec.get("currency", "$")
+    if not isinstance(currency, str) or not currency.strip():
+        raise NumbersError("'currency' must be the prefix money is printed with, such as \"$\" or \"Rs \"")
     unit = spec.get("unit", "unit")
     days = num.parse_number(spec.get("days_per_month", 30), field="days_per_month")
 
@@ -80,13 +83,18 @@ def analyse(spec):
     # Year one, month by month, with an optional linear ramp up to plan.
     ramp = spec.get("ramp_months")
     ramp = int(num.parse_number(ramp, field="ramp_months")) if ramp is not None else 0
+    per_day = spec.get("ramp_per_day")
+    if per_day is not None:
+        if not isinstance(per_day, list) or len(per_day) != 12:
+            raise NumbersError("'ramp_per_day' must list 12 numbers, one a month for year 1")
+        per_day = [num.parse_number(x, field="ramp_per_day") for x in per_day]
     months = []
     cumulative = -startup
     low_water = cumulative
     payback_month = None
     for m in range(1, 13):
         frac = 1.0 if ramp <= 0 or m > ramp else (m / float(ramp))
-        units = plan_per_month * frac
+        units = per_day[m - 1] * days if per_day is not None else plan_per_month * frac
         profit = units * contribution - fixed
         cumulative += profit
         low_water = min(low_water, cumulative)
@@ -98,7 +106,7 @@ def analyse(spec):
     cash_needed = -low_water if low_water < 0 else 0.0
 
     return {
-        "business": spec.get("business", ""), "unit": unit, "price": price,
+        "business": spec.get("business", ""), "unit": unit, "price": price, "currency": currency,
         "variable": variable, "fixed_monthly": fixed, "startup": startup,
         "contribution": contribution, "contribution_pct": contribution_pct,
         "plan_per_day": plan_per_day, "days_per_month": days,
@@ -122,15 +130,20 @@ def _whatifs(spec, price, variable, fixed, days, plan_per_day):
     }
 
 
+CURRENCY = "$"  # the prefix money is printed with; set from the inputs' "currency" field
+
+
 def _money(x):
-    return "-$%s" % "{:,.0f}".format(-x) if x < 0 else "$%s" % "{:,.0f}".format(x)
+    return "-%s%s" % (CURRENCY, "{:,.0f}".format(-x)) if x < 0 else "%s%s" % (CURRENCY, "{:,.0f}".format(x))
 
 
 def render(a):
+    global CURRENCY
+    CURRENCY = a.get("currency", "$")
     L = ["# %s - unit economics" % (a["business"] or "Your product"), ""]
     u = a["unit"]
     L += ["| key number | |", "| --- | ---: |",
-          "| Price | $%.2f per %s |" % (a["price"], u),
+          "| Price | %s%s per %s |" % (CURRENCY, "{:,.2f}".format(a["price"]), u),
           "| Cost per %s | %s |" % (u, _money(a["variable"])),
           "| Earns per %s before fixed costs | %s (%.0f%%) |" % (u, _money(a["contribution"]), a["contribution_pct"] * 100),
           "| Fixed costs a month | %s |" % _money(a["fixed_monthly"]),
@@ -159,7 +172,7 @@ def render(a):
 
 
 TEMPLATE = {
-    "business": "Matcha cafe",
+    "business": "Matcha cafe", "currency": "$",
     "unit": "cup", "price": "6.50", "days_per_month": 30,
     "variable": [{"label": "matcha + milk", "cost": "1.10"}, {"label": "cup + lid", "cost": "0.35"},
                  {"label": "card fee", "cost": "0.29"}],

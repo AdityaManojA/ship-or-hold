@@ -1,0 +1,53 @@
+{
+  "business": "Tiffin Loop",
+  "currency": "Rs ",
+  "today": "2026-11-20",
+  "positioning": {
+    "for_who": "office workers in the Kakkanad tech park",
+    "problem": "skip lunch or eat fried food because nothing home-style arrives by 1 pm",
+    "what_it_is": "a weekly home-style lunch subscription delivered to the desk",
+    "unlike": "ordering a different meal from a delivery app every day"
+  },
+  "promise": "A home-style lunch at your desk by 1 pm, or that day is free.",
+  "voice": [
+    {"trait": "Plain", "do": "Say what is in the box and what it costs", "do_not": "Use food adjectives nobody says out loud"},
+    {"trait": "Warm", "do": "Write like the cook who knows your order", "do_not": "Write like a notice from a company"},
+    {"trait": "Exact", "do": "Give the time, the price and the menu", "do_not": "Say 'soon', 'affordable' or 'fresh daily'"}
+  ],
+  "name_checks": [
+    {"check": "trademark", "status": "done", "note": "Owner searched the public trade mark register on 2026-11-12, class 43, no match"},
+    {"check": "domain", "status": "done", "note": "Owner registered the domain on 2026-11-12"},
+    {"check": "handle", "status": "to_do", "note": "Owner to check the two social handles"},
+    {"check": "meaning", "status": "done", "note": "Owner asked three Malayalam and two Hindi speakers, no bad meaning"}
+  ],
+  "channels": [
+    {"name": "Lunch-hour tasting table in the tech park lobby", "cost_per_month": "1500", "first_action": "Ask the facilities desk for a table on two days", "measure": "Sign-ups on the paper sheet per tasting day", "evidence": "owner"},
+    {"name": "Office floor chat groups", "cost_per_month": "0", "first_action": "Ask five people who signed up to post the menu in their floor group", "measure": "Orders that name a floor group on the order form", "evidence": "competitors"},
+    {"name": "Printed menu card in the lift lobby", "cost_per_month": "800", "first_action": "Print 50 cards with a code to scan", "measure": "Scans of the code per week", "evidence": "estimate"}
+  ],
+  "budget_per_month": "3000",
+  "first_test": {
+    "what": "Offer a five-day paid trial week to people who taste the food",
+    "where": "Lobby of building 3, tech park",
+    "starts": "2026-11-30",
+    "ends": "2026-12-04",
+    "people": 60,
+    "pass": "At least 12 of the 60 people asked pay for the trial week",
+    "fail": "Fewer than 6 of the 60 pay; stop and rework the offer",
+    "measure": "Paid trial weeks counted from the payment record"
+  },
+  "countdown": [
+    {"date": "2026-11-24", "task": "Confirm the lobby table with the facilities desk", "critical": true, "owner": "Owner"},
+    {"date": "2026-11-27", "task": "Print the menu cards and the sign-up sheet", "critical": false, "owner": "Owner"},
+    {"date": "2026-11-30", "task": "First test starts", "critical": true, "owner": "Owner"},
+    {"date": "2026-12-05", "task": "Count paid trial weeks against the pass mark", "critical": true, "owner": "Owner"},
+    {"date": "2026-12-12", "task": "Launch-day readiness checked with /proof-release", "critical": true, "owner": "Owner"}
+  ],
+  "launch_date": "2026-12-14",
+  "before_promotion": [
+    {"fix": "Write the refund rule on the order form", "due": "2026-11-27"}
+  ],
+  "accessibility": [
+    {"pair": "Menu card text on card background", "ratio": 7.2, "passes": true}
+  ]
+}

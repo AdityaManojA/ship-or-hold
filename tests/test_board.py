@@ -303,6 +303,47 @@ class Board(unittest.TestCase):
         self.assertIn("&lt;script&gt;x&lt;/script&gt;", page)
         self.assertTrue(all(ord(c) < 128 for c in page))
 
+    def test_business_evidence_has_its_own_agenda_items_and_seats(self):
+        titles = [t for _, t, _ in board.AREAS]
+        self.assertEqual(titles[:2], ["Market and buyers", "Offer and pricing"])
+        for sk in ("proof-market", "proof-buyers", "proof-pricing", "proof-offer", "proof-go-to-market", "proof-ops"):
+            self.assertIn(sk, board.SKILL_AREA, sk)
+            self.assertNotIn(sk, board.ENGINEERING, sk)
+        seats = {s["id"]: s for s in board.load_seats()}
+        self.assertIn("proof-buyers", seats["cmo"]["skills"])
+        self.assertIn("proof-buyers", seats["sales"]["skills"])
+        self.assertIn("proof-ops", seats["coo"]["skills"])
+        self.assertIn("proof-pricing", seats["cfo"]["veto"])
+        self.assertIn("proof-ops", seats["coo"]["veto"])
+
+    def test_a_business_blocker_is_a_veto_from_the_ledger(self):
+        self.tp.write("evidence/proof-pricing/pricing.json", b"{}")
+        f = ledger.new_finding("proof-pricing", "No revenue line is live", "high", id="no-live-line",
+                               evidence=["evidence/proof-pricing/pricing.json"])
+        ledger.write_finding(self.d, f)
+        ledger.verify(self.d, "proof-pricing", "no-live-line", by="evidence-file")
+        self.tp.write("evidence/proof-ops/ops.json", b"{}")
+        f = ledger.new_finding("proof-ops", "The business depends on a data source without permission", "high",
+                               id="no-permission", evidence=["evidence/proof-ops/ops.json"])
+        ledger.write_finding(self.d, f)
+        ledger.verify(self.d, "proof-ops", "no-permission", by="evidence-file")
+        r, _ = board.evidence(self.d)
+        fired = {(v["seat"], v["ref"]) for v in board.vetoes(r, board.load_seats())}
+        self.assertIn(("cfo", "proof-pricing/no-live-line"), fired)
+        self.assertIn(("coo", "proof-ops/no-permission"), fired)
+
+    def test_the_idea_file_stands_in_for_a_missing_product_dossier(self):
+        self.assertIsNone(board.load_product(self.d))
+        self.tp.write("business/idea.md", b"# Shop\n\n- What it is: a shop.\n")
+        self.assertIn("What it is: a shop.", board.load_product(self.d))
+        self.tp.write("product.md", b"The dossier wins.")
+        self.assertEqual(board.load_product(self.d), "The dossier wins.")
+
+    def test_tally_points_to_the_business_plan(self):
+        run("--dir", self.d, "brief")
+        _, out = run("--dir", self.d, "tally", "--quiet")
+        self.assertIn("/proof-business-plan", out)
+
     def test_agenda_walks_the_audits(self):
         f = ledger.new_finding("proof-sec-web", "Account takeover", "high", evidence=["evidence/proof-web-e2e/c.png"])
         ledger.write_finding(self.d, f)

@@ -98,5 +98,17 @@ class Target(unittest.TestCase):
         self.assertIn("proof-ai", out2)
 
 
+class BusinessReco(unittest.TestCase):
+    def test_every_kind_is_offered_the_business_side_and_the_plan(self):
+        tg = load_tool("proof-plan", "target.py")
+        for kind, rows in tg.RECO.items():
+            names = [n for n, _ in rows]
+            for sk in ("proof-market", "proof-buyers", "proof-pricing", "proof-offer", "proof-finance",
+                       "proof-go-to-market", "proof-ops", "proof-business-plan"):
+                self.assertEqual(names.count(sk), 1, "%s in %s" % (sk, kind))
+            self.assertLess(names.index("proof-market"), names.index("proof-buyers"), kind)
+            self.assertLess(names.index("proof-ops"), names.index("proof-business-plan"), kind)
+
+
 if __name__ == "__main__":
     unittest.main()

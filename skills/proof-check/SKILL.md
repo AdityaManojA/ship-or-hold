@@ -2,7 +2,7 @@
 name: proof-check
 description: >-
   Reviews the app, suggests the right Proof profile and plans only the skills it needs; skips skills whose inputs are unchanged on a re-run. Use for "test my app", "which check should I run" or a check without a name.
-argument-hint: "[quick | startup | webapp | mobile | backend | security | ultra] [--public]"
+argument-hint: "[business | startup | quick | webapp | mobile | backend | security | ultra] [--public]"
 ---
 
 # proof-check
@@ -29,6 +29,7 @@ python3 "${CLAUDE_SKILL_DIR}/check.py" refresh <skill> | --all
 
 | command | for | core skills |
 | --- | --- | --- |
+| `/proof-business` | the business side only, no running app | market, buyers, pricing, offer, finance, go to market, operations |
 | `/proof-quick` | any repo, in minutes, no running app | secrets, dependencies, deploy config |
 | `/proof-startup` | an MVP about to launch | core flows, secrets, deps, sign-in, data, privacy, store rules, unit economics |
 | `/proof-webapp` | a web app or PWA | flows, API, web security, sign-in, data, privacy, speed, accessibility |

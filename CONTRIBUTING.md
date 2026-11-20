@@ -30,6 +30,27 @@ skills/proof-<name>/*.md           reference files the skill loads on demand
 tests/test_<tool>.py               one test module per tool
 ```
 
+## Business sections
+
+A business skill (market, buyers, pricing, offer, go to market, operations) does two
+things with the same inputs. It records coverage, scores and computed findings in the
+ledger like any other skill, so the verdict and the board read it. And it writes one
+section file, `proof/business/<section>.md`, starting with a single `# Title` line,
+which `skills/proof-business-plan/plan.py` includes in the business plan verbatim.
+The rules that keep a plan honest:
+
+- Every input file that holds money has a required `currency` field. There is no
+  default currency and reports print the prefix they were given.
+- Where a number came from travels with it: the owner's own figure, a linked public
+  source, or a labelled estimate. An estimate is never printed as a fact.
+- A section a skill did not produce is listed in the plan as not done, with the skill
+  that produces it. Nothing fills it in.
+- Simulated buyers and directors are named as simulated wherever they are quoted.
+
+To add a section, add the skill, then add its row to `SECTIONS` in `plan.py`, its
+name to `BUSINESS` in `skills/proof-check/check.py`, an agenda area and seats in
+`skills/proof-board/`, and a row to the README table.
+
 ## SKILL.md
 
 - Frontmatter: `name: proof-<name>` (matches the folder), `description: >-` of

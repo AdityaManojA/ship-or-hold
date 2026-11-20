@@ -1,0 +1,37 @@
+{
+  "business": "City events guide",
+  "currency": "Rs ",
+  "model": "free_to_user",
+  "revenue_lines": [
+    {
+      "name": "Display adverts",
+      "kind": "per_1000_pageviews",
+      "amount": "60",
+      "pages_per_visit": "2.5",
+      "status": "live",
+      "source": "owner"
+    },
+    {
+      "name": "Ticket referral fee",
+      "kind": "per_action",
+      "amount": "40",
+      "rate": "0.02",
+      "status": "unproven",
+      "source": "estimate"
+    },
+    {
+      "name": "Venue of the month sponsor",
+      "kind": "fixed_monthly",
+      "amount": "15000",
+      "status": "paused",
+      "source": "owner"
+    }
+  ],
+  "fixed_monthly_cost": "45000",
+  "variable_cost_per_1000_visits": "12",
+  "tests": [
+    {
+      "how": "Run the referral link on ten event pages for four weeks and count paid referrals."
+    }
+  ]
+}

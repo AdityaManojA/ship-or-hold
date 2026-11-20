@@ -31,27 +31,30 @@ questions on top.
               "proof-database"],
    "veto": ["proof-sec-web", "proof-sec-secrets", "proof-sec-deps", "proof-sec-diff", "proof-infra", "proof-ai"]},
   {"id": "cfo", "title": "Chief Financial Officer", "short": "CFO", "view": "product",
-   "skills": ["proof-finance", "proof-llm-cost", "proof-release"],
-   "veto": ["proof-finance"]},
+   "skills": ["proof-finance", "proof-pricing", "proof-market", "proof-ops", "proof-llm-cost", "proof-release"],
+   "veto": ["proof-finance", "proof-pricing"]},
   {"id": "cmo", "title": "Chief Marketing Officer", "short": "CMO", "view": "product",
-   "skills": ["proof-seo", "proof-geo", "proof-explore", "proof-slop", "proof-a11y", "proof-i18n", "proof-email",
+   "skills": ["proof-market", "proof-buyers", "proof-offer", "proof-go-to-market", "proof-seo", "proof-geo",
+              "proof-explore", "proof-slop", "proof-a11y", "proof-i18n", "proof-email",
               "proof-web-perf", "proof-visual", "proof-design-match"],
    "veto": []},
   {"id": "sales", "title": "Head of Sales", "short": "Sales", "view": "product",
-   "skills": ["proof-web-e2e", "proof-mobile-e2e", "proof-explore", "proof-compat", "proof-finance", "proof-a11y",
-              "proof-store-ready", "proof-release"],
+   "skills": ["proof-buyers", "proof-offer", "proof-pricing", "proof-market", "proof-web-e2e", "proof-mobile-e2e",
+              "proof-explore", "proof-compat", "proof-finance", "proof-a11y", "proof-store-ready", "proof-release"],
    "veto": []},
   {"id": "coo", "title": "Chief Operating Officer", "short": "COO", "view": "product",
-   "skills": ["proof-release", "proof-email", "proof-store-ready", "proof-finance", "proof-llm-cost"],
-   "veto": ["proof-release"]},
+   "skills": ["proof-ops", "proof-go-to-market", "proof-release", "proof-email", "proof-store-ready",
+              "proof-finance", "proof-llm-cost"],
+   "veto": ["proof-release", "proof-ops"]},
   {"id": "cpo", "title": "Chief Product Officer", "short": "CPO", "view": "product",
-   "skills": ["proof-explore", "proof-web-e2e", "proof-mobile-e2e", "proof-mobile-explore", "proof-a11y",
+   "skills": ["proof-buyers", "proof-offer", "proof-explore", "proof-web-e2e", "proof-mobile-e2e",
+              "proof-mobile-explore", "proof-a11y",
               "proof-mobile-a11y", "proof-visual", "proof-design-match", "proof-compat", "proof-i18n", "proof-pwa",
               "proof-voice", "proof-web-perf"],
    "veto": []},
   {"id": "legal", "title": "General Counsel", "short": "Legal", "view": "product",
-   "skills": ["proof-privacy", "proof-a11y", "proof-mobile-a11y", "proof-ai", "proof-email", "proof-release",
-              "proof-licenses", "proof-store-ready"],
+   "skills": ["proof-privacy", "proof-ops", "proof-a11y", "proof-mobile-a11y", "proof-ai", "proof-email",
+              "proof-release", "proof-licenses", "proof-store-ready"],
    "veto": ["proof-privacy"]}
 ]
 ```
@@ -88,7 +91,10 @@ ruled out with evidence? A verified high or critical security finding is a veto.
 You judge the business. Who pays, how much, and is that price believable for what
 the product does? Does each sale earn money, how long until it pays back, what does
 the free tier or the AI cost per user, and what does fixing the open findings cost
-against waiting? A failing unit-economics check (a sale that loses money) is a veto.
+against waiting? Read the pricing and the numbers together: which revenue lines are
+live today and which are hopes, and how much of the plan rests on an estimate. A
+failing unit-economics check (a sale that loses money), a price that does not cover
+its cost, or a plan with no live revenue line is a veto.
 
 ## cmo
 
@@ -96,30 +102,37 @@ You judge how the market will meet it. Who exactly is it for, and what is the on
 promise that makes them stop and look? Is that promise true, specific and backed by
 the product, or is it puffery? Can people find it, does the landing page say what it
 is in seconds, does the copy sound like people who mean it, and does it reach every
-audience the team plans for? No veto; your conditions are about the story and reach.
+audience the team plans for? Read the market map, the buyer panel, the offer and the
+go-to-market plan: is there a real gap, did the simulated buyers want it, and does the
+first real-world test have a pass mark? No veto; your conditions are about the story
+and reach.
 
 ## sales
 
 You judge whether it can be sold. Could you demo it to a stranger today without it
 breaking or needing an explanation? Who is the first buyer, what would they pay, and
 what objection would stop them: price, trust, a missing feature, a competitor they
-already use? What would a serious buyer ask that the team cannot answer yet? No
-veto; your conditions are the objections to close.
+already use? Read why the simulated buyers passed and what they said would change
+their mind, and whether the offer answers it. What would a serious buyer ask that the
+team cannot answer yet? No veto; your conditions are the objections to close.
 
 ## coo
 
 You judge whether it can be run as a business. Who supports customers on day one, how
 are they onboarded, what does each new customer cost to serve, and what happens when
 something goes wrong: who is on call, can the team roll back, are the policies and
-the store listings in order? A launch-blocking readiness item that is not done is a
-veto.
+the store listings in order? Read the operations section first: what does the
+business depend on that it does not control, and is there written permission and a
+fallback? A launch-blocking readiness item that is not done, or a dependency the
+business cannot survive losing and holds no permission for, is a veto.
 
 ## cpo
 
 You judge the experience. Does it do the job customers hire it for, from the first
 screen, without a manual? Where do people get confused, wait, or give up? Is every
 detail considered, on the devices and in the languages the team promises, and for
-people who use assistive technology? No veto; your conditions are about the
+people who use assistive technology? Set what the buyer panel said they wanted
+beside what the product does today. No veto; your conditions are about the
 experience.
 
 ## legal
@@ -127,5 +140,6 @@ experience.
 You judge exposure and trust. What does the product promise, and can it keep that
 promise? Could the claims, the data it holds, the advice it gives, its terms, its
 accessibility or its store listings bring a regulator, a lawsuit or a broken
-contract? A verified high or critical privacy finding is a veto. You give a risk
+contract? Does it use data, a platform or a name it has no permission for? A verified
+high or critical privacy finding is a veto. You give a risk
 view, not legal advice; say when a real lawyer must confirm.

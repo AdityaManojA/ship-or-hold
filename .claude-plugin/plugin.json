@@ -1,6 +1,6 @@
 {
   "name": "proof-skill",
-  "description": "Fifty-five evidence-first testing and audit skills for Claude, run as targeted checks for startups, web apps, mobile apps and backends: web and mobile testing, security, privacy, infrastructure, performance, accessibility, SEO, AI safety and finance, with every verdict computed from verified evidence, then a board of directors that votes on the launch. Free, MIT.",
+  "description": "Sixty-three evidence-first skills for Claude that tell you whether to ship or hold: the business side (market, simulated buyers, pricing, offer, unit economics, go to market, operations) and the product side (web and mobile testing, security, privacy, performance, accessibility, SEO, AI safety), every verdict computed from verified evidence, a board of directors that votes on the launch, and a business plan and half-page summary as the result. Free, MIT.",
   "version": "1.6.1",
   "author": {
     "name": "Aditya Manoj"

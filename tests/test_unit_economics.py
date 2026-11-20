@@ -46,6 +46,24 @@ class UnitEconomics(unittest.TestCase):
         # break-even per day = fixed / contribution / days = 3200 / 5 / 30
         self.assertAlmostEqual(a["breakeven_per_day"], 3200 / 5 / 30, places=4)
 
+    def test_currency_prefix_is_printed_not_a_dollar_sign(self):
+        text = ue.render(ue.analyse(dict(BASE, currency="Rs ")))
+        self.assertIn("| Price | Rs 6.50 per cup |", text)
+        self.assertIn("Rs 3,200", text)
+        self.assertNotIn("$", text)
+        self.assertIn("$6.50", ue.render(ue.analyse(BASE)))  # the default is unchanged
+        with self.assertRaises(ue.NumbersError):
+            ue.analyse(dict(BASE, currency=""))
+
+    def test_month_by_month_ramp(self):
+        ramp = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 150, 200]
+        a = ue.analyse(dict(BASE, ramp_per_day=ramp))
+        self.assertAlmostEqual(a["months"][0]["units"], 300)        # 10 a day for 30 days
+        self.assertAlmostEqual(a["months"][0]["profit"], 300 * 5.0 - 3200)
+        self.assertAlmostEqual(a["months"][11]["units"], 6000)
+        with self.assertRaises(ue.NumbersError):
+            ue.analyse(dict(BASE, ramp_per_day=[1, 2, 3]))
+
     def test_missing_field_is_error(self):
         bad = dict(BASE)
         del bad["plan_per_day"]
