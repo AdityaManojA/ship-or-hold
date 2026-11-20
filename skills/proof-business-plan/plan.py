@@ -8,9 +8,9 @@ the engineering. A section nobody produced is listed as not done, with the skill
 that produces it; the tool never fills one in.
 
     python3 plan.py check                 # the verdict, what is there, what is missing
-    python3 plan.py compile               # write proof/business-plan.md and proof/one-pager.md
+    python3 plan.py compile               # write business-plan.md, one-pager.md and business-plan.pdf
     python3 plan.py compile --open        # and open the plan
-    python3 plan.py compile --pdf         # and print it to proof/business-plan.pdf
+    python3 plan.py compile --no-pdf      # the Markdown only
     python3 plan.py pdf                   # print an already compiled plan to PDF
     python3 plan.py idea-template         # write an idea file to fill in
 
@@ -538,7 +538,9 @@ def cmd_compile(a):
         print("%s %d part(s) are not in the plan yet; it says so under 'What is not done yet':" % (ledger.BAD, len(miss)))
         for what, how in miss:
             print("  .. %s: %s" % (what, how))
-    if a.pdf:
+    if not a.no_pdf:
+        # The PDF is part of the result. A machine with no browser still gets the HTML,
+        # and the verdict, not the printing, decides the exit code.
         make_pdf(a.dir, a.browser, a.force)
     if a.open:
         ledger.open_page(plan_path, "the plan")
@@ -656,12 +658,30 @@ th { background: #f2f2f2; }
 tr { page-break-inside: avoid; }
 code { font-family: Consolas, Menlo, monospace; font-size: 8.5pt; background: #f5f5f5; padding: 0 2px; }
 pre { background: #f5f5f5; padding: 6px; font-size: 8.5pt; white-space: pre-wrap; }
+.cover { page-break-after: always; padding-top: 70px; }
+.cover .name { font-size: 30pt; font-weight: 600; margin-bottom: 6px; }
+.cover .sub { font-size: 14pt; color: #444; margin-bottom: 28px; }
+.cover .call { font-size: 15pt; margin: 4px 0; }
+.cover .note { color: #555; margin-top: 36px; max-width: 34em; }
 """
 
 
-def plan_html(plan_text, title):
+def _cover(name, verdict_word, decision, date):
+    """The first page: the business, the computed verdict, the board's decision and what is inside."""
+    board = ("<div class='call'><strong>Board: %s</strong></div>" % html.escape(decision)) if decision else \
+        "<div class='call'>The board has not met.</div>"
+    return ("<div class='cover'><div class='name'>%s</div><div class='sub'>Ship or hold: business plan and board "
+            "report</div><div class='call'><strong>Verdict: %s</strong></div>%s<div class='note'>%s. Inside: the "
+            "half-page summary, what the board decided and each director's answer with the evidence behind every "
+            "risk, the key numbers, every section of the plan, the product itself, and what is not done yet. "
+            "Simulated buyers and directors are not customers or investors; estimates are labelled where they are "
+            "used.</div></div>") % (html.escape(name), html.escape(verdict_word or "not computed"), board,
+                                     html.escape(date))
+
+
+def plan_html(plan_text, title, cover=""):
     return ("<!doctype html><html><head><meta charset='utf-8'><title>%s</title><style>%s</style></head>"
-            "<body>%s</body></html>\n") % (html.escape(title), PDF_CSS, md_to_html(plan_text))
+            "<body>%s%s</body></html>\n") % (html.escape(title), PDF_CSS, cover, md_to_html(plan_text))
 
 
 def find_browser(given=None):
@@ -708,7 +728,11 @@ def make_pdf(d, browser=None, force=False):
         return 2
     m = re.match(r"#\s+(.*)", text)
     html_path, pdf_path = os.path.join(root, HTML_FILE), os.path.join(root, PDF_FILE)
-    _write(html_path, plan_html(text, m.group(1) if m else "Business plan").replace(
+    v = re.search(r"\*\*Verdict: ([^*.]+)", text)
+    b = re.search(r"\*\*Board decision: ([^*.]+)", text)
+    name = re.sub(r":\s*business plan\s*$", "", m.group(1)) if m else "The business"
+    cover = _cover(name, v.group(1).strip() if v else None, b.group(1).strip() if b else None, ledger.now()[:10])
+    _write(html_path, plan_html(text, m.group(1) if m else "Business plan", cover).replace(
         "</body>", "<!-- %s --></body>" % MARK), d, force)
     exe = find_browser(browser)
     if not exe:
@@ -747,10 +771,11 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd")
     c = sub.add_parser("check", help="the verdict, the sections that exist and what is missing")
     c.set_defaults(fn=cmd_check)
-    c = sub.add_parser("compile", help="write the business plan and the one-pager")
+    c = sub.add_parser("compile", help="write the business plan, the one-pager and the plan as a PDF")
     c.add_argument("--force", action="store_true", help="overwrite files Proof did not write")
     c.add_argument("--open", action="store_true", help="open the plan when it is written")
-    c.add_argument("--pdf", action="store_true", help="also print the plan to proof/business-plan.pdf")
+    c.add_argument("--pdf", action="store_true", help="kept for older instructions; the PDF is always written now")
+    c.add_argument("--no-pdf", action="store_true", help="skip the PDF (and its HTML) this time")
     c.add_argument("--browser", help="the Chrome, Chromium or Edge to print with (default: found automatically)")
     c.set_defaults(fn=cmd_compile)
     c = sub.add_parser("pdf", help="print the compiled plan to proof/business-plan.pdf")

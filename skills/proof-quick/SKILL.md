@@ -1,13 +1,13 @@
 ---
 name: proof-quick
 description: >-
-  The cheapest check: offline scans of secrets, dependencies and deploy config on any repo, no running app or sub-agents. Use for "quick check", "quick scan", "sanity check" or "check for leaked keys".
+  The cheapest check: offline scans of secrets, dependencies and deploy config on any repo, no running app; ends with the board and the report. Use for "quick check", "quick scan", "sanity check" or "check for leaked keys".
 argument-hint: "[--add proof-x]"
 ---
 
 # proof-quick
 
-Three offline scans and a verdict. Nothing is driven, nothing is deployed, no sub-agents run, so it costs a fraction of any other profile. Good before every push, or as the first look at a repo you have not seen.
+Three offline scans, then the same ending as every check: the verdict, the board and the report. Nothing is driven and nothing is deployed, and the only sub-agent is the board, in one call, so it costs a fraction of any other profile. Good before every push, or as the first look at a repo you have not seen.
 
 What the user typed after `/proof-quick`: `$ARGUMENTS`
 
@@ -41,7 +41,15 @@ For more, move up a profile rather than adding to this one: `/proof-security` fo
    what earlier runs learnt, and `check.py next` skips every skill whose inputs have
    not changed, so only the changed areas run. After redeploying a live target, mark
    its live skills with `check.py refresh <skill>`.
-5. **Finish.** `/proof-report` for the verdict. Stop there: no board, no audit pack, unless the user asks.
+5. **Finish: the report.** Always, whatever the verdict and without asking, in this
+   order: `/proof-report` for the computed verdict; `/proof-board`, which ends with
+   `board.py tally --open` and the meeting page; then `/proof-business-plan`: write
+   `proof/summary.md` (half a page, with one line per director) and run `plan.py compile`,
+   which writes `proof/business-plan.md`, `proof/one-pager.md` and
+   `proof/business-plan.pdf` with every director's answer in it. Show the user the
+   verdict, the board's decision and the summary in full, and send the PDF. Then
+   `/proof-audit-trail`. A business section this check did not run is listed in the plan
+   as not done, never filled in.
 
 ## Example
 
@@ -64,4 +72,5 @@ Offline scans only: nothing here proves the app works or that a live service is 
 ## Output / next
 
 `proof/review.json`, `proof/check.json`, `required_skills` in `proof/target.json`, and
-each skill's own evidence. Then `/proof-report`.
+each skill's own evidence. Then `/proof-report`, `/proof-board` and `/proof-business-plan`, which writes
+`proof/summary.md`, `proof/business-plan.md`, `proof/one-pager.md` and `proof/business-plan.pdf`.

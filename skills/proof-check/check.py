@@ -411,7 +411,8 @@ def cmd_plan(a):
         fits = [(s, WHY[s]) for s, _, f in SKILLS if s in _installed() and s not in have and f(sig)]
         if fits:
             print("\nAlso fits this app (add with --add): %s" % ", ".join(s for s, _ in fits))
-    print("\nRun them in order (check.py next tells you which), then /proof-report.")
+    print("\nRun them in order (check.py next tells you which), then /proof-report, /proof-board and "
+          "/proof-business-plan: the summary, the plan and its PDF are the result.")
     return 0
 
 
@@ -478,7 +479,7 @@ def cmd_status(a):
             extra += " [%d verified high/critical]" % r["blockers"]
         print("  %s %-20s %s%s" % (mark, r["skill"], r["state"], extra))
     if done == len(rows):
-        print("\nAll done. Compile the verdict with /proof-report.")
+        print("\nAll done. Now /proof-report, /proof-board and /proof-business-plan, whatever the verdict.")
     return 0
 
 
@@ -497,7 +498,7 @@ def cmd_next(a):
             if kept:
                 print("Skipped, unchanged since the last run: %s" % ", ".join(kept))
             return 0
-    print("Every skill in the %s is done%s. Next: /proof-report"
+    print("Every skill in the %s is done%s. Next: /proof-report, /proof-board and /proof-business-plan"
           % (plan["mode"], " (%d unchanged and skipped)" % len(kept) if kept else ""))
     return 0
 

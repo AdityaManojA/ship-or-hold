@@ -58,9 +58,15 @@ Common additions: `/proof-release` (the launch-day checklist), `/proof-seo` and
    records: no skill edits the project.
 5. **Run it again later.** Keep `proof/` and repeat the same command; `check.py next`
    skips every skill whose inputs have not changed.
-6. **Finish.** `/proof-report` for the computed verdict, then `/proof-board` whatever
-   the verdict, then `/proof-business-plan`, which is the result: show the user the
-   verdict, the board's decision and the summary in full. Then `/proof-audit-trail`.
+6. **Finish: the report.** Always, whatever the verdict and without asking, in this
+   order: `/proof-report` for the computed verdict; `/proof-board`, which ends with
+   `board.py tally --open` and the meeting page; then `/proof-business-plan`: write
+   `proof/summary.md` (half a page, with one line per director) and run `plan.py compile`,
+   which writes `proof/business-plan.md`, `proof/one-pager.md` and
+   `proof/business-plan.pdf` with every director's answer in it. Show the user the
+   verdict, the board's decision and the summary in full, and send the PDF. Then
+   `/proof-audit-trail`. A business section this check did not run is listed in the plan
+   as not done, never filled in.
 
 ## Example
 

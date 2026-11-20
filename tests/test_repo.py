@@ -103,6 +103,22 @@ class Repo(unittest.TestCase):
                 self.assertTrue(os.path.exists(os.path.join(SKILLS_DIR, d, tool)),
                                 "%s names %s which does not exist" % (d, tool))
 
+    def test_every_check_ends_with_the_board_and_the_report(self):
+        # Every profile command finishes the same way, whatever the verdict: the verdict,
+        # the board, then the summary, the plan and its PDF. None stops early or asks first.
+        for d in ("proof-quick", "proof-startup", "proof-webapp", "proof-mobile", "proof-backend",
+                  "proof-security", "proof-ultracheck", "proof-business", "proof-check"):
+            _, text = frontmatter(os.path.join(SKILLS_DIR, d, "SKILL.md"))
+            m = re.search(r"\*\*Finish: the report\.\*\*(.*?)(?:\n\d+\. \*\*|\n## )", text, re.S)
+            self.assertTrue(m, "%s has no 'Finish: the report.' step" % d)
+            step = m.group(1)
+            for must in ("/proof-report", "/proof-board", "/proof-business-plan", "summary.md",
+                         "business-plan.pdf", "without asking"):
+                self.assertIn(must, step, "%s finish step does not name %s" % (d, must))
+            low = text.lower()
+            self.assertNotIn("only on a yes", low, "%s still asks before the board" % d)
+            self.assertNotIn("stop there", low, "%s still stops before the report" % d)
+
     def test_tools_are_stdlib_only(self):
         # No third-party imports in our tools. A short allowlist of stdlib modules
         # plus our own sibling modules. Uses ast, so import-looking lines inside

@@ -57,8 +57,15 @@ AI-search join only with `--public`, for a product meant to be found.
    session, then ask for the next. Every extra agent starts with a large fixed context,
    so spawn one only if the user asks. A check that truly cannot apply is marked not applicable with a
    reason inside the skill, so it stops holding the verdict at Incomplete.
-5. **Finish.** `/proof-report` for the computed verdict. The profile's own command
-   says whether to continue to `/proof-board` and `/proof-audit-trail`.
+5. **Finish: the report.** Always, whatever the verdict and without asking, in this
+   order: `/proof-report` for the computed verdict; `/proof-board`, which ends with
+   `board.py tally --open` and the meeting page; then `/proof-business-plan`: write
+   `proof/summary.md` (half a page, with one line per director) and run `plan.py compile`,
+   which writes `proof/business-plan.md`, `proof/one-pager.md` and
+   `proof/business-plan.pdf` with every director's answer in it. Show the user the
+   verdict, the board's decision and the summary in full, and send the PDF. Then
+   `/proof-audit-trail`. A business section this check did not run is listed in the plan
+   as not done, never filled in.
 
 ## The second run costs less
 
@@ -79,4 +86,5 @@ a feature or see one that is not live; check its list before planning.
 ## Output / next
 
 `proof/review.json` (what the review found), `proof/check.json` (the plan) and
-`required_skills` in `proof/target.json`. Then `/proof-report`.
+`required_skills` in `proof/target.json`. Then `/proof-report`, `/proof-board` and
+`/proof-business-plan`.

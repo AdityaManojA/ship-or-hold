@@ -23,6 +23,9 @@ SECTIONS = ["Market and competition", "Buyer panel", "Pricing", "The offer", "Th
 class BusinessDemo(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        # The plan always prints a PDF; keep the suite from launching a real browser.
+        cls._browser = os.environ.get("PROOF_BROWSER")
+        os.environ["PROOF_BROWSER"] = "no-such-browser-for-proof-tests"
         cls.base = tempfile.mkdtemp(prefix="proof-business-demo-")
         out = io.StringIO()
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(out):
@@ -30,7 +33,16 @@ class BusinessDemo(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        if cls._browser is None:
+            os.environ.pop("PROOF_BROWSER", None)
+        else:
+            os.environ["PROOF_BROWSER"] = cls._browser
         shutil.rmtree(cls.base, ignore_errors=True)
+
+    def test_the_plan_page_for_the_pdf_is_written(self):
+        page = self.read("business-plan.html")
+        self.assertIn("<div class='cover'>", page)
+        self.assertIn("Ship or hold: business plan and board report", page)
 
     def read(self, name):
         with open(os.path.join(self.d, name), encoding="utf-8") as fh:

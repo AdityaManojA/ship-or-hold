@@ -118,6 +118,11 @@ Each one runs only what that kind of product needs, so you never spend a run on 
 
 Not sure? Say "test my app" and `/proof-check` reviews the project and suggests one.
 
+Every check ends the same way, whatever the verdict and without asking: the computed verdict, the board
+meeting, then the half-page summary, the business plan with each director's answer in it, the one-pager and
+the plan as a PDF. A check that does not run the business skills still gets the report; the plan lists those
+sections as not done.
+
 Each check reviews the app first (web, PWA, API, mobile, LLM, database, sign-in and so on) and shows you what it
 found. Conditional skills join only when the review finds what they test: no sign-in, no auth check; no
 database, no database check. SEO and AI-search run only when you say the product is public (`--public`).

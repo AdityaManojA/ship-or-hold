@@ -37,8 +37,15 @@ What the user typed after `/proof-ultracheck`: `$ARGUMENTS`
    it skips every skill whose inputs are unchanged. A check that
    cannot apply (no design exports, no device) is marked not applicable with a
    reason inside the skill, so it stops holding the verdict at Incomplete.
-5. **Finish.** Without asking: `/proof-report`, then `/proof-board --separate` whatever the
-   verdict (ending with `board.py tally --open`), then `/proof-audit-trail`.
+5. **Finish: the report.** Always, whatever the verdict and without asking, in this
+   order: `/proof-report` for the computed verdict; `/proof-board --separate`, which ends with
+   `board.py tally --open` and the meeting page; then `/proof-business-plan`: write
+   `proof/summary.md` (half a page, with one line per director) and run `plan.py compile`,
+   which writes `proof/business-plan.md`, `proof/one-pager.md` and
+   `proof/business-plan.pdf` with every director's answer in it. Show the user the
+   verdict, the board's decision and the summary in full, and send the PDF. Then
+   `/proof-audit-trail`. A business section this check did not run is listed in the plan
+   as not done, never filled in.
 
 ## Honest limits
 
@@ -50,5 +57,5 @@ every required check passed on the build you tested.
 ## Output / next
 
 `proof/review.json`, `proof/check.json` and `required_skills` in
-`proof/target.json`. Finish with `/proof-report`, `/proof-board` and
-`/proof-audit-trail`.
+`proof/target.json`. Finish with `/proof-report`, `/proof-board`, `/proof-business-plan`
+(the summary, the plan and its PDF) and `/proof-audit-trail`.

@@ -58,7 +58,15 @@ Common additions: `/proof-resilience` (offline, errors, double submits), `/proof
    what earlier runs learnt, and `check.py next` skips every skill whose inputs have
    not changed, so only the changed areas run. After redeploying a live target, mark
    its live skills with `check.py refresh <skill>`.
-5. **Finish.** `/proof-report`. Then offer the board in one line ("Want me to present this to the board?") and run `/proof-board` and `/proof-audit-trail` only on a yes.
+5. **Finish: the report.** Always, whatever the verdict and without asking, in this
+   order: `/proof-report` for the computed verdict; `/proof-board`, which ends with
+   `board.py tally --open` and the meeting page; then `/proof-business-plan`: write
+   `proof/summary.md` (half a page, with one line per director) and run `plan.py compile`,
+   which writes `proof/business-plan.md`, `proof/one-pager.md` and
+   `proof/business-plan.pdf` with every director's answer in it. Show the user the
+   verdict, the board's decision and the summary in full, and send the PDF. Then
+   `/proof-audit-trail`. A business section this check did not run is listed in the plan
+   as not done, never filled in.
 
 ## Example
 
@@ -88,4 +96,5 @@ Flows and live checks need the app running or deployed and your authorisation in
 ## Output / next
 
 `proof/review.json`, `proof/check.json`, `required_skills` in `proof/target.json`, and
-each skill's own evidence. Then `/proof-report`.
+each skill's own evidence. Then `/proof-report`, `/proof-board` and `/proof-business-plan`, which writes
+`proof/summary.md`, `proof/business-plan.md`, `proof/one-pager.md` and `proof/business-plan.pdf`.

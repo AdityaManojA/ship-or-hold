@@ -59,7 +59,15 @@ Common additions when the user asks: `/proof-web-perf` (speed), `/proof-a11y` (a
    what earlier runs learnt, and `check.py next` skips every skill whose inputs have
    not changed, so only the changed areas run. After redeploying a live target, mark
    its live skills with `check.py refresh <skill>`.
-5. **Finish.** `/proof-report`, then `/proof-board` whatever the verdict (it ends with `board.py tally --open`, which opens the meeting page), then `/proof-business-plan`: it compiles the verdict, the board's decision and every section into `proof/business-plan.md`, `proof/summary.md` and `proof/one-pager.md`. Show the user the verdict, the decision and the summary in full; that is the result of the run. Then `/proof-audit-trail`.
+5. **Finish: the report.** Always, whatever the verdict and without asking, in this
+   order: `/proof-report` for the computed verdict; `/proof-board`, which ends with
+   `board.py tally --open` and the meeting page; then `/proof-business-plan`: write
+   `proof/summary.md` (half a page, with one line per director) and run `plan.py compile`,
+   which writes `proof/business-plan.md`, `proof/one-pager.md` and
+   `proof/business-plan.pdf` with every director's answer in it. Show the user the
+   verdict, the board's decision and the summary in full, and send the PDF. Then
+   `/proof-audit-trail`. A business section this check did not run is listed in the plan
+   as not done, never filled in.
 
 ## Example
 

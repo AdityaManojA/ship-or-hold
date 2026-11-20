@@ -23,8 +23,15 @@ class Plan(unittest.TestCase):
     def setUp(self):
         self.tp = TempProof().__enter__()
         self.d = self.tp.dir
+        # compile always prints a PDF; keep the suite from launching a real browser.
+        self._browser = os.environ.get("PROOF_BROWSER")
+        os.environ["PROOF_BROWSER"] = "no-such-browser-for-proof-tests"
 
     def tearDown(self):
+        if self._browser is None:
+            os.environ.pop("PROOF_BROWSER", None)
+        else:
+            os.environ["PROOF_BROWSER"] = self._browser
         self.tp.__exit__(None, None, None)
 
     def base(self, required=("proof-finance",)):
@@ -232,18 +239,24 @@ class Plan(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("compile first", out)
 
+    def test_compile_always_makes_the_pdf_page_and_never_fails_on_printing(self):
+        self.base()
+        self.scores()
+        code, out = run("--dir", self.d, "compile")
+        self.assertEqual(code, 0)  # the verdict decides the exit code, not the printer
+        page = self.read("business-plan.html")
+        self.assertIn("<div class='cover'>", page)
+        self.assertIn("<strong>Verdict: Ship</strong>", page)
+        self.assertIn("The board has not met.", page)
+        self.assertIn("No Chrome, Chromium or Edge", out)
+        os.remove(os.path.join(self.d, "business-plan.html"))
+        run("--dir", self.d, "compile", "--no-pdf")
+        self.assertFalse(os.path.exists(os.path.join(self.d, "business-plan.html")))
+
     def test_pdf_without_a_browser_writes_the_html_and_says_so(self):
         self.base()
-        run("--dir", self.d, "compile")
-        old = os.environ.get("PROOF_BROWSER")
-        os.environ["PROOF_BROWSER"] = "no-such-browser-for-proof-tests"
-        try:
-            code, out = run("--dir", self.d, "pdf")
-        finally:
-            if old is None:
-                del os.environ["PROOF_BROWSER"]
-            else:
-                os.environ["PROOF_BROWSER"] = old
+        run("--dir", self.d, "compile", "--no-pdf")
+        code, out = run("--dir", self.d, "pdf")
         self.assertEqual(code, 2)
         self.assertIn("No Chrome, Chromium or Edge", out)
         page = self.read("business-plan.html")
