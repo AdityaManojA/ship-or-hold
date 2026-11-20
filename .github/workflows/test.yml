@@ -8,9 +8,19 @@ jobs:
   unittest:
     runs-on: ${{ matrix.os }}
     strategy:
+      # One job failing to set up must not cancel the others before they run.
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
         python: ["3.8", "3.12"]
+        # ubuntu-latest no longer ships Python 3.8, the oldest version the tools
+        # support, so that one combination runs on the last image that has it.
+        exclude:
+          - os: ubuntu-latest
+            python: "3.8"
+        include:
+          - os: ubuntu-22.04
+            python: "3.8"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
