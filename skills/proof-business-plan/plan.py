@@ -10,17 +10,23 @@ that produces it; the tool never fills one in.
     python3 plan.py check                 # the verdict, what is there, what is missing
     python3 plan.py compile               # write proof/business-plan.md and proof/one-pager.md
     python3 plan.py compile --open        # and open the plan
+    python3 plan.py compile --pdf         # and print it to proof/business-plan.pdf
+    python3 plan.py pdf                   # print an already compiled plan to PDF
     python3 plan.py idea-template         # write an idea file to fill in
 
 Exit code follows the verdict: 0 Ship, 1 Not yet, 2 Incomplete.
 """
 
 import argparse
+import html
 import importlib.util
 import json
 import os
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "proof-core"))
@@ -136,7 +142,99 @@ def gather(d):
     summary = _read(os.path.join(root, SUMMARY_FILE))
     decision = _load_json(os.path.join(root, "board", "decision.json"))
     return {"r": r, "sections": sections, "idea": idea, "idea_from": idea_from, "summary": summary,
-            "decision": decision, "root": root}
+            "decision": decision, "directors": load_directors(root, decision), "root": root}
+
+
+SEATS_DOC = os.path.join(HERE, "..", "proof-board", "seats.md")
+VOTE_WORDS = {"go": "Go", "go_with_conditions": "Go with conditions", "hold": "Hold"}
+
+
+def _seats():
+    """[(seat id, title)] in the board's own order, from proof-board/seats.md."""
+    text = _read(SEATS_DOC) or ""
+    m = re.search(r"```json\s*(\[.*?\])\s*```", text, re.S)
+    try:
+        return [(s["id"], s.get("title") or s["id"].upper()) for s in json.loads(m.group(1))] if m else []
+    except (ValueError, KeyError):
+        return []
+
+
+def load_directors(root, decision):
+    """Each director's own answer, in seat order, with the team's answers to their questions.
+
+    Only seats the board counted are included: a seat that is not in the decision's
+    'answered' list gave no valid answer, and its file is left out rather than shown.
+    """
+    if not decision:
+        return []
+    counted = set(decision.get("answered") or [])
+    qa = _load_json(os.path.join(root, "board", "qa.json")) or {}
+    order = _seats()
+    known = [sid for sid, _ in order]
+    titles = dict(order)
+    ans_dir = os.path.join(root, "board", "answers")
+    found = {}
+    if os.path.isdir(ans_dir):
+        for name in os.listdir(ans_dir):
+            if name.endswith(".json"):
+                a = _load_json(os.path.join(ans_dir, name))
+                if isinstance(a, dict) and a.get("seat") in counted:
+                    found[a["seat"]] = a
+    out = []
+    for sid in known + sorted(set(found) - set(known)):
+        a = found.get(sid)
+        if not a:
+            continue
+        team = qa.get(sid) or {}
+        questions = []
+        for i, q in enumerate(a.get("questions") or []):
+            text = q if isinstance(q, str) else (q or {}).get("question", "")
+            questions.append((text, team.get(str(i))))
+        out.append({"seat": sid, "title": titles.get(sid, sid.upper()), "vote": a.get("vote"),
+                    "confidence": a.get("confidence"), "summary": a.get("summary") or "",
+                    "risks": a.get("risks") or [], "conditions": a.get("conditions") or [],
+                    "questions": questions})
+    return out
+
+
+def _cell(text):
+    """Text that is safe inside one Markdown table cell."""
+    return re.sub(r"\s+", " ", str(text or "")).replace("|", "/").strip()
+
+
+def _directors_block(directors):
+    """Every director's own answer: the view, the risks with the evidence they cite, conditions, questions."""
+    if not directors:
+        return []
+    L = ["### Director by director", "",
+         "Each director is a sub-agent applying one person's documented thinking to this evidence, not that "
+         "person. Every risk names the ledger entry it rests on.", ""]
+    for d in directors:
+        conf = d["confidence"]
+        conf = " (confidence %d%%)" % round(100 * float(conf)) if isinstance(conf, (int, float)) else ""
+        L += ["#### %s: %s%s" % (d["title"], VOTE_WORDS.get(d["vote"], d["vote"]), conf), "", d["summary"].strip(), ""]
+        if d["risks"]:
+            L += ["| severity | risk | evidence |", "| --- | --- | --- |"]
+            for x in d["risks"]:
+                risk = _cell(x.get("risk"))
+                if x.get("quote"):
+                    risk += ' Quote: "%s"' % _cell(x["quote"])
+                L.append("| %s | %s | %s |" % (_cell(x.get("severity")), risk,
+                                               ", ".join("`%s`" % _cell(e) for e in (x.get("evidence") or [])) or "none"))
+            L.append("")
+        if d["conditions"]:
+            L += ["| condition | owner | by |", "| --- | --- | --- |"]
+            for c in d["conditions"]:
+                L.append("| %s | %s | %s |" % (_cell(c.get("action")), _cell(c.get("owner")).upper(),
+                                               _cell(c.get("by") or "before launch")))
+            L.append("")
+        if d["questions"]:
+            L += ["Questions for the team:", ""]
+            for n, (q, ans) in enumerate(d["questions"], 1):
+                L.append("%d. %s" % (n, _cell(q)))
+                L.append("   Team: %s" % (_cell(ans) if ans else "not answered yet"))
+            L.append("")
+    return L
 
 
 def summary_problems(summary, verdict_word):
@@ -322,6 +420,7 @@ def plan_md(g):
     L += [_demote(_strip_title(g["idea"]), 2) if g["idea"] else "No idea file yet.", ""]
 
     L += ["## What the board decided", ""] + _board_block(g["decision"]) + [""]
+    L += _directors_block(g["directors"])
 
     for s in g["sections"]:
         L += ["## %s" % s["title"], ""]
@@ -439,9 +538,193 @@ def cmd_compile(a):
         print("%s %d part(s) are not in the plan yet; it says so under 'What is not done yet':" % (ledger.BAD, len(miss)))
         for what, how in miss:
             print("  .. %s: %s" % (what, how))
+    if a.pdf:
+        make_pdf(a.dir, a.browser, a.force)
     if a.open:
         ledger.open_page(plan_path, "the plan")
     return verdict.EXIT[g["r"]["verdict"]]
+
+
+# ------------------------------------------------------------------ PDF
+
+PDF_FILE, HTML_FILE = "business-plan.pdf", "business-plan.html"
+BROWSER_NAMES = ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome", "msedge",
+                 "microsoft-edge"]
+BROWSER_PATHS = [
+    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+    r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+    r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+    "/Applications/Chromium.app/Contents/MacOS/Chromium",
+]
+
+
+def _inline(s):
+    s = html.escape(s, quote=False)
+    s = re.sub(r"`([^`]+)`", r"<code>\1</code>", s)
+    s = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", s)
+    s = re.sub(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])", r"<em>\1</em>", s)
+    s = re.sub(r"(?<![\w])_(?!\s)(.+?)(?<!\s)_(?![\w])", r"<em>\1</em>", s)
+    s = re.sub(r"\[([^\]]+)\]\((https?://[^)\s\"]+)\)", r'<a href="\2">\1</a>', s)
+    return s
+
+
+def md_to_html(text):
+    """Render the Markdown Proof writes (headings, tables, lists, code, rules) to HTML.
+
+    Everything is escaped first; only links to http(s) addresses become links.
+    """
+    out, para, lines, i = [], [], text.splitlines(), 0
+
+    def flush():
+        if para:
+            out.append("<p>%s</p>" % _inline(" ".join(para)))
+            del para[:]
+
+    while i < len(lines):
+        line, s = lines[i], lines[i].strip()
+        if s.startswith("```"):
+            flush()
+            j, block = i + 1, []
+            while j < len(lines) and not lines[j].strip().startswith("```"):
+                block.append(lines[j])
+                j += 1
+            out.append("<pre>%s</pre>" % html.escape("\n".join(block)))
+            i = j + 1
+            continue
+        m = re.match(r"^(#{1,6})\s+(.*)$", s)
+        if m:
+            flush()
+            out.append("<h%d>%s</h%d>" % (len(m.group(1)), _inline(m.group(2)), len(m.group(1))))
+            i += 1
+            continue
+        if s in ("---", "***"):
+            flush()
+            out.append("<hr>")
+            i += 1
+            continue
+        if s.startswith("|"):
+            flush()
+            rows = []
+            while i < len(lines) and lines[i].strip().startswith("|"):
+                rows.append([c.strip() for c in lines[i].strip().strip("|").split("|")])
+                i += 1
+            rows = [r for r in rows if not all(re.match(r"^:?-{2,}:?$", c or "-") for c in r)]
+            if rows:
+                out.append("<table><thead><tr>%s</tr></thead><tbody>%s</tbody></table>" % (
+                    "".join("<th>%s</th>" % _inline(c) for c in rows[0]),
+                    "".join("<tr>%s</tr>" % "".join("<td>%s</td>" % _inline(c) for c in r) for r in rows[1:])))
+            continue
+        if re.match(r"^\s*([-*]|\d+\.)\s+", line):
+            flush()
+            ordered, items = bool(re.match(r"^\s*\d+\.\s", line)), []
+            same = r"^\s*\d+\.\s+" if ordered else r"^\s*[-*]\s+"  # a change of list type starts a new list
+            while i < len(lines) and (re.match(same, lines[i]) or
+                                      (items and lines[i].startswith("   ") and lines[i].strip())):
+                m2 = re.match(r"^\s*([-*]|\d+\.)\s+(.*)$", lines[i])
+                if m2:
+                    items.append([m2.group(2)])
+                else:
+                    items[-1].append(lines[i].strip())
+                i += 1
+            tag = "ol" if ordered else "ul"
+            out.append("<%s>%s</%s>" % (tag, "".join(
+                "<li>%s</li>" % "<br>".join(_inline(p) for p in it) for it in items), tag))
+            continue
+        if not s:
+            flush()
+        else:
+            para.append(s)
+        i += 1
+    flush()
+    return "\n".join(out)
+
+
+PDF_CSS = """
+@page { size: A4; margin: 16mm 14mm; }
+body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 10.5pt; color: #1d1d1f; line-height: 1.45; }
+h1 { font-size: 20pt; margin: 0 0 8px; border-bottom: 2px solid #444; padding-bottom: 4px; }
+h2 { font-size: 15pt; margin: 22px 0 6px; page-break-after: avoid; }
+h3 { font-size: 12pt; margin: 14px 0 4px; page-break-after: avoid; }
+h4 { font-size: 11pt; margin: 14px 0 4px; padding-top: 6px; border-top: 1px solid #ddd; page-break-after: avoid; }
+h5, h6 { font-size: 10.5pt; margin: 10px 0 4px; }
+table { border-collapse: collapse; width: 100%; margin: 6px 0 10px; font-size: 9pt; }
+th, td { border: 1px solid #d0d0d0; padding: 4px 6px; vertical-align: top; text-align: left; word-break: break-word; }
+th { background: #f2f2f2; }
+tr { page-break-inside: avoid; }
+code { font-family: Consolas, Menlo, monospace; font-size: 8.5pt; background: #f5f5f5; padding: 0 2px; }
+pre { background: #f5f5f5; padding: 6px; font-size: 8.5pt; white-space: pre-wrap; }
+"""
+
+
+def plan_html(plan_text, title):
+    return ("<!doctype html><html><head><meta charset='utf-8'><title>%s</title><style>%s</style></head>"
+            "<body>%s</body></html>\n") % (html.escape(title), PDF_CSS, md_to_html(plan_text))
+
+
+def find_browser(given=None):
+    """A Chrome, Chromium or Edge that can print to PDF: --browser, $PROOF_BROWSER, PATH, then the usual places."""
+    for cand in (given, os.environ.get("PROOF_BROWSER")):
+        if cand:
+            return cand if os.path.isfile(cand) else shutil.which(cand)
+    for name in BROWSER_NAMES:
+        hit = shutil.which(name)
+        if hit:
+            return hit
+    for path in BROWSER_PATHS:
+        if os.path.isfile(path):
+            return path
+    return None
+
+
+def print_pdf(browser, html_path, pdf_path, timeout=120):
+    """Print a local HTML file to PDF with a headless browser, in a throwaway profile. Returns (ok, detail)."""
+    profile = tempfile.mkdtemp(prefix="proof-pdf-")
+    url = "file:///" + os.path.abspath(html_path).replace(os.sep, "/").lstrip("/")
+    cmd = [browser, "--headless=new", "--disable-gpu", "--no-pdf-header-footer", "--no-first-run",
+           "--user-data-dir=%s" % profile, "--print-to-pdf=%s" % os.path.abspath(pdf_path), url]
+    try:
+        if os.path.isfile(pdf_path):
+            os.remove(pdf_path)
+        subprocess.run(cmd, timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except (OSError, subprocess.SubprocessError) as e:
+        return False, str(e)
+    finally:
+        shutil.rmtree(profile, ignore_errors=True)
+    if not os.path.isfile(pdf_path) or os.path.getsize(pdf_path) == 0:
+        return False, "the browser ran but wrote no PDF"
+    return True, "%d bytes" % os.path.getsize(pdf_path)
+
+
+def make_pdf(d, browser=None, force=False):
+    """Write business-plan.html next to the plan and print it to business-plan.pdf. Returns an exit code."""
+    root = ledger.root(d)
+    plan_path = os.path.join(root, PLAN_FILE)
+    text = _read(plan_path)
+    if not text:
+        print("error: %s does not exist yet; run plan.py compile first." % plan_path, file=sys.stderr)
+        return 2
+    m = re.match(r"#\s+(.*)", text)
+    html_path, pdf_path = os.path.join(root, HTML_FILE), os.path.join(root, PDF_FILE)
+    _write(html_path, plan_html(text, m.group(1) if m else "Business plan").replace(
+        "</body>", "<!-- %s --></body>" % MARK), d, force)
+    exe = find_browser(browser)
+    if not exe:
+        print("%s wrote %s. No Chrome, Chromium or Edge was found to print it, so there is no PDF: open the "
+              "HTML and print it to PDF, or pass --browser <path> (or set PROOF_BROWSER)." % (ledger.BAD, html_path))
+        return 2
+    ok, detail = print_pdf(exe, html_path, pdf_path)
+    if not ok:
+        print("%s wrote %s but could not print it with %s: %s" % (ledger.BAD, html_path, exe, detail))
+        return 2
+    print("%s wrote %s (%s), from %s" % (ledger.OK, pdf_path, detail, html_path))
+    return 0
+
+
+def cmd_pdf(a):
+    return make_pdf(a.dir, a.browser, a.force)
 
 
 def cmd_idea_template(a):
@@ -467,7 +750,13 @@ def main(argv=None):
     c = sub.add_parser("compile", help="write the business plan and the one-pager")
     c.add_argument("--force", action="store_true", help="overwrite files Proof did not write")
     c.add_argument("--open", action="store_true", help="open the plan when it is written")
+    c.add_argument("--pdf", action="store_true", help="also print the plan to proof/business-plan.pdf")
+    c.add_argument("--browser", help="the Chrome, Chromium or Edge to print with (default: found automatically)")
     c.set_defaults(fn=cmd_compile)
+    c = sub.add_parser("pdf", help="print the compiled plan to proof/business-plan.pdf")
+    c.add_argument("--browser", help="the Chrome, Chromium or Edge to print with (default: found automatically)")
+    c.add_argument("--force", action="store_true", help="overwrite files Proof did not write")
+    c.set_defaults(fn=cmd_pdf)
     c = sub.add_parser("idea-template", help="write an idea file to fill in")
     c.add_argument("--out", help="where to write it (default proof/business/idea.md)")
     c.add_argument("--force", action="store_true")

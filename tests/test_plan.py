@@ -170,6 +170,92 @@ class Plan(unittest.TestCase):
         self.assertEqual(run("--dir", self.d, "idea-template")[0], 2)
         self.assertEqual(run("--dir", self.d, "idea-template", "--force")[0], 0)
 
+    def board(self, answered=("cfo",)):
+        self.tp.write("board/decision.json", json.dumps({
+            "decision": "Hold", "verdict": "Ship", "reasons": [], "answered": list(answered),
+            "votes": {"go": [], "go_with_conditions": [], "hold": list(answered)}, "conditions": []}).encode("utf-8"))
+        for seat, vote in (("cfo", "hold"), ("ceo", "go")):
+            self.tp.write("board/answers/%s.json" % seat, json.dumps({
+                "seat": seat, "vote": vote, "confidence": 0.85, "summary": "As %s: the year loses money." % seat,
+                "risks": [{"risk": "The year | loses money", "severity": "high",
+                           "evidence": ["proof-finance/score:year1_operating_profit"], "quote": ""}],
+                "conditions": [{"action": "Replace the estimates", "owner": seat, "by": "before launch"}],
+                "questions": ["What does one set cost?", "How many orders last month?"]}).encode("utf-8"))
+        self.tp.write("board/qa.json", json.dumps({"cfo": {"0": "Not covered; the owner has to answer."}}).encode("utf-8"))
+
+    def test_every_counted_director_is_in_the_plan_with_risks_conditions_and_questions(self):
+        self.base()
+        self.scores()
+        self.board(answered=("cfo",))
+        run("--dir", self.d, "compile")
+        text = self.read("business-plan.md")
+        self.assertIn("### Director by director", text)
+        self.assertIn("#### Chief Financial Officer: Hold (confidence 85%)", text)
+        self.assertIn("As cfo: the year loses money.", text)
+        # a pipe inside the risk cannot break the table, and the evidence is named
+        self.assertIn("| high | The year / loses money | `proof-finance/score:year1_operating_profit` |", text)
+        self.assertIn("| Replace the estimates | CFO | before launch |", text)
+        self.assertIn("1. What does one set cost?\n   Team: Not covered; the owner has to answer.", text)
+        self.assertIn("2. How many orders last month?\n   Team: not answered yet", text)
+        # a seat the board did not count is left out, not shown
+        self.assertNotIn("Chief Executive Officer", text)
+
+    def test_directors_follow_the_board_seat_order(self):
+        self.base()
+        self.board(answered=("cfo", "ceo"))
+        run("--dir", self.d, "compile")
+        text = self.read("business-plan.md")
+        self.assertLess(text.index("#### Chief Executive Officer"), text.index("#### Chief Financial Officer"))
+
+    def test_no_board_means_no_director_section(self):
+        self.base()
+        run("--dir", self.d, "compile")
+        self.assertNotIn("Director by director", self.read("business-plan.md"))
+
+    def test_html_rendering_escapes_and_keeps_structure(self):
+        out = plan.md_to_html("# Title\n\nA <script>x</script> **bold** [ok](https://e.example) [no](javascript:x)\n\n"
+                              "| a | b |\n| --- | --- |\n| 1 | `c` |\n\n1. one\n   Team: two\n- dot\n")
+        self.assertIn("<h1>Title</h1>", out)
+        self.assertIn("&lt;script&gt;", out)
+        self.assertNotIn("<script>", out)
+        self.assertIn("<strong>bold</strong>", out)
+        self.assertIn('<a href="https://e.example">ok</a>', out)
+        self.assertNotIn('href="javascript', out)
+        self.assertIn("<th>a</th>", out)
+        self.assertIn("<td><code>c</code></td>", out)
+        self.assertIn("<ol><li>one<br>Team: two</li></ol>", out)
+        self.assertIn("<ul><li>dot</li></ul>", out)
+
+    def test_pdf_needs_a_compiled_plan(self):
+        self.base()
+        code, out = run("--dir", self.d, "pdf")
+        self.assertEqual(code, 2)
+        self.assertIn("compile first", out)
+
+    def test_pdf_without_a_browser_writes_the_html_and_says_so(self):
+        self.base()
+        run("--dir", self.d, "compile")
+        old = os.environ.get("PROOF_BROWSER")
+        os.environ["PROOF_BROWSER"] = "no-such-browser-for-proof-tests"
+        try:
+            code, out = run("--dir", self.d, "pdf")
+        finally:
+            if old is None:
+                del os.environ["PROOF_BROWSER"]
+            else:
+                os.environ["PROOF_BROWSER"] = old
+        self.assertEqual(code, 2)
+        self.assertIn("No Chrome, Chromium or Edge", out)
+        page = self.read("business-plan.html")
+        self.assertIn("<h1>Demo: business plan</h1>", page)
+        self.assertFalse(os.path.exists(os.path.join(self.d, "business-plan.pdf")))
+
+    def test_an_explicit_browser_path_wins(self):
+        fake = os.path.join(self.tp.base, "chrome.exe")
+        with open(fake, "w") as fh:
+            fh.write("x")
+        self.assertEqual(plan.find_browser(fake), fake)
+
     def test_headings_inside_code_fences_are_left_alone(self):
         self.assertEqual(plan._demote("# A\n```\n# not a heading\n```\n## B"),
                          "## A\n```\n# not a heading\n```\n### B")

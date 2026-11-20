@@ -9,8 +9,9 @@ on. Free, MIT, no signup, no API key, nothing to connect.
 | file | what it is |
 | --- | --- |
 | `proof/summary.md` | half a page: the verdict, the three numbers behind it, the biggest risk, the one thing to do this week |
-| `proof/business-plan.md` | the verdict, the board's decision and actions, the key numbers, then every section: market, buyers, pricing, the offer, the numbers, go to market, operations, launch readiness, the product itself, and what is not done yet |
+| `proof/business-plan.md` | the verdict, the board's decision and actions, each director's answer (their risks with the evidence behind each, conditions and questions), the key numbers, then every section: market, buyers, pricing, the offer, the numbers, go to market, operations, launch readiness, the product itself, and what is not done yet |
 | `proof/one-pager.md` | the same numbers, word for word, for someone deciding in two minutes |
+| `proof/business-plan.pdf` | the plan as a PDF to send or print, with every director's answer in it (`plan.py compile --pdf`, using the Chrome or Edge you already have) |
 
 Behind them sit the board meeting (`proof/board/meeting.html`, which plays itself) and the technical report
 (`proof/report.md`), for whoever wants the detail.

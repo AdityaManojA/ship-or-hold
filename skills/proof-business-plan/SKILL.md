@@ -17,6 +17,8 @@ What the user typed after `/proof-business-plan`: `$ARGUMENTS`
 python3 "${CLAUDE_SKILL_DIR}/plan.py" check            # the verdict, what is there, what is missing
 python3 "${CLAUDE_SKILL_DIR}/plan.py" compile          # write proof/business-plan.md and proof/one-pager.md
 python3 "${CLAUDE_SKILL_DIR}/plan.py" compile --open   # and open the plan
+python3 "${CLAUDE_SKILL_DIR}/plan.py" compile --pdf    # and print it to proof/business-plan.pdf
+python3 "${CLAUDE_SKILL_DIR}/plan.py" pdf              # print an already compiled plan to PDF
 python3 "${CLAUDE_SKILL_DIR}/plan.py" idea-template    # write proof/business/idea.md to fill in
 ```
 
@@ -29,6 +31,7 @@ follows the verdict: 0 Ship, 1 Not yet, 2 Incomplete.
 | --- | --- |
 | The verdict and what blocks it | computed from the ledger, the same way `/proof-report` does |
 | The board's decision and actions | `proof/board/decision.json`, from `/proof-board` |
+| Director by director | each counted director's own answer from `proof/board/answers/`: the vote and confidence, their view, every risk with its severity and the ledger entry it cites, their conditions, and their questions with the team's answers from `qa.json` |
 | The key numbers | every measured score the business skills recorded, with its bar |
 | The idea | `proof/business/idea.md`, or the board's product dossier `proof/product.md` |
 | Market and competition | `/proof-market` |
@@ -70,6 +73,8 @@ follows the verdict: 0 Ship, 1 Not yet, 2 Incomplete.
    - What the business is and who it is for, in two sentences.
    - The computed verdict, stated in those exact words, and the three numbers behind it.
    - What the buyer panel and the board agreed on, and where they disagreed.
+   - What each director said: one line per director, with their vote and the one
+     point that decided it (the full answers are in the plan, director by director).
    - The biggest risk and what will be done about it.
    - What is needed to start: cash, the first real-world test, the fixes that come first.
    - The one thing to do this week.
@@ -81,14 +86,17 @@ follows the verdict: 0 Ship, 1 Not yet, 2 Incomplete.
 5. **Compile.**
 
    ```bash
-   python3 "${CLAUDE_SKILL_DIR}/plan.py" compile --open
+   python3 "${CLAUDE_SKILL_DIR}/plan.py" compile --pdf --open
    ```
 
    Writes `proof/business-plan.md` (the verdict, the board's decision, the key numbers,
    the summary, the idea, then every section in the order a reader needs them, launch
    readiness, the engineering in one page, and what is not done yet) and
    `proof/one-pager.md` for someone deciding in two minutes, with the same numbers word
-   for word.
+   for word. `--pdf` also writes `proof/business-plan.html` and prints it to
+   `proof/business-plan.pdf` with a headless Chrome, Chromium or Edge, found on its own
+   (or named with `--browser <path>` or `PROOF_BROWSER`). With no such browser the HTML
+   is still written and the tool says how to print it; nothing is installed.
 
 6. **Show the result.** Give the user, in the chat: the verdict and the board's decision
    in one line, the summary in full, then the three or four things to do next. Point to
@@ -115,6 +123,7 @@ with real people in the go-to-market section is what settles it.
 ## Output / next
 
 `proof/business/idea.md`, `proof/summary.md`, `proof/business-plan.md`,
-`proof/one-pager.md`. Then `/proof-audit-trail` to pack the run with a hash for every
+`proof/one-pager.md`, and with `--pdf`, `proof/business-plan.html` and
+`proof/business-plan.pdf`. Then `/proof-audit-trail` to pack the run with a hash for every
 file. Work through the board's actions, re-run the skills they touch, and compile again:
 the plan always shows today's evidence.
