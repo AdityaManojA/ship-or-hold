@@ -1,7 +1,7 @@
 {
   "name": "proof-skill",
   "description": "Sixty-three evidence-first skills for Claude that tell you whether to ship or hold: the business side (market, simulated buyers, pricing, offer, unit economics, go to market, operations) and the product side (web and mobile testing, security, privacy, performance, accessibility, SEO, AI safety), every verdict computed from verified evidence, a board of directors that votes on the launch, and a business plan and half-page summary as the result. Free, MIT.",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "author": {
     "name": "Aditya Manoj"
   },
