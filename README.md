@@ -1,20 +1,23 @@
 # Proof
 
-Sixty-three Claude skills that tell you whether to ship or hold: is this a business, and does the product work. A
-board of directors votes on the evidence, and the result is a business plan and a half-page summary you can act
-on. Free, MIT, no signup, no API key, nothing to connect.
+Sixty-six Claude skills that tell you whether to ship or hold: is this a business, and does the product work. A
+four-seat board debates the evidence and votes, and the result is a short report a founder can act on the same
+day. Free, MIT, no signup, no API key, nothing to connect.
 
-**The result of a run is three files:**
+**The result of a run:**
 
 | file | what it is |
 | --- | --- |
-| `proof/summary.md` | half a page: the verdict, the three numbers behind it, the biggest risk, the one thing to do this week |
-| `proof/business-plan.md` | the verdict, the board's decision and actions, each director's answer (their risks with the evidence behind each, conditions and questions), the key numbers, then every section: market, buyers, pricing, the offer, the numbers, go to market, operations, launch readiness, the product itself, and what is not done yet |
-| `proof/one-pager.md` | the same numbers, word for word, for someone deciding in two minutes |
-| `proof/business-plan.pdf` | the plan as a PDF to send or print, with every director's answer in it (`plan.py compile --pdf`, using the Chrome or Edge you already have) |
+| `proof/report.pdf` | 6 to 8 pages: the executive summary, the boardroom debate, annotated screenshots of the store, and a 14-day fix kit. No ledger codes on these pages. |
+| `proof/appendix.pdf` | everything behind it: each seat's answer with the evidence for every risk, the numbers, every section in full, checks descoped for this client, research notes |
+| `proof/fix-kit/` | copy-paste fixes: page titles and meta descriptions, replacement colours that pass contrast, WhatsApp review scripts, a centimetre size chart, a draft exchange policy |
+| `proof/summary.md`, `proof/one-pager.md` | half a page, and two minutes, with the same numbers |
+| `proof/teaser.pdf` | free: the automated tech score and the one bluntest veto, before any owner input |
 
-Behind them sit the board meeting (`proof/board/meeting.html`, which plays itself) and the technical report
-(`proof/report.md`), for whoever wants the detail.
+Behind them sit the board meeting (`proof/board/meeting.html`, which plays itself), the full plan
+(`proof/business-plan.md`) and the technical report (`proof/report.md`). A run never starts on guesses: the
+four numbers that decide the money (unit cost, ad spend, sessions and orders a day) come from the owner or a
+Shopify export first, and a client report is never printed while the verdict is Incomplete.
 
 Most tools let the model say something passed, or let it write a confident plan from nothing. Proof does
 neither. Every skill records evidence (a competitor's price page, a buyer's answer, a measured number, a
@@ -31,9 +34,10 @@ The product side covers web and mobile testing, API contracts, security, secrets
 and infrastructure config, privacy, performance, accessibility, browser
 compatibility, visual regression, translations, transactional email, load, test
 strength, SEO and AI-search readiness, LLM-feature safety, launch readiness, and
-launch readiness. When the evidence is in, a board of nine
-directors (CEO, CTO, CISO, CFO, CMO, Sales, COO, CPO and Legal) hears it
-and votes on the launch, in a meeting that runs by itself, and the plan is compiled with their decision in it.
+launch readiness. When the evidence is in, four seats (Investor, Growth, Builder and Operator)
+answer, cross-examine each other in a debate round and vote, in a meeting that runs by itself. For a solo
+founder the same four sit as an Advisory Panel and every action lands in Do today, Hire a freelancer, or Ask a
+CA or lawyer.
 
 ## Install
 
@@ -142,11 +146,11 @@ The business skills need three things only you know, and ask for them once: how 
 customer is, and what it costs to run. They never guess them. Two of them use sub-agents and say so first:
 the market research reads many public pages, and the buyer panel is one sub-agent per buyer (20 by default).
 
-## The sixty-three
+## The sixty-six
 
 | command | job | what it does |
 | --- | --- | --- |
-| `/proof-board` | Board of directors | Nine directors, each applying the researched thinking of one person (Jobs, Vogels, Katz, Porat, Ogilvy, Patterson, Cook, Fadell, Smith), vote on the launch. The CTO and CISO judge the engineering; the other seven judge the product from a product dossier, in their own character. The meeting runs by itself in the chat and as a page; Go, Go with conditions or Hold is computed. |
+| `/proof-board` | Board | Four seats (Investor, Growth, Builder, Operator) answer from the evidence, debate each other's claims and vote; Go, Go with conditions or Hold is computed, and vetoes come from the ledger. An Advisory Panel with bucketed actions for a solo founder. |
 | `/proof-check` | Pick a check | Reviews the app, suggests a profile, and plans only the skills that profile lists and the app needs. |
 | `/proof-quick` | Quick check | Offline secrets, dependency and deploy-config scans; minutes, no running app, no sub-agents. |
 | `/proof-startup` | Startup launch check | Core flows, the risks that sink a launch, and unit economics; ends with the board. |
@@ -155,6 +159,9 @@ the market research reads many public pages, and the buyer panel is one sub-agen
 | `/proof-backend` | Backend check | API contract, web security, sign-in, data, deploy config, LLM cost and RAG, as the service needs. |
 | `/proof-security` | Security check | Secrets, dependencies, web security, sign-in, data, infra and privacy only. |
 | `/proof-business-plan` | The result | Compiles the verdict, the board's decision, the key numbers and every section into the business plan, checks the half-page summary states the verdict, and writes a one-pager with the same numbers. |
+| `/proof-intake` | The numbers | The four numbers every money question rests on: landed unit cost, ad spend, sessions and orders a day, from the owner or a Shopify export. Required before any business skill. |
+| `/proof-ads` | Ad teardown | The live ads from the public Meta Ad Library against their landing pages (offer, price and promise match), and the themes competitors use that the brand does not. |
+| `/proof-fixkit` | Fix Kit | Paste-ready titles and meta descriptions, contrast-passing colours, WhatsApp review scripts, a size chart, a draft exchange policy, and a 14-day plan of every verified finding. |
 | `/proof-business` | Business check | The business side only, no running app: the seven business skills in order, then the board and the plan. |
 | `/proof-market` | Market | Competitors and substitutes from public sources with every fact linked, the price range, their customers' complaints by theme, the gap, and what could not be verified. |
 | `/proof-buyers` | Buyer panel | A seeded panel of simulated buyers hears the pitch: who would buy, why the rest pass in their own words, what would change their mind, and a re-test of a revised pitch on the same buyers. |
@@ -289,67 +296,38 @@ An example run: an online shop, running locally, with a checkout.
 
 ## The board meeting
 
-`/proof-board` turns the evidence into a presentation and gives it to nine
-directors. Each is a sub-agent that applies the documented thinking of one person,
-researched from their own talks, interviews, books and letters:
+`/proof-board` turns the evidence into a presentation and gives it to four seats.
+Each is a sub-agent that weighs the evidence from one angle, and they are set up to
+disagree:
 
-| seat | lens | judges | veto |
-| --- | --- | --- | --- |
-| CEO | Steve Jobs | the overall call: focus, quality, saying no | none (chairs) |
-| CTO | Werner Vogels | does it work and keep working, and does it read as made by people (reads `/proof-slop`) | core flows, API, load |
-| CISO | Steve Katz | security and customer data | security, secrets, dependencies, infra, AI |
-| CFO | Ruth Porat | unit economics, cost of fixing versus delaying | unit economics |
-| CMO | David Ogilvy | claims, research, how the market meets it | none |
-| Sales | John H. Patterson | can it be demonstrated and sold | none |
-| COO | Tim Cook | readiness, operations, privacy posture | launch-blocking readiness items |
-| CPO | Tony Fadell | the product experience | none |
-| Legal | Brad Smith | privacy, trust, regulation | privacy |
+| seat | weighs | veto |
+| --- | --- | --- |
+| Investor | unit economics, pricing, cash, what the ad spend buys | a sale that loses money, a price below cost, no live revenue |
+| Growth | the market, the buyers, the offer, the ads, reach and search | none |
+| Builder | the flows, speed, security, accessibility, the product itself | a verified high finding in a core flow or in security |
+| Operator | operations, dependencies, launch readiness, privacy and legal | a launch-blocking readiness item, an unpermitted dependency the business cannot survive losing, a verified high privacy finding |
 
-How a director speaks, taken from the demo meeting. The CTO quotes because the
-words are the call; the CFO, on the same point, quotes nothing:
-
-```
-CTO (Werner Vogels lens):
-  - HIGH: The signup form posts to a plain HTTP endpoint, so customer personal
-    data travels unencrypted.
-    evidence: proof-privacy/privacy-insecure-forms-form-to-http-localhost-signup-posts-o
-    quoting Werner Vogels: "Make use of it. Dance like nobody is watching. Encrypt
-      like everyone is." (SDxCentral, 'Amazon's Werner Vogels: Dance Like Nobody's
-      Watching. Encrypt Like Everyone Is', 2019-03-27)
-CFO (Ruth Porat lens):
-  - HIGH: The signup form posts personal data over plain HTTP. Every signup is a
-    liability rather than revenue until this is fixed.
-    evidence: proof-privacy/privacy-insecure-forms-form-to-http-localhost-signup-posts-o
-```
-
-Sixty verified quotes back the nine lenses, gathered from the people's own blogs,
-books, talks, earnings calls, testimony and interviews. Quotes the research could
-not confirm word for word are kept in the file marked "likely" and are never given
-to a director; well-known misattributions (for example "Real artists ship" for Jobs,
-or "If it doesn't sell, it isn't creative" for Ogilvy) were rejected.
+After the first answers comes a debate round: each seat sees the other three and
+challenges a named claim of another seat, citing evidence, says what it concedes,
+and casts a final vote. The debate is written up as one page,
+`proof/board/debate.md`, and leads the client report.
 
 The rules that keep this honest:
 
-- Directors quote only the verbatim, sourced quotes in
-  `skills/proof-board/personas.json`. `check` rejects any quote id that is not in
-  that seat's list, and the meeting page links every quote to its source.
-- Quotes are rare on purpose. A director may quote only when the person's words are
-  the reason for a high-severity call backed by evidence, at most once per answer.
-  `check` sends back any answer that quotes on a medium or low point, quotes twice,
-  or quotes for colour. Most directors quote nothing.
-- A director applies a person's thinking; it never writes as that person or claims
-  they would endorse anything.
+- No seat is a named person, and `check` rejects an answer that puts a rule or a
+  saying in a real person's mouth. The seats sound like advisors, not prompts.
 - Every high-severity point must cite a finding or score from the ledger; invented
-  evidence is rejected.
-- Vetoes come from the evidence, not from a director's view: a verified high security
-  finding holds the launch whatever the votes say.
+  evidence is rejected, and so is a debate challenge aimed at a claim nobody made.
+- Vetoes come from the evidence, not from a vote: a verified high security finding
+  holds the launch whatever the debate says.
+- The board matches the client's stage (`target.json` `stage`): for `solo` it is the
+  Advisory Panel, and each action goes to Do today, Hire a freelancer, or Ask a CA or
+  lawyer, instead of to executives a one-person store does not have.
 
-The meeting walks the audits in board order (user flows, reliability, security,
-infrastructure, privacy and legal, reach, AI, code health, finance, launch
-readiness). Each item shows the team's slide, the directors who speak to it, and a
-computed outcome: Blocker, Concerns, Clear or Not covered. Then questions and
-answers, the vote, the decision, and an action list grouped by owner.
-`examples/board-meeting.html` is a real meeting held on the demo shop.
+The meeting walks the audits area by area. Each item shows the team's slide, the
+seats who speak to it, and a computed outcome: Blocker, Concerns, Clear or Not
+covered. Then the debate, questions and answers, the vote, the decision, and the
+actions.
 
 ## In CI
 
@@ -442,7 +420,7 @@ inputs; confirm costs with real quotes and the structure with an accountant.
 ```
 action.yml                      the GitHub Action
 examples/                       the planted-bug demo shop, run_demo.py, a board meeting, a workflow to copy
-skills/proof-board/             SKILL.md, board.py, seats.md, personas.json
+skills/proof-board/             SKILL.md, board.py, seats.md
 skills/proof-check/             SKILL.md, check.py, review.py
 skills/proof-quick/             SKILL.md
 skills/proof-startup/           SKILL.md
@@ -495,6 +473,9 @@ skills/proof-seo/               SKILL.md, seo_score.py, page.example.html
 skills/proof-geo/               SKILL.md, geo_score.py, scoring.md, llms.example.txt
 skills/proof-ai/                SKILL.md, redteam.py, eval_import.py
 skills/proof-business-plan/     SKILL.md, plan.py
+skills/proof-intake/            SKILL.md, intake.py, example exports
+skills/proof-ads/               SKILL.md, ads.py, ads.example.json
+skills/proof-fixkit/            SKILL.md, fixkit.py, fixkit.example.json
 skills/proof-business/          SKILL.md
 skills/proof-market/            SKILL.md, market.py, competitors.example.csv, market.example.json
 skills/proof-buyers/            SKILL.md, buyers.py, customer.example.json, pitch.example.md

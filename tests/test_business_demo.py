@@ -40,7 +40,7 @@ class BusinessDemo(unittest.TestCase):
         shutil.rmtree(cls.base, ignore_errors=True)
 
     def test_the_plan_page_for_the_pdf_is_written(self):
-        page = self.read("business-plan.html")
+        page = self.read("appendix.html")
         self.assertIn("<div class='cover'>", page)
         self.assertIn("Ship or hold: business plan and board report", page)
 

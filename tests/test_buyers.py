@@ -9,6 +9,7 @@ from _load import TempProof, load_tool
 
 buyers = load_tool("proof-buyers", "buyers.py")
 ledger = load_tool("proof-core", "ledger.py")
+validate = load_tool("proof-core", "validate.py")
 
 PITCH = "Lunch at your desk by 1pm.\nIf it is late, it is free.\nPay by the week.\n"
 PITCH2 = "Lunch at your desk by 1pm.\nIf it is late, it is free.\nTry one day first, no plan needed.\n"
@@ -17,8 +18,8 @@ PITCH2 = "Lunch at your desk by 1pm.\nIf it is late, it is free.\nTry one day fi
 def customer():
     return {
         "business": "Lunch delivery", "target": "office workers", "where": "Pune", "currency": "Rs ",
-        "price_for": "one lunch delivered", "age": [22, 45],
-        "segments": [{"name": "Junior", "share": 0.5, "income": [25000, 45000]},
+        "price_for": "one lunch delivered", "age": [22, 45], "gender": "any",
+        "segments": [{"name": "Junior", "share": 0.5, "age": [22, 30], "income": [25000, 45000]},
                      {"name": "Senior", "share": 0.5, "income": [80000, 150000]}],
         "behaviours": [{"name": "Brings lunch", "share": 0.4, "how": "Packs a box."},
                        {"name": "Orders on an app", "share": 0.6, "how": "Orders at noon."}],
@@ -104,13 +105,15 @@ class Buyers(unittest.TestCase):
         c = customer()
         for card in first:
             self.assertTrue(22 <= card["age"] <= 45)
+            if card["segment"] == "Junior":
+                self.assertTrue(22 <= card["age"] <= 30, card)
             lo, hi = next(s["income"] for s in c["segments"] if s["name"] == card["segment"])
             self.assertTrue(lo <= card["income"] <= hi)
             self.assertIn(card["doubt"], c["objections"])
             self.assertIn(card["habit"], c["habits"])
 
     def test_currency_and_other_inputs_required(self):
-        for key in ("currency", "business", "target", "where", "age", "segments", "behaviours",
+        for key in ("currency", "business", "target", "where", "age", "gender", "segments", "behaviours",
                     "objections", "habits", "price_for"):
             c = customer()
             del c[key]
@@ -223,10 +226,21 @@ class Buyers(unittest.TestCase):
         self.assertIn("seed 7", text)
         self.assertIn("simulated buyers", text)
         self.assertIn("upper bound", text)
-        self.assertIn("never customer testimonials", text)
+        self.assertIn("never a customer testimonial", text)
         self.assertIn("1. **habit**: 9 of 20", text)
-        self.assertIn("\"Because of habit, said my way.\"", text)
-        self.assertIn("A one day trial.", text)
+        # no verbatim buyer words in the client section: themes with counts only
+        self.assertNotIn("said my way", text)
+        self.assertNotIn("A one day trial.", text)
+        self.assertNotIn("\"", text.split("## Why they pass")[1].split("## Price points")[0])
+        self.assertIn("- **day, trial**: 12 of 12 who passed (habit 9, price 3)", text)
+        with open(os.path.join(self.panel, "quotes.md"), encoding="utf-8") as fh:
+            quotes = fh.read()
+        self.assertTrue(quotes.startswith("# Buyer panel quotes\n"))
+        self.assertIn("For the owner only", quotes)
+        self.assertIn("never go in the client report", quotes)
+        self.assertIn("\"Because of habit, said my way.\"", quotes)
+        self.assertIn("\"A one day trial.\"", quotes)
+        self.assertEqual(quotes.count("- **b0"), 20)
         self.assertIn("## By segment", text)
         self.assertIn("## By behaviour", text)
         self.assertIn("a good deal at Rs 80", text)
@@ -276,6 +290,9 @@ class Buyers(unittest.TestCase):
         self.assertEqual(self.cards(), before)
         self.assertEqual(os.listdir(os.path.join(self.panel, "answers")), [])
         self.assertTrue(os.path.isfile(os.path.join(self.panel, "runs", "1", "results.json")))
+        # the ledger still points at business/panel/results.json and must stay valid
+        problems, _ = validate.validate_dir(self.d)
+        self.assertEqual([p for p in problems if "proof-buyers" in p or "evidence" in p], [])
         self.assertEqual(len(os.listdir(os.path.join(self.panel, "runs", "1", "answers"))), 20)
         run("--dir", self.d, "prompts")
         with open(os.path.join(self.panel, "briefs", "b001.md"), encoding="utf-8") as fh:
@@ -303,6 +320,63 @@ class Buyers(unittest.TestCase):
         f = ledger.load_finding(self.d, "proof-buyers", "buyers-retest-no-move")
         self.assertEqual((f["title"], f["severity"], f["status"]),
                          ("A revised pitch did not move the main objection", "medium", "verified"))
+
+    def test_gender_picks_the_name_pool(self):
+        for gender, pool in (("female", buyers.FEMALE_NAMES), ("male", buyers.MALE_NAMES)):
+            c = customer()
+            c["gender"] = gender
+            self.assertEqual(self.init(c, n=30, extra=("--force",))[0], 0)
+            self.assertTrue(all(card["name"] in pool for card in self.cards()), gender)
+        self.assertEqual(self.init(n=40, extra=("--force",))[0], 0)
+        names = {card["name"] for card in self.cards()}
+        self.assertTrue(names & set(buyers.FEMALE_NAMES) and names & set(buyers.MALE_NAMES))
+        self.assertFalse(set(buyers.FEMALE_NAMES) & set(buyers.MALE_NAMES))
+        c = customer()
+        c["gender"] = "woman"
+        code, out = self.init(c, extra=("--force",))
+        self.assertEqual(code, 2)
+        self.assertIn("gender", out)
+
+    def test_gender_name_keeps_the_rest_of_the_card(self):
+        c = customer()
+        c["gender"] = "female"
+        self.init(c)
+        female = self.cards()
+        c["gender"] = "male"
+        self.init(c, extra=("--force",))
+        male = self.cards()
+        strip = lambda cards: [{k: v for k, v in card.items() if k != "name"} for card in cards]
+        self.assertEqual(strip(female), strip(male))
+
+    def test_segment_age_rules(self):
+        c = customer()
+        c["segments"][0]["age"] = [18, 30]  # outside the top-level 22 to 45
+        code, out = self.init(c)
+        self.assertEqual(code, 2)
+        self.assertIn("top-level age", out)
+        for name, seg_age, ok in (("Students 18 to 22", None, False), ("Students 18-22", [25, 30], False),
+                                  ("Mums aged 31-40", [31, 40], True), ("Grads aged 25 to 40", [22, 45], True),
+                                  ("Grads aged 25 to 40", None, True), ("Staff 23 to 29", [23, 29], True)):
+            c = customer()
+            c["segments"][0]["name"] = name
+            if seg_age is None:
+                del c["segments"][0]["age"]
+            else:
+                c["segments"][0]["age"] = seg_age
+            code, out = self.init(c, extra=("--force",))
+            self.assertEqual(code, 0 if ok else 2, (name, seg_age, out))
+            if not ok:
+                self.assertIn("in its name", out)
+
+    def test_card_validation_catches_a_bad_card(self):
+        c = buyers.validate_customer(customer())
+        cards = buyers.deal(c, 10, 7)
+        bad = [dict(cards[0], age=99)]
+        with self.assertRaises(RuntimeError):
+            buyers.validate_cards(c, bad)
+        c["gender"] = "male"
+        with self.assertRaises(RuntimeError):
+            buyers.validate_cards(c, [dict(cards[0], name=buyers.FEMALE_NAMES[0])])
 
     def test_init_over_a_run_panel_needs_force(self):
         self.init()

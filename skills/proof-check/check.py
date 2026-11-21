@@ -90,13 +90,16 @@ SKILLS = [
     ("proof-licenses", "dependency licences and a software bill of materials", _always),
     ("proof-seo", "search engine optimisation", lambda s: "public" in s and bool(WEB_SIG & s)),
     ("proof-geo", "AI-search citability", lambda s: "public" in s and bool(WEB_SIG & s)),
+    ("proof-intake", "the four real numbers: unit cost, ad spend, sessions and orders a day", _always),
     ("proof-market", "competitors, what their customers complain about, and the gap", _always),
     ("proof-buyers", "a seeded panel of simulated buyers hears the pitch", _always),
     ("proof-pricing", "the price, or what one visit earns when the product is free", _always),
     ("proof-offer", "the offer built from the objections buyers raised", _always),
+    ("proof-ads", "the live ads against their landing pages, and competitors' creative gaps", _always),
     ("proof-finance", "unit economics", _always),
     ("proof-go-to-market", "positioning, channels and a first real-world test with a pass mark", _always),
     ("proof-ops", "day-one routines, monthly costs and what the business depends on", _always),
+    ("proof-fixkit", "the copy-paste fix kit and the 14-day plan, made from everything found", _always),
     ("proof-release", "launch checklist; items only a person can prove", _always),
 ]
 WHY = {name: why for name, why, _ in SKILLS}
@@ -104,8 +107,10 @@ FITS = {name: fits for name, _, fits in SKILLS}
 
 # The business side of a run: each writes one section of the business plan and
 # records its evidence in the same ledger as everything else.
-BUSINESS = ["proof-market", "proof-buyers", "proof-pricing", "proof-offer", "proof-finance",
-            "proof-go-to-market", "proof-ops"]
+# proof-intake comes first: nothing about money runs on guesses. proof-fixkit comes last:
+# it turns every verified finding into the 14-day plan.
+BUSINESS = ["proof-intake", "proof-market", "proof-buyers", "proof-pricing", "proof-offer", "proof-ads",
+            "proof-finance", "proof-go-to-market", "proof-ops", "proof-fixkit"]
 
 # The profiles. Each is a short list on purpose: what a product of that kind
 # cannot ship without, nothing it merely could check. Everything else stays one
@@ -293,7 +298,8 @@ INFRA_DIRS = (".github/workflows/", ".circleci/", "k8s/", "kubernetes/", "helm/"
 # from ("all").
 INPUTS = {"proof-sec-deps": "deps", "proof-licenses": "deps", "proof-infra": "infra", "proof-finance": "all",
           "proof-market": "all", "proof-buyers": "all", "proof-pricing": "all", "proof-offer": "all",
-          "proof-go-to-market": "all", "proof-ops": "all"}
+          "proof-go-to-market": "all", "proof-ops": "all", "proof-intake": "all", "proof-ads": "all",
+          "proof-fixkit": "all"}
 
 
 def _walk(roots):
@@ -503,6 +509,39 @@ def cmd_next(a):
     return 0
 
 
+DESCOPE_PREFIX = "Out of scope for this audit"
+
+
+def cmd_descope(a):
+    """Mark a check that does not apply to this client as out of scope, with the reason.
+
+    It is recorded as not applicable with a note that starts "Out of scope for this audit", so
+    the report lists it under what this audit did not cover. It never counts as a pass.
+    """
+    reason = (a.reason or "").strip()
+    if len(reason) < 10:
+        print("error: give a real reason with --reason (at least a short sentence)", file=sys.stderr)
+        return 2
+    cov = ledger.load_coverage(a.dir, a.skill)
+    if cov is None:
+        print("error: %s has no coverage ledger yet; run it first, or leave it out of the plan with --skip"
+              % a.skill, file=sys.stderr)
+        return 2
+    ids = [c["id"] for c in cov["checks"]]
+    targets = [c["id"] for c in cov["checks"] if c["status"] == "not_run"] if a.check == "all-unrun" else [a.check]
+    unknown = [t for t in targets if t not in ids]
+    if unknown:
+        print("error: %s has no check %s (it has: %s)" % (a.skill, ", ".join(unknown), ", ".join(ids)),
+              file=sys.stderr)
+        return 2
+    for t in targets:
+        ledger.mark_coverage(a.dir, a.skill, t, "not_applicable", note="%s: %s" % (DESCOPE_PREFIX, reason))
+        print("%s %s %s descoped: %s" % (ledger.OK, a.skill, t, reason))
+    if not targets:
+        print("%s nothing to descope: %s has no check left not run" % (ledger.OK, a.skill))
+    return 0
+
+
 def cmd_refresh(a):
     """Force skills to run again on the next pass, even if their inputs look unchanged."""
     plan = _load_plan(a.dir)
@@ -538,6 +577,11 @@ def main(argv=None):
     p.set_defaults(func=cmd_plan)
     sub.add_parser("status", help="progress through the planned check").set_defaults(func=cmd_status)
     sub.add_parser("next", help="the next skill to run").set_defaults(func=cmd_next)
+    ds = sub.add_parser("descope", help="mark a check that does not apply to this client as out of scope")
+    ds.add_argument("skill", help="the skill, e.g. proof-a11y")
+    ds.add_argument("check", help="the check id, or all-unrun for every check that skill has not run")
+    ds.add_argument("--reason", required=True, help="why it does not apply; shown in the appendix")
+    ds.set_defaults(func=cmd_descope)
     rf = sub.add_parser("refresh", help="run skills again next pass even if their inputs look unchanged")
     rf.add_argument("skill", nargs="*", help="skills to refresh (for a live target that was redeployed)")
     rf.add_argument("--all", action="store_true", help="every skill in the plan")

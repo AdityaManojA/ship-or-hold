@@ -42,7 +42,7 @@ COVERAGE = [
     ("solutions-scored", "Each solution is scored for value to the buyer and cost to deliver"),
     ("stack-built", "The stack holds only high-value, low-cost solutions"),
     ("guarantee-costed", "The guarantee has an expected cost"),
-    ("promises-exist", "Nothing in the stack is still unbuilt"),
+    ("promises-exist", "Every stack item was checked for whether it exists today"),
     ("retest-planned", "The new pitch will be re-tested with buyers"),
 ]
 
@@ -487,8 +487,13 @@ def cmd_record(a):
         cover("guarantee-costed", False, "A guarantee is listed among the solutions but has no cost or claim rate.")
     else:
         ledger.mark_coverage(d, SKILL, "guarantee-costed", "not_applicable", note="No guarantee is offered.")
-    cover("promises-exist", bool(res["stack"]) and not res["not_built"],
-          "%d stack item(s) do not exist today." % len(res["not_built"]) if res["not_built"] else None)
+    # Covered once the stack has been checked: an unbuilt promise is a high finding, not a gap.
+    if res["stack"]:
+        note = None
+        if res["not_built"]:
+            note = "Checked. Not built today: %s (each is a high finding)." % "; ".join(
+                s["solution"] for s in res["not_built"])
+        ledger.mark_coverage(d, SKILL, "promises-exist", "covered", note=note, evidence=evidence)
     cover("retest-planned", bool(res["retest"]))
 
     ledger.write_scores(d, SKILL, [

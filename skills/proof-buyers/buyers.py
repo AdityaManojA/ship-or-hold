@@ -13,6 +13,7 @@ State lives under ``proof/business/panel/``:
     panel.json   n, seed, run number, the customer profile, the pitch word for word
     cards.json   the dealt buyers (same seed + customer + n => same buyers)
     briefs/<id>.md, answers/<id>.json, results.json
+    quotes.md    every buyer's words, for the owner only (never in the client report)
     runs/<n>/    an earlier run archived by ``retest``
 
     python3 buyers.py template --out DIR
@@ -32,6 +33,7 @@ import importlib.util
 import json
 import os
 import random
+import re
 import shutil
 import sys
 
@@ -54,11 +56,28 @@ THIN_GROUP = 5
 SMALL_PANEL = 20
 CHECKS = [
     ("panel-run", "A seeded panel of simulated buyers answered the pitch"),
-    ("objections-ranked", "The reasons buyers pass are ranked, with their own words"),
+    ("objections-ranked", "The reasons buyers pass are ranked, with counts (their words are kept for the owner)"),
     ("flip-conditions", "What would change a no is recorded"),
     ("retested", "A revised pitch was put to the same buyers and compared"),
 ]
 FINDING_PREFIX = "buyers-"
+GENDERS = ("female", "male", "any")
+
+# Neutral, varied, international first names. No real-person reference intended.
+FEMALE_NAMES = [
+    "Ada", "Amara", "Anika", "Bea", "Carmen", "Chiara", "Dara", "Elif", "Elsa", "Fatima",
+    "Fern", "Gwen", "Hana", "Ines", "Iris", "Jana", "Kavya", "Leila", "Lena", "Liv",
+    "Maya", "Mei", "Mira", "Nadia", "Noor", "Olga", "Pia", "Priya", "Rosa", "Sana",
+    "Sofia", "Tara", "Thea", "Uma", "Vera", "Wren", "Yara", "Yuki", "Zara", "Zoe",
+]
+MALE_NAMES = [
+    "Aarav", "Arlo", "Ben", "Carlos", "Dev", "Emil", "Farid", "Finn", "Gus", "Hiro",
+    "Ivo", "Jonas", "Jude", "Kai", "Kofi", "Luca", "Mateo", "Milo", "Nikhil", "Omar",
+    "Otto", "Pavel", "Rafael", "Ravi", "Remy", "Sami", "Soren", "Sven", "Tomas", "Tariq",
+    "Umar", "Viktor", "Wade", "Yosef", "Yusuf", "Zane", "Arjun", "Diego", "Lars", "Kenji",
+]
+# An age range stated in a segment name: "18 to 22", "18-22", "aged 25 to 40".
+NAMED_AGE = re.compile(r"(?<![\d,.])(\d{1,3})\s*(?:-|to)\s*(\d{1,3})(?![\d,.%])", re.I)
 
 
 class BuyersError(ValueError):
@@ -146,6 +165,27 @@ def _lines(c, key):
     return [x.strip() for x in items]
 
 
+def name_pool(gender):
+    """The first names a buyer of this gender is drawn from; "any" mixes both pools."""
+    if gender == "female":
+        return FEMALE_NAMES
+    if gender == "male":
+        return MALE_NAMES
+    if gender == "any":
+        return FEMALE_NAMES + MALE_NAMES
+    raise BuyersError("'gender' must be \"female\", \"male\" or \"any\" (got %r). A panel dealt before "
+                      "gender was required needs init --force with a customer.json that states it." % (gender,))
+
+
+def _named_age(name):
+    """The age range a segment's name states, or None."""
+    for m in NAMED_AGE.finditer(name):
+        lo, hi = int(m.group(1)), int(m.group(2))
+        if 12 <= lo < hi <= 120:
+            return [lo, hi]
+    return None
+
+
 def validate_customer(c, free_flag=False):
     """Return a cleaned customer profile, or raise BuyersError. Nothing is defaulted."""
     if not isinstance(c, dict):
@@ -157,9 +197,28 @@ def validate_customer(c, free_flag=False):
     out["currency"] = c["currency"]
     age = _pair(c.get("age"), "age")
     out["age"] = [int(age[0]), int(age[1])]
+    if c.get("gender") not in GENDERS:
+        raise BuyersError("'gender' is missing or not valid in customer.json: give \"female\", \"male\" or "
+                          "\"any\" so each buyer gets a name that fits the customer")
+    out["gender"] = c["gender"]
 
     def seg_extra(it, name):
-        return {"income": _pair(it.get("income"), "segments[%s].income" % name)}
+        extra = {"income": _pair(it.get("income"), "segments[%s].income" % name)}
+        if "age" in it:
+            lo, hi = _pair(it["age"], "segments[%s].age" % name)
+            seg_age = [int(lo), int(hi)]
+            if seg_age[0] < out["age"][0] or seg_age[1] > out["age"][1]:
+                raise BuyersError("segment %r has age %d to %d, outside the top-level age %d to %d. The top-level "
+                                  "age must contain every segment's age." % (
+                                      name, seg_age[0], seg_age[1], out["age"][0], out["age"][1]))
+            extra["age"] = seg_age
+        span = extra.get("age", out["age"])
+        stated = _named_age(name)
+        if stated and (stated[0] < span[0] or stated[1] > span[1]):
+            raise BuyersError("segment %r says ages %d to %d in its name, but its buyers would be aged %d to %d. "
+                              "Give the segment an \"age\": [%d, %d] (inside the top-level age) or rename it." % (
+                                  name, stated[0], stated[1], span[0], span[1], stated[0], stated[1]))
+        return extra
 
     def beh_extra(it, name):
         if not isinstance(it.get("how"), str) or not it["how"].strip():
@@ -211,20 +270,45 @@ def deal(customer, n, seed):
         "habit": [{"value": h, "share": 1.0} for h in customer["habits"]],
         "doubt": [{"value": o, "share": 1.0} for o in customer["objections"]],
     }}
-    incomes = {s["name"]: s["income"] for s in customer["segments"]}
+    segs = {s["name"]: s for s in customer["segments"]}
+    pool = name_pool(customer.get("gender"))
     cards = []
     for i, raw in enumerate(_swarm()._deal(profile, n, seed)):
         cid = "b%03d" % (i + 1)
         rng = random.Random("%d:%s" % (seed, cid))
-        lo, hi = incomes[raw["segment"]]
+        seg = segs[raw["segment"]]
+        lo, hi = seg["income"]
+        age_lo, age_hi = seg.get("age", customer["age"])
         cards.append({
             "id": cid, "name": raw["name"],
-            "age": rng.randint(customer["age"][0], customer["age"][1]),
+            "age": rng.randint(age_lo, age_hi),
             "segment": raw["segment"], "income": _round_income(rng.uniform(lo, hi), lo, hi),
             "behaviour": raw["behaviour"], "how": raw.get("_detail_behaviour", ""),
             "habit": raw["habit"], "doubt": raw["doubt"],
         })
+    # The shared dealer draws from its own name pool. The name kept is drawn afterwards from the
+    # gender-matched pool with its own seeded draw, so the rest of every card is unchanged.
+    for card in cards:
+        card["name"] = random.Random("%d:%s:name" % (seed, card["id"])).choice(pool)
+    validate_cards(customer, cards)
     return cards
+
+
+def validate_cards(customer, cards):
+    """Every dealt card must fit the profile. A failure here is a bug in the dealer, not bad input."""
+    segs = {s["name"]: s for s in customer["segments"]}
+    pool = set(name_pool(customer.get("gender")))
+    for card in cards:
+        seg = segs.get(card["segment"])
+        if seg is None:
+            raise RuntimeError("card %s has segment %r, which is not in the profile" % (card["id"], card["segment"]))
+        lo, hi = seg.get("age", customer["age"])
+        if not lo <= card["age"] <= hi:
+            raise RuntimeError("card %s is aged %d, outside segment %r (%d to %d)" % (
+                card["id"], card["age"], card["segment"], lo, hi))
+        if card["name"] not in pool:
+            raise RuntimeError("card %s is named %r, which is not in the %s name pool" % (
+                card["id"], card["name"], customer.get("gender")))
 
 
 def _money(currency, x):
@@ -382,8 +466,10 @@ def cmd_template(a):
 
 def _profile_lines(c, n, seed):
     L = ["%s: %s, %s, aged %d to %d" % (c["business"], c["target"], c["where"], c["age"][0], c["age"][1])]
-    L.append("  segments: " + "; ".join("%s %.0f%% (income %s to %s)" % (
-        s["name"], s["share"] * 100, _money(c["currency"], s["income"][0]), _money(c["currency"], s["income"][1]))
+    L.append("  names drawn for gender: %s" % c.get("gender"))
+    L.append("  segments: " + "; ".join("%s %.0f%% (%sincome %s to %s)" % (
+        s["name"], s["share"] * 100, "aged %d to %d, " % tuple(s["age"]) if s.get("age") else "",
+        _money(c["currency"], s["income"][0]), _money(c["currency"], s["income"][1]))
         for s in c["segments"]))
     L.append("  behaviours: " + "; ".join("%s %.0f%%" % (b["name"], b["share"] * 100) for b in c["behaviours"]))
     L.append("  %d doubts and %d habits to draw from" % (len(c["objections"]), len(c["habits"])))
@@ -549,6 +635,11 @@ def build_results(base, panel, cards, min_rate):
                   "text": answers[c["id"]]["would_change_mind"].strip()}
                  for c in cards if c["id"] in answers and not answers[c["id"]]["buys"]
                  and answers[c["id"]]["would_change_mind"].strip()],
+        "words": [{"id": c["id"], "name": c["name"], "age": c["age"], "segment": c["segment"],
+                   "buys": answers[c["id"]]["buys"], "reason_code": answers[c["id"]]["reason_code"],
+                   "reason": answers[c["id"]]["reason"].strip(), "objection": answers[c["id"]]["objection"].strip(),
+                   "would_change_mind": answers[c["id"]]["would_change_mind"].strip()}
+                  for c in cards if c["id"] in answers],
         "times_first_month_median": _median([v["times_first_month"] for v in answers.values() if v["buys"]]) if buys else None,
         "prices": None, "previous": None, "moved": [], "pitch": panel["pitch"], "created": ledger.now(),
     }
@@ -564,8 +655,62 @@ def build_results(base, panel, cards, min_rate):
         res["moved"] = [{"code": code, "before": before.get(code, 0), "after": after.get(code, 0),
                          "change": after.get(code, 0) - before.get(code, 0)}
                         for code in CODES if before.get(code, 0) or after.get(code, 0)]
+    res["flip_themes"] = flip_themes(res["flip"])
     res["findings"] = _findings(res)
     return res
+
+
+STOPWORDS = set("""a an the and or but if of to in on at for from by with without about into than then
+    so as is are was were be been being am it its this that these those there here i me my mine we us our
+    you your he she they them their his her would could should will can may might must do does did done
+    not no yes just only more most less very really much many some any all also too get got make made
+    one when what which who how why where up out over under again need want like""".split())
+
+
+def _keywords(text):
+    out = []
+    for w in re.findall(r"[a-z0-9]+", text.lower()):
+        if len(w) > 4 and w.endswith("s") and not w.endswith("ss"):
+            w = w[:-1]
+        if len(w) >= 3 and w not in STOPWORDS and w not in out:
+            out.append(w)
+    return out
+
+
+def flip_themes(flips):
+    """Group what would change a no by simple keyword overlap: themes with counts, no quotes.
+
+    An answer joins a theme when at least half the keywords of the shorter of the two appear in
+    the theme's first answer. Each theme is labelled by its most frequent keywords."""
+    groups = []
+    for f in flips:
+        kws = _keywords(f["text"])
+        home = None
+        for g in groups:
+            first = g["first"]
+            if (kws and first and len(set(kws) & set(first)) * 2 >= min(len(kws), len(first))) \
+                    or (not kws and not first):
+                home = g
+                break
+        if home is None:
+            home = {"first": kws, "members": []}
+            groups.append(home)
+        home["members"].append((kws, f["reason_code"]))
+    out = []
+    for g in groups:
+        counts, order = {}, []
+        for kws, _ in g["members"]:
+            for w in kws:
+                if w not in counts:
+                    order.append(w)
+                counts[w] = counts.get(w, 0) + 1
+        top = sorted(order, key=lambda w: (-counts[w], order.index(w)))[:3]
+        codes = {}
+        for _, code in g["members"]:
+            codes[code] = codes.get(code, 0) + 1
+        out.append({"theme": ", ".join(top) if top else "other", "count": len(g["members"]),
+                    "reason_codes": [{"code": c, "count": codes[c]} for c in CODES if c in codes]})
+    return sorted(out, key=lambda t: -t["count"])
 
 
 def _findings(res):
@@ -602,8 +747,8 @@ def _pct(x):
     return ("%.1f" % x).rstrip("0").rstrip(".") + "%"
 
 
-def _quote(q):
-    return "   - \"%s\" (%s, %d, %s)" % (" ".join(q["text"].split()), q["name"], q["age"], q["segment"])
+def _one_line(text):
+    return " ".join(text.split())
 
 
 def render(res):
@@ -648,17 +793,21 @@ def render(res):
         L.append("Nobody passed. With %s that is a warning, not good news: see the note at the end." % MARKER)
     for i, g in enumerate(res["pass_reasons"], start=1):
         L.append("%d. **%s**: %d of %d" % (i, g["code"], g["count"], res["answered"]))
-        L += [_quote(q) for q in g["quotes"]]
     L += ["", "## Why they %s" % verb, ""]
     if not res["buy_reasons"]:
         L.append("Nobody said yes.")
     for i, g in enumerate(res["buy_reasons"], start=1):
         L.append("%d. **%s**: %d of %d" % (i, g["code"], g["count"], res["answered"]))
-        L += [_quote(q) for q in g["quotes"]]
     L += ["", "## What would change a no", ""]
-    if not res["flip"]:
+    themes = res.get("flip_themes") or []
+    if not themes:
         L.append("Nothing recorded.")
-    L += ["- \"%s\" (%s, passed on %s)" % (" ".join(f["text"].split()), f["name"], f["reason_code"]) for f in res["flip"]]
+    else:
+        L += ["Grouped by the words the buyers used. These are hypotheses to test with real buyers.", ""]
+    for t in themes:
+        L.append("- **%s**: %d of %d who passed (%s)" % (
+            t["theme"], t["count"], res["passes"],
+            ", ".join("%s %d" % (r["code"], r["count"]) for r in t["reason_codes"])))
     L.append("")
 
     if res["prices"]:
@@ -674,9 +823,31 @@ def render(res):
           "These are %s, not real people. Each one is a language model playing a card dealt from the "
           "customer profile (seed %d). Language models lean agreeable, so the rate above is an upper bound: "
           "real buyers will say yes less often. Use the panel to find objections and wording, then check "
-          "them with real people. Panel quotes are never customer testimonials and must not be shown as such." % (
-              MARKER, res["seed"])]
+          "them with real people. What each buyer said is kept for the owner only and is never a customer "
+          "testimonial." % (MARKER, res["seed"])]
     return "\n".join(L) + "\n"
+
+
+def render_quotes(res):
+    """Every buyer's own words, for the owner only. Never part of the client report."""
+    L = ["# Buyer panel quotes", "",
+         "**For the owner only. These words never go in the client report or the PDF.** They come from "
+         "%s, not real people (run %d, seed %d), and are never customer testimonials." % (
+             MARKER, res["run"], res["seed"]), ""]
+    for title, buys in (("Passed", False), ("Would %s" % ("use it" if res["free"] else "buy"), True)):
+        rows = [w for w in res.get("words", []) if w["buys"] is buys]
+        L += ["## %s (%d)" % (title, len(rows)), ""]
+        if not rows:
+            L += ["Nobody.", ""]
+        for w in rows:
+            L.append("- **%s** (%s, %d, %s), %s" % (w["id"], w["name"], w["age"], w["segment"], w["reason_code"]))
+            L.append("  - Reason: \"%s\"" % _one_line(w["reason"]))
+            if w["objection"]:
+                L.append("  - Biggest doubt: \"%s\"" % _one_line(w["objection"]))
+            if w["would_change_mind"]:
+                L.append("  - Would change their mind: \"%s\"" % _one_line(w["would_change_mind"]))
+        L.append("")
+    return "\n".join(L)
 
 
 def _clear_findings(d):
@@ -699,6 +870,9 @@ def cmd_tally(a):
     _write_json(results_path, res)
     with open(out, "w", encoding="utf-8") as fh:
         fh.write(render(res))
+    quotes_path = os.path.join(base, "quotes.md")
+    with open(quotes_path, "w", encoding="utf-8") as fh:
+        fh.write(render_quotes(res))
     rel = os.path.relpath(results_path, root).replace(os.sep, "/")
 
     ev_dir = ledger.evidence_dir(a.dir, SKILL)
@@ -748,6 +922,7 @@ def cmd_tally(a):
             ledger.BAD, len(res["excluded"]), ", ".join(res["excluded"])))
     print("%s wrote %s and %s; recorded coverage, 1 score and %d finding(s)." % (
         ledger.OK, out, results_path, len(res["findings"])))
+    print("Buyer quotes are in %s, for the owner only; they never go in the client report." % quotes_path)
     return 0
 
 
@@ -762,7 +937,10 @@ def cmd_retest(a):
     dest = os.path.join(base, "runs", str(panel["run"]))
     _wipe(dest)
     os.makedirs(dest)
-    shutil.move(results_path, os.path.join(dest, "results.json"))
+    # Copied, not moved: the ledger's evidence points at results.json until the next tally.
+    shutil.copyfile(results_path, os.path.join(dest, "results.json"))
+    if os.path.isfile(os.path.join(base, "quotes.md")):
+        shutil.copyfile(os.path.join(base, "quotes.md"), os.path.join(dest, "quotes.md"))
     shutil.move(os.path.join(base, "answers"), os.path.join(dest, "answers"))
     shutil.copyfile(os.path.join(base, "panel.json"), os.path.join(dest, "panel.json"))
     shutil.copyfile(os.path.join(base, "cards.json"), os.path.join(dest, "cards.json"))

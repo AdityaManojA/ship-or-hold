@@ -59,6 +59,40 @@ class Target(unittest.TestCase):
         rc, _ = run("--dir", self.d, "init", "--name", "B", "--kind", "web", "--authorised", "yes", "--force")
         self.assertEqual(rc, 0)
 
+    def test_init_records_the_stage(self):
+        rc, out = run("--dir", self.d, "init", "--name", "A", "--kind", "web", "--authorised", "yes",
+                      "--stage", "solo")
+        self.assertEqual(rc, 0, out)
+        self.assertEqual(read_json(os.path.join(self.d, "target.json"))["stage"], "solo")
+        with open(os.path.join(self.d, "target.md"), encoding="utf-8") as fh:
+            self.assertIn("- Stage: solo", fh.read())
+        with self.assertRaises(SystemExit):
+            with contextlib.redirect_stderr(io.StringIO()):
+                target.main(["--dir", self.d, "init", "--name", "A", "--kind", "web", "--authorised", "yes",
+                             "--stage", "startup", "--force"])
+
+    def test_missing_stage_reads_as_team_and_stage_sets_it(self):
+        run("--dir", self.d, "init", "--name", "A", "--kind", "web", "--authorised", "yes")
+        self.assertNotIn("stage", read_json(os.path.join(self.d, "target.json")))
+        rc, out = run("--dir", self.d, "stage")
+        self.assertEqual(rc, 0)
+        self.assertIn("team (not set, read as team)", out)
+        rc, out = run("--dir", self.d, "show")
+        self.assertIn("stage: team", out)
+        rc, out = run("stage", "company", "--dir", self.d)  # --dir after the subcommand works too
+        self.assertEqual(rc, 0, out)
+        t = read_json(os.path.join(self.d, "target.json"))
+        self.assertEqual(t["stage"], "company")
+        self.assertEqual(t["name"], "A")
+        with self.assertRaises(SystemExit):
+            with contextlib.redirect_stderr(io.StringIO()):
+                target.main(["--dir", self.d, "stage", "enterprise"])
+
+    def test_stage_needs_a_target(self):
+        rc, out = run("--dir", self.d, "stage", "solo")
+        self.assertEqual(rc, 2)
+        self.assertIn("Run init first", out)
+
     def test_require_roundtrip(self):
         run("--dir", self.d, "init", "--name", "A", "--kind", "web", "--authorised", "yes")
         run("--dir", self.d, "require", "add", "proof-web-e2e", "proof-sec-web")
@@ -103,8 +137,8 @@ class BusinessReco(unittest.TestCase):
         tg = load_tool("proof-plan", "target.py")
         for kind, rows in tg.RECO.items():
             names = [n for n, _ in rows]
-            for sk in ("proof-market", "proof-buyers", "proof-pricing", "proof-offer", "proof-finance",
-                       "proof-go-to-market", "proof-ops", "proof-business-plan"):
+            for sk in ("proof-intake", "proof-market", "proof-buyers", "proof-pricing", "proof-offer", "proof-ads",
+                       "proof-finance", "proof-go-to-market", "proof-ops", "proof-fixkit", "proof-business-plan"):
                 self.assertEqual(names.count(sk), 1, "%s in %s" % (sk, kind))
             self.assertLess(names.index("proof-market"), names.index("proof-buyers"), kind)
             self.assertLess(names.index("proof-ops"), names.index("proof-business-plan"), kind)

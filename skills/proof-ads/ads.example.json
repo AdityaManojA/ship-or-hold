@@ -1,0 +1,36 @@
+{
+  "business": "Loom and Lane, cotton and linen kurtas sold online",
+  "currency": "Rs ",
+  "brand": "Loom and Lane",
+  "captured": "2026-11-20",
+  "ads": [
+    {"advertiser": "Loom and Lane", "is_brand": true, "library_url": "https://www.facebook.com/ads/library/?id=100000000000001",
+     "started": "2026-11-02", "format": "image", "headline": "Linen kurta in sage green",
+     "copy": "Breathable linen for warm afternoons. Rs 1,499.", "cta": "Shop now",
+     "landing_url": "https://loomandlane.example/products/sage-linen-kurta", "price": 1499},
+    {"advertiser": "Loom and Lane", "is_brand": true, "library_url": "https://www.facebook.com/ads/library/?id=100000000000002",
+     "started": "2026-11-10", "format": "carousel", "headline": "The festive edit is here",
+     "copy": "Hand block printed cotton sets, with free delivery across India.", "cta": "Shop now",
+     "landing_url": "https://loomandlane.example/collections/festive", "offer": "free delivery"},
+    {"advertiser": "Loom and Lane", "is_brand": true, "library_url": "https://www.facebook.com/ads/library/?id=100000000000003",
+     "started": "2026-11-15", "format": "video", "headline": "Meet the people who weave our cloth",
+     "copy": "A short film from the looms we work with.", "cta": "Learn more",
+     "landing_url": "https://loomandlane.example/pages/our-weavers"},
+    {"advertiser": "Cotton Kin", "is_brand": false, "library_url": "https://www.facebook.com/ads/library/?id=200000000000001",
+     "started": "2026-10-28", "format": "image", "headline": "Kurtas from XS to 3XL",
+     "copy": "Check our size chart, every kurta fits true to size. Cash on delivery available.", "cta": "Shop now",
+     "landing_url": "https://cottonkin.example/kurtas"},
+    {"advertiser": "Cotton Kin", "is_brand": false, "library_url": "https://www.facebook.com/ads/library/?id=200000000000002",
+     "started": "2026-11-05", "format": "video", "headline": "Rated 4.6 by 2,000 customers",
+     "copy": "Read the reviews, then pick your size. COD available on every order.", "cta": "Shop now",
+     "landing_url": "https://cottonkin.example/reviews"},
+    {"advertiser": "Mira Threads", "is_brand": false, "library_url": "https://www.facebook.com/ads/library/?id=300000000000001",
+     "started": "2026-11-08", "format": "carousel", "headline": "Find your fit in two minutes",
+     "copy": "Our size guide and easy exchange make online kurta shopping simple. Loved by 10,000 customers.", "cta": "Shop now",
+     "landing_url": "https://mirathreads.example/fit"}
+  ],
+  "landing_pages": [
+    {"url": "https://loomandlane.example/products/sage-linen-kurta", "file": "landing/sage-linen-kurta.html"},
+    {"url": "https://loomandlane.example/collections/festive", "file": "landing/festive.html"}
+  ]
+}

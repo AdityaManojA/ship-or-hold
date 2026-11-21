@@ -177,47 +177,54 @@ class Plan(unittest.TestCase):
         self.assertEqual(run("--dir", self.d, "idea-template")[0], 2)
         self.assertEqual(run("--dir", self.d, "idea-template", "--force")[0], 0)
 
-    def board(self, answered=("cfo",)):
+    def seats(self):
+        return plan._seats()
+
+    def board(self, answered=None):
+        (s1, t1), (s2, t2) = self.seats()[:2]
+        answered = [s1] if answered is None else answered
         self.tp.write("board/decision.json", json.dumps({
             "decision": "Hold", "verdict": "Ship", "reasons": [], "answered": list(answered),
             "votes": {"go": [], "go_with_conditions": [], "hold": list(answered)}, "conditions": []}).encode("utf-8"))
-        for seat, vote in (("cfo", "hold"), ("ceo", "go")):
+        for seat, vote in ((s1, "hold"), (s2, "go")):
             self.tp.write("board/answers/%s.json" % seat, json.dumps({
                 "seat": seat, "vote": vote, "confidence": 0.85, "summary": "As %s: the year loses money." % seat,
                 "risks": [{"risk": "The year | loses money", "severity": "high",
                            "evidence": ["proof-finance/score:year1_operating_profit"], "quote": ""}],
                 "conditions": [{"action": "Replace the estimates", "owner": seat, "by": "before launch"}],
                 "questions": ["What does one set cost?", "How many orders last month?"]}).encode("utf-8"))
-        self.tp.write("board/qa.json", json.dumps({"cfo": {"0": "Not covered; the owner has to answer."}}).encode("utf-8"))
+        self.tp.write("board/qa.json", json.dumps({s1: {"0": "Not covered; the owner has to answer."}}).encode("utf-8"))
 
     def test_every_counted_director_is_in_the_plan_with_risks_conditions_and_questions(self):
         self.base()
         self.scores()
-        self.board(answered=("cfo",))
+        self.board()
+        (s1, t1), (s2, t2) = self.seats()[:2]
         run("--dir", self.d, "compile")
         text = self.read("business-plan.md")
-        self.assertIn("### Director by director", text)
-        self.assertIn("#### Chief Financial Officer: Hold (confidence 85%)", text)
-        self.assertIn("As cfo: the year loses money.", text)
+        self.assertIn("### Seat by seat", text)
+        self.assertIn("#### %s: Hold (confidence 85%%)" % t1, text)
+        self.assertIn("As %s: the year loses money." % s1, text)
         # a pipe inside the risk cannot break the table, and the evidence is named
         self.assertIn("| high | The year / loses money | `proof-finance/score:year1_operating_profit` |", text)
-        self.assertIn("| Replace the estimates | CFO | before launch |", text)
+        self.assertIn("| Replace the estimates | %s | before launch |" % s1.upper(), text)
         self.assertIn("1. What does one set cost?\n   Team: Not covered; the owner has to answer.", text)
         self.assertIn("2. How many orders last month?\n   Team: not answered yet", text)
         # a seat the board did not count is left out, not shown
-        self.assertNotIn("Chief Executive Officer", text)
+        self.assertNotIn("#### %s:" % t2, text)
 
     def test_directors_follow_the_board_seat_order(self):
         self.base()
-        self.board(answered=("cfo", "ceo"))
+        (s1, t1), (s2, t2) = self.seats()[:2]
+        self.board(answered=[s2, s1])
         run("--dir", self.d, "compile")
         text = self.read("business-plan.md")
-        self.assertLess(text.index("#### Chief Executive Officer"), text.index("#### Chief Financial Officer"))
+        self.assertLess(text.index("#### %s:" % t1), text.index("#### %s:" % t2))
 
     def test_no_board_means_no_director_section(self):
         self.base()
         run("--dir", self.d, "compile")
-        self.assertNotIn("Director by director", self.read("business-plan.md"))
+        self.assertNotIn("Seat by seat", self.read("business-plan.md"))
 
     def test_html_rendering_escapes_and_keeps_structure(self):
         out = plan.md_to_html("# Title\n\nA <script>x</script> **bold** [ok](https://e.example) [no](javascript:x)\n\n"
@@ -244,14 +251,15 @@ class Plan(unittest.TestCase):
         self.scores()
         code, out = run("--dir", self.d, "compile")
         self.assertEqual(code, 0)  # the verdict decides the exit code, not the printer
-        page = self.read("business-plan.html")
+        page = self.read("report.html")
         self.assertIn("<div class='cover'>", page)
         self.assertIn("<strong>Verdict: Ship</strong>", page)
         self.assertIn("The board has not met.", page)
+        self.assertIn("<div class='cover'>", self.read("appendix.html"))
         self.assertIn("No Chrome, Chromium or Edge", out)
-        os.remove(os.path.join(self.d, "business-plan.html"))
+        os.remove(os.path.join(self.d, "report.html"))
         run("--dir", self.d, "compile", "--no-pdf")
-        self.assertFalse(os.path.exists(os.path.join(self.d, "business-plan.html")))
+        self.assertFalse(os.path.exists(os.path.join(self.d, "report.html")))
 
     def test_pdf_without_a_browser_writes_the_html_and_says_so(self):
         self.base()
@@ -259,15 +267,193 @@ class Plan(unittest.TestCase):
         code, out = run("--dir", self.d, "pdf")
         self.assertEqual(code, 2)
         self.assertIn("No Chrome, Chromium or Edge", out)
-        page = self.read("business-plan.html")
-        self.assertIn("<h1>Demo: business plan</h1>", page)
-        self.assertFalse(os.path.exists(os.path.join(self.d, "business-plan.pdf")))
+        self.assertIn("<h1>Demo: business plan</h1>", self.read("appendix.html"))
+        self.assertIn("<h1>Executive summary</h1>", self.read("report.html"))
+        self.assertFalse(os.path.exists(os.path.join(self.d, "report.pdf")))
 
     def test_an_explicit_browser_path_wins(self):
         fake = os.path.join(self.tp.base, "chrome.exe")
         with open(fake, "w") as fh:
             fh.write("x")
         self.assertEqual(plan.find_browser(fake), fake)
+
+    # ---------------------------------------------------------------- v2: the client report
+
+    def test_an_incomplete_run_gets_no_client_report(self):
+        self.base(required=("proof-finance", "proof-market"))  # proof-market never reported
+        code, out = run("--dir", self.d, "compile")
+        self.assertEqual(code, 2)
+        self.assertIn("no client PDF", out)
+        self.assertIn("check.py descope", out)
+        self.assertFalse(os.path.exists(os.path.join(self.d, "report.html")))
+        self.assertTrue(os.path.exists(os.path.join(self.d, "business-plan.md")))
+        # a draft is allowed, and says so on the page
+        run("--dir", self.d, "pdf", "--draft")
+        self.assertIn("DRAFT: the verdict is Incomplete", self.read("report.html"))
+
+    def test_client_pages_carry_no_ledger_codes(self):
+        text = ("Each order loses money [proof-finance/score:year1_operating_profit]. See `proof-a11y/contrast-price` "
+                "and gtm.json (proof-ops/ops-single-point-the-owner).\n\n## Sources\n\n- proof-x/y\n")
+        out = plan._client_clean(text)
+        self.assertNotIn("proof-", out)
+        self.assertNotIn("gtm.json", out)
+        self.assertNotIn("Sources", out)
+        self.assertIn("Each order loses money.", out)
+
+    def test_report_order_is_summary_debate_screens_kit(self):
+        self.base()
+        self.scores()
+        self.tp.write("summary.md", (SUMMARY % "Ship").encode("utf-8"))
+        self.tp.write("board/debate.md", b"# Boardroom debate\n\nGrowth challenged the Investor on the ad spend.\n")
+        self.tp.write("business/fix-kit.md", b"# 14-Day Fix Kit\n\n| day | task |\n| --- | --- |\n| 1 | Add a size chart |\n")
+        png = (b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00"
+               b"\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82")
+        self.tp.write("business/screens/product.png", png)
+        self.tp.write("business/screens/annotations.json", json.dumps([{
+            "image": "product.png", "title": "Product page",
+            "notes": [{"x": 10, "y": 20, "w": 30, "h": 10, "label": "No size chart here", "severity": "high"},
+                      {"x": 120, "y": 0, "w": 5, "h": 5, "label": "off the image"}]}]).encode("utf-8"))
+        code, out = run("--dir", self.d, "compile")
+        page = self.read("report.html")
+        order = [page.index("<h1>%s</h1>" % h) for h in
+                 ("Executive summary", "Boardroom debate", "What we saw on your store", "14-Day Fix Kit")]
+        self.assertEqual(order, sorted(order))
+        self.assertIn("class='box high'", page)
+        self.assertIn("No size chart here", page)
+        self.assertIn("data:image/png;base64,", page)
+        self.assertIn("box outside the image", out)
+
+    def _shots(self, shots):
+        png = (b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00"
+               b"\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82")
+        for s in shots:
+            self.tp.write("business/screens/" + s["image"], png)
+        self.tp.write("business/screens/annotations.json", json.dumps(shots).encode("utf-8"))
+
+    def _finding(self, skill, title, severity):
+        f = ledger.new_finding(skill, title, severity)
+        ledger.write_finding(self.d, f)
+        ledger.verify(self.d, skill, f["id"], by="manual", note="seen on the page")
+        return "%s/%s" % (skill, f["id"])
+
+    def test_phone_screens_share_a_row_and_good_notes_are_green(self):
+        self.base()
+        self.scores()
+        ref = self._finding("proof-a11y", "Low contrast on the product name", "medium")
+        note = {"x": 5, "y": 5, "w": 20, "h": 10, "severity": "medium", "label": "The name is faint", "ref": ref}
+        good = {"x": 30, "y": 40, "w": 40, "h": 10, "severity": "good", "label": "Add to cart is easy to find"}
+        self._shots([{"image": "p1.png", "title": "Product on a phone", "device": "phone", "notes": [note]},
+                     {"image": "p2.png", "title": "Cart on a phone", "device": "phone", "notes": [good]},
+                     {"image": "d1.png", "title": "Home", "device": "desktop", "notes": [dict(note)]}])
+        html_out, problems = plan.screens_html(os.path.join(self.d), plan._load_json(
+            os.path.join(self.d, plan.SCREENS_FILE)), plan.finding_refs(self.d)[0])
+        self.assertEqual(problems, [])
+        self.assertEqual(html_out.count("<div class='phones'>"), 1)
+        self.assertLess(html_out.index("Cart on a phone"), html_out.index("Home"))
+        self.assertIn("class='box good'", html_out)
+        self.assertIn("Works: Add to cart is easy to find", html_out)
+
+    def test_screens_check_rejects_unknown_refs_and_lists_unpinned_visible_findings(self):
+        self.base()
+        self.scores()
+        seen = self._finding("proof-seo", "No main heading on the product page", "medium")
+        self._finding("proof-ops", "The owner is a single point of failure", "medium")
+        self._shots([{"image": "p.png", "title": "Product", "notes": [
+            {"x": 1, "y": 1, "w": 10, "h": 10, "severity": "high", "label": "Faint text", "ref": "proof-a11y/nope"}]}])
+        code, out = run("--dir", self.d, "screens")
+        self.assertEqual(code, 2)
+        self.assertIn("is not a finding in the ledger", out)
+        self.assertIn(seen, out)
+        self.assertNotIn("single point of failure", out)  # nothing on a page to point at
+        self.assertIn("no phone screenshot", out)
+        self.assertIn("no 'good' note", out)
+
+    def test_screens_js_prints_a_measuring_snippet(self):
+        code, out = run("screens-js")
+        self.assertEqual(code, 0)
+        self.assertIn("getBoundingClientRect", out)
+
+    def test_solo_stage_names_the_advisory_panel_and_buckets_actions(self):
+        self.base()
+        self.scores()
+        self.tp.write("board/decision.json", json.dumps({
+            "decision": "Go with conditions", "verdict": "Ship", "panel_name": "Advisory Panel", "stage": "solo",
+            "reasons": [], "answered": [], "votes": {"go": [], "go_with_conditions": [], "hold": []},
+            "conditions": [{"action": "Add a size chart", "bucket": "do_today", "by": "this week"},
+                           {"action": "Check the refund policy", "bucket": "professional", "by": "this month"}]
+        }).encode("utf-8"))
+        run("--dir", self.d, "compile")
+        text = self.read("business-plan.md")
+        self.assertIn("**Advisory Panel decision: Go with conditions.**", text)
+        self.assertIn("- Add a size chart (Do today, this week)", text)
+        self.assertIn("- Check the refund policy (Ask a CA or lawyer, this month)", text)
+        self.assertIn("<h1>Advisory Panel debate</h1>", self.read("report.html"))
+
+    def test_descoped_checks_are_listed_not_passed(self):
+        self.base()
+        self.scores()
+        ledger.init_coverage(self.d, "proof-a11y", [("screen-reader", "Screen reader pass")])
+        ledger.mark_coverage(self.d, "proof-a11y", "screen-reader", "not_applicable",
+                             note="Out of scope for this audit: no screen-reader user on the team this week")
+        run("--dir", self.d, "compile")
+        text = self.read("business-plan.md")
+        self.assertIn("Not covered in this audit, by decision:", text)
+        self.assertIn("- a11y, Screen reader pass: no screen-reader user on the team this week", text)
+
+    def test_white_label_replaces_the_tool_name(self):
+        self.base()
+        self.scores()
+        self.tp.write("branding.json", json.dumps({"name": "Acme Growth Studio", "colour": "#0a7f5a"}).encode("utf-8"))
+        run("--dir", self.d, "compile")
+        page = self.read("report.html")
+        self.assertIn("Prepared by Acme Growth Studio", page)
+        self.assertNotIn("Ship or hold", page)
+        self.assertIn("#0a7f5a", page)
+        self.assertNotIn(plan.MARK + " on", self.read("appendix.html").split("<!--")[0])
+
+    def test_teaser_gives_a_tech_score_and_one_veto(self):
+        self.base(required=("proof-finance", "proof-privacy"))
+        self.tp.write("evidence/proof-privacy/home.html", b"<html>")
+        ledger.init_coverage(self.d, "proof-privacy", [("trackers", "Trackers wait for consent")])
+        ledger.mark_coverage(self.d, "proof-privacy", "trackers", "covered", evidence=["evidence/proof-privacy/home.html"])
+        f = ledger.new_finding("proof-privacy", "A tracker loads before consent", "high", id="tracker",
+                               evidence=["evidence/proof-privacy/home.html"])
+        ledger.write_finding(self.d, f)
+        ledger.verify(self.d, "proof-privacy", "tracker", by="evidence-file")
+        code, out = run("--dir", self.d, "teaser", "--no-pdf")
+        self.assertEqual(code, 0)
+        text = self.read("teaser.md")
+        self.assertIn("**Tech score: 85 / 100**", text)
+        self.assertIn("A tracker loads before consent", text)
+        self.assertIn("**The one thing:**", text)
+        self.assertNotIn("finance", text.split("**The one thing:**")[0])  # business skills never count
+
+    def test_refire_counts_fixed_still_open_and_new(self):
+        old = os.path.join(self.tp.base, "old", "proof")
+        os.makedirs(old)
+        for d, ids in ((old, ("a", "b")), (self.d, ("b", "c"))):
+            ledger.write_target(d, {"name": "Demo", "kind": "web", "authorised": True, "required_skills": ["proof-seo"]})
+            os.makedirs(os.path.join(d, "evidence", "proof-seo"), exist_ok=True)
+            with open(os.path.join(d, "evidence", "proof-seo", "p.html"), "w") as fh:
+                fh.write("x")
+            ledger.init_coverage(d, "proof-seo", [("title", "Title")])
+            ledger.mark_coverage(d, "proof-seo", "title", "covered", evidence=["evidence/proof-seo/p.html"])
+            for i in ids:
+                ledger.write_finding(d, ledger.new_finding("proof-seo", "Problem %s" % i, "medium", id=i,
+                                                           evidence=["evidence/proof-seo/p.html"]))
+                ledger.verify(d, "proof-seo", i, by="evidence-file")
+        code, out = run("--dir", self.d, "refire", "--previous", old)
+        self.assertEqual(code, 0)
+        text = self.read("refire.md")
+        self.assertIn("**Fixed: 1. Still open: 1. New: 1.**", text)
+        self.assertIn("- Problem a (medium)", text.split("## Fixed")[1])
+        self.assertIn("- Problem c (medium)", text.split("## New since last time")[1])
+
+    def test_pdf_page_count_reads_page_objects(self):
+        p = os.path.join(self.tp.base, "x.pdf")
+        with open(p, "wb") as fh:
+            fh.write(b"%PDF-1.4 << /Type /Pages /Count 2 >> << /Type /Page >> << /Type/Page >>")
+        self.assertEqual(plan.pdf_pages(p), 2)
 
     def test_headings_inside_code_fences_are_left_alone(self):
         self.assertEqual(plan._demote("# A\n```\n# not a heading\n```\n## B"),
