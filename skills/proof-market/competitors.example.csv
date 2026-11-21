@@ -4,3 +4,4 @@ Example Daily Meals,direct,https://example.com/daily-meals/plans,Pune and Mumbai
 Example Food App,indirect,https://example.com/food-app/listing,Nationwide,180,"Restaurant delivery app, typical lunch order",Anything you crave in 30 minutes,4.4,not found,2026-11-04
 Example Office Canteen,indirect,https://example.com/canteen/menu,On site,60,"Subsidised canteen plate, per meal",not found,not found,not found,2026-11-04
 Lunch from home,substitute,https://example.com/forum/packed-lunch-thread,Anywhere,free,"A packed lunch carried from home",not found,not found,not found,2026-11-05
+Example Tiffin Service,direct,https://example.com/tiffin/home,Pune,not found,"Home tiffin delivery, price on request",Fresh from our kitchen,4.0,88,2026-11-05

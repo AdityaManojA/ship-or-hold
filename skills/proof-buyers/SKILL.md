@@ -57,9 +57,17 @@ The fields:
 
 - `business`, `target`, `where`.
 - `currency`: required, a prefix such as `Rs ` or `$`. There is no default.
-- `age`: `[lowest, highest]`.
-- `segments`: `{name, share, income: [lowest, highest]}`. Optional `income_period`
-  at the top level (for example `a month`) is printed after each income.
+- `age`: `[lowest, highest]`, the whole customer. It must contain every segment's age.
+- `gender`: required, `female`, `male` or `any`. Each buyer's first name is drawn from
+  a matching pool of neutral, international names; `any` mixes both. Pick the one the
+  target really is: a panel for young mothers should not be full of men's names.
+- `segments`: `{name, share, income: [lowest, highest], age: [lowest, highest]}`.
+  `age` is optional per segment; when given, every buyer in that segment is aged
+  inside it, otherwise the top-level `age` is used. If a segment's name states an age
+  range (`Students 18 to 22`, `Parents 31-40`), that range must sit inside the
+  segment's age, or the tool stops with exit code 2: give the segment its own `age`.
+  Optional `income_period` at the top level (for example `a month`) is printed after
+  each income.
 - `behaviours`: `{name, share, how}`, what the buyer does today.
 - `objections`: the doubts a buyer might carry in. One is dealt to each buyer.
 - `habits`: small true-to-life habits. One is dealt to each buyer.
@@ -136,9 +144,14 @@ buyer again or leave them out.
 BUYERS tally --min-buy-rate 25
 ```
 
-Read the result in this order: the headline, the reasons for passing with the
-buyers' words as written, what would change a no, then the groups that differ most.
-Never paraphrase a quote. Say every time that these are simulated buyers.
+Read the result in this order: the headline, the reasons for passing with their
+counts, the themes of what would change a no, then the groups that differ most. Say
+every time that these are simulated buyers.
+
+The buyers' own words are internal. They are in `proof/business/panel/quotes.md`, for
+the owner only, and never go in the client report, the business plan or the PDF. You
+may read them to the owner in chat to explain a theme; never paraphrase one as if it
+were a real customer, and never paste one into a client-facing file.
 
 ## Step 6: retest a revised pitch
 
@@ -150,17 +163,22 @@ BUYERS prompts     # run the waves again
 BUYERS tally
 ```
 
-`retest` archives the run under `proof/business/panel/runs/<n>/`, deals the same
+`retest` copies the run into `proof/business/panel/runs/<n>/` (the ledger keeps
+pointing at `results.json` until the next tally, so it stays valid), deals the same
 buyers from the same seed with the new pitch and clears their answers. After the
 next tally the section shows before and after side by side and which reasons for
 passing moved.
 
 ## What it writes
 
-- `proof/business/buyers.md`: the headline "N would buy, M pass (X%)" ("use it" when
-  free), tables by segment and by behaviour with groups under 5 buyers marked thin,
-  why they pass and why they buy with one or two quotes each, what would change a
-  no, median price points when asked, the seed, and the note on simulated buyers.
+- `proof/business/buyers.md`, the client section: the headline "N would buy, M pass
+  (X%)" ("use it" when free), tables by segment and by behaviour with groups under 5
+  buyers marked thin, the before and after of a retest, why they pass and why they
+  buy as themes with counts, what would change a no as themes grouped by the words
+  buyers used (with counts), median price points when asked, the seed, and the note
+  on simulated buyers. It holds no verbatim buyer quotes.
+- `proof/business/panel/quotes.md`: every buyer's reason, doubt and what would change
+  their mind, word for word. For the owner only; never in the client report.
 - `proof/business/panel/results.json`: the same tally as data.
 - `proof/evidence/proof-buyers/`: the customer profile and the pitch as dealt.
 - Coverage: `panel-run`, `objections-ranked`, `flip-conditions`, `retested` (marked

@@ -107,7 +107,10 @@ the change in each before and after score.
   before and after scores, and a plain section called "What the offer cannot fix".
 - A copy of the inputs under `proof/evidence/proof-offer/`.
 - Coverage: `problems-listed`, `solutions-scored`, `stack-built`, `guarantee-costed`,
-  `promises-exist`, `retest-planned`.
+  `promises-exist`, `retest-planned`. `promises-exist` is covered once the stack has
+  been checked, with a note naming any item that is not built today: an unbuilt
+  promise is a high finding, not a gap, so a proposed offer never holds the verdict
+  at Incomplete.
 - Scores: `problems_answered_pct` (for information, no bar) and
   `stack_promises_missing` (must be 0).
 - Verified findings the tool computes: a high one for each stack item that is not

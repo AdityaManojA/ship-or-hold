@@ -81,7 +81,7 @@ Proof never edits the project. Report the real ones for the team to fix, and rul
 out a deliberate exception by rejecting its finding with a reason
 (`ledger.reject(...)`, see `/proof-core`), which keeps it in the ledger as a false
 positive. A line the team has marked `slop: ignore` themselves is skipped. Run
-`record` again after their fixes. The board's CTO reads this skill's results.
+`record` again after their fixes. The board's Builder and Growth seats read this skill's results.
 
 ## Honest limits
 

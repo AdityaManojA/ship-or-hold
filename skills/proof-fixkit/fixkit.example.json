@@ -1,0 +1,35 @@
+{
+  "business": "Loom and Lane, cotton and linen kurtas sold online",
+  "brand": "Loom and Lane",
+  "currency": "Rs ",
+  "stage": "solo",
+  "start": "2026-12-01",
+  "pages": [
+    {"url": "https://loomandlane.example/", "kind": "home", "name": "Home", "category": "Cotton and linen kurtas",
+     "current_title": "Home", "current_description": "",
+     "features": ["Hand block printed in Jaipur", "Sizes XS to XXL", "Breathable fabrics for warm days"]},
+    {"url": "https://loomandlane.example/collections/festive", "kind": "collection", "name": "Festive edit",
+     "category": "Block print kurta sets", "current_title": "Festive | Loom and Lane",
+     "features": ["Hand block printed cotton", "Matching dupattas", "Sizes XS to XXL"]},
+    {"url": "https://loomandlane.example/products/sage-linen-kurta", "kind": "product", "name": "Sage Linen Kurta",
+     "category": "Women's kurta", "price": 1499, "current_title": "Sage Linen Kurta",
+     "current_description": "Buy now", "features": ["Pure linen", "Straight cut with side pockets", "Calf length"]},
+    {"url": "https://loomandlane.example/policies/shipping-policy", "kind": "policy", "name": "Shipping policy",
+     "features": ["Dispatch times", "Delivery areas", "Tracking your order"]}
+  ],
+  "colours": [
+    {"id": "footer-links", "fg": "#9a9a9a", "bg": "#ffffff", "where": "footer links", "size": "14px", "bold": false},
+    {"id": "sale-badge", "fg": "#f4978a", "bg": "#ffffff", "where": "sale badge on product cards", "size": "24px", "bold": true},
+    {"id": "body-text", "fg": "#333333", "bg": "#ffffff", "where": "body text", "size": "16px", "bold": false}
+  ],
+  "whatsapp": {"number_display": "+91 98xxx xxxxx", "sign_off": "The Loom and Lane team"},
+  "size_chart": [
+    {"product_type": "Kurta", "sizes": ["XS", "S", "M", "L", "XL", "XXL"], "measurements": ["Bust", "Waist", "Hip", "Length"]},
+    {"product_type": "Dupatta", "sizes": ["Free size"], "measurements": ["Length", "Width"]}
+  ],
+  "exchange": {"days": 7, "conditions": ["The piece is unworn and unwashed, with its tags on",
+                                         "One exchange per order", "Sale pieces can be exchanged for size only"],
+               "contact": "WhatsApp +91 98xxx xxxxx or hello@loomandlane.example"},
+  "extra_tasks": [{"task": "Turn on cash on delivery for orders under Rs 3,000", "effort": "S"},
+                  {"task": "Register for GST before sales pass the threshold", "effort": "M", "bucket": "professional"}]
+}

@@ -28,8 +28,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKILLS = os.path.join(ROOT, "skills")
 DEMO = os.path.join(ROOT, "examples", "business-demo")
 
-BUSINESS = ["proof-market", "proof-buyers", "proof-pricing", "proof-offer", "proof-finance",
-            "proof-go-to-market", "proof-ops"]
+BUSINESS = ["proof-intake", "proof-market", "proof-buyers", "proof-pricing", "proof-offer", "proof-ads",
+            "proof-finance", "proof-go-to-market", "proof-ops", "proof-fixkit"]
 
 IDEA = """# Tiffin Loop (a made-up example)
 
@@ -162,6 +162,12 @@ def run(out_dir, quiet=False):
          + sum([["--require", s] for s in BUSINESS], []), show=show)
     _write(os.path.join(d, "business", "idea.md"), IDEA)
 
+    say("1b. the four real numbers (made-up values standing in for the owner's)")
+    call("proof-intake", "intake.py", ["--dir", d, "set", "--currency", "Rs ", "--unit-cost", "62", "--ad-spend",
+                                       "0", "--sessions", "1200", "--orders", "60", "--aov", "120",
+                                       "--period", "last 30 days"], show=False)
+    call("proof-intake", "intake.py", ["--dir", d, "record"], show=show)
+
     say("2. market: competitors, complaints, the gap")
     call("proof-market", "market.py", ["--dir", d, "template", "--out", inputs], show=False)
     call("proof-market", "market.py", ["--dir", d, "record", os.path.join(inputs, "competitors.csv"),
@@ -185,6 +191,10 @@ def run(out_dir, quiet=False):
     call("proof-offer", "offer.py", ["--dir", d, "template", "--out", os.path.join(inputs, "offer.json")], show=False)
     call("proof-offer", "offer.py", ["--dir", d, "record", os.path.join(inputs, "offer.json")], show=show)
 
+    say("5b. the ads")
+    call("proof-ads", "ads.py", ["--dir", d, "template", "--out", os.path.join(inputs, "ads")], show=False)
+    call("proof-ads", "ads.py", ["--dir", d, "record", os.path.join(inputs, "ads", "ads.json")], show=show)
+
     say("6. the numbers")
     with open(os.path.join(inputs, "numbers.json"), "w", encoding="utf-8") as fh:
         json.dump(NUMBERS, fh, indent=2)
@@ -199,6 +209,11 @@ def run(out_dir, quiet=False):
     say("8. operations")
     call("proof-ops", "ops.py", ["--dir", d, "template", "--out", os.path.join(inputs, "ops.json")], show=False)
     call("proof-ops", "ops.py", ["--dir", d, "record", os.path.join(inputs, "ops.json")], show=show)
+
+    say("8b. the fix kit and the 14-day plan")
+    call("proof-fixkit", "fixkit.py", ["--dir", d, "template", "--out", os.path.join(inputs, "fixkit.json")],
+         show=False)
+    call("proof-fixkit", "fixkit.py", ["--dir", d, "record", os.path.join(inputs, "fixkit.json")], show=show)
 
     say("9. the verdict, the summary and the plan")
     call("proof-report", "verdict.py", ["--dir", d], show=False)

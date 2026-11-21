@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "proof-skill",
-      "description": "Sixty-three evidence-first skills: the business side (market, simulated buyers, pricing, offer, unit economics, go to market, operations) and the product side (web and mobile flows, API, security, privacy, performance, accessibility, SEO, AI safety, launch readiness), a Ship / Not yet / Incomplete verdict computed from the evidence ledger, a board of directors that votes on the launch, and a business plan and half-page summary as the result.",
+      "description": "Sixty-six evidence-first skills: the business side (market, simulated buyers, pricing, offer, unit economics, go to market, operations) and the product side (web and mobile flows, API, security, privacy, performance, accessibility, SEO, AI safety, launch readiness), a Ship / Not yet / Incomplete verdict computed from the evidence ledger, a four-seat board that debates and votes, and a short client report with a 14-day fix kit as the result.",
       "source": "./",
       "category": "testing",
       "homepage": "https://github.com/AdityaManojA/ship-or-hold"
