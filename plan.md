@@ -91,8 +91,8 @@ Status key: **Phase 1** = built in this phase, in the skills and tools. **Phase 
 - `plan.py compile` writes two PDFs:
   - `proof/report.pdf`, the client report, in this order: cover, Executive Summary, Boardroom Debate, Annotated Screenshots of the product page, 14-Day Fix Kit. No ledger codes (`proof-a11y/...`, `gtm.json`) in these pages.
   - `proof/appendix.pdf`: the full plan, every director's answer, the evidence citations, descoped checks and research notes.
-- The page count of `report.pdf` is checked and reported; over 8 pages is flagged.
-- Annotated screenshots: screenshots of the product page saved under `proof/business/screens/`, with boxes and labels from `annotations.json` drawn over them.
+- The page count of `report.pdf` is checked and reported; over 8 pages is flagged, or over 10 when there are screenshots.
+- Annotated screenshots: six to ten viewport screenshots under `proof/business/screens/` (home, a collection, the product page on desktop and on a phone, the cart, the first checkout step viewed only, and the top ad beside its landing page), with numbered boxes from `annotations.json` drawn over them. Phone and ad screenshots print side by side. Each note carries a severity (high, medium, low, or good for what works, in green) and the ref of the finding it shows. `plan.py screens` validates the file and lists the verified findings a reader could see that no screenshot points at yet; `plan.py screens-js` prints a browser snippet that measures the boxes from the page.
 - Tables wrap properly: fixed layout, set column widths, long codes and URLs broken anywhere.
 
 ### 4.3 Teaser verdict and credit pricing - Phase 1 logic, Phase 2 billing

@@ -323,6 +323,56 @@ class Plan(unittest.TestCase):
         self.assertIn("data:image/png;base64,", page)
         self.assertIn("box outside the image", out)
 
+    def _shots(self, shots):
+        png = (b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00"
+               b"\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82")
+        for s in shots:
+            self.tp.write("business/screens/" + s["image"], png)
+        self.tp.write("business/screens/annotations.json", json.dumps(shots).encode("utf-8"))
+
+    def _finding(self, skill, title, severity):
+        f = ledger.new_finding(skill, title, severity)
+        ledger.write_finding(self.d, f)
+        ledger.verify(self.d, skill, f["id"], by="manual", note="seen on the page")
+        return "%s/%s" % (skill, f["id"])
+
+    def test_phone_screens_share_a_row_and_good_notes_are_green(self):
+        self.base()
+        self.scores()
+        ref = self._finding("proof-a11y", "Low contrast on the product name", "medium")
+        note = {"x": 5, "y": 5, "w": 20, "h": 10, "severity": "medium", "label": "The name is faint", "ref": ref}
+        good = {"x": 30, "y": 40, "w": 40, "h": 10, "severity": "good", "label": "Add to cart is easy to find"}
+        self._shots([{"image": "p1.png", "title": "Product on a phone", "device": "phone", "notes": [note]},
+                     {"image": "p2.png", "title": "Cart on a phone", "device": "phone", "notes": [good]},
+                     {"image": "d1.png", "title": "Home", "device": "desktop", "notes": [dict(note)]}])
+        html_out, problems = plan.screens_html(os.path.join(self.d), plan._load_json(
+            os.path.join(self.d, plan.SCREENS_FILE)), plan.finding_refs(self.d)[0])
+        self.assertEqual(problems, [])
+        self.assertEqual(html_out.count("<div class='phones'>"), 1)
+        self.assertLess(html_out.index("Cart on a phone"), html_out.index("Home"))
+        self.assertIn("class='box good'", html_out)
+        self.assertIn("Works: Add to cart is easy to find", html_out)
+
+    def test_screens_check_rejects_unknown_refs_and_lists_unpinned_visible_findings(self):
+        self.base()
+        self.scores()
+        seen = self._finding("proof-seo", "No main heading on the product page", "medium")
+        self._finding("proof-ops", "The owner is a single point of failure", "medium")
+        self._shots([{"image": "p.png", "title": "Product", "notes": [
+            {"x": 1, "y": 1, "w": 10, "h": 10, "severity": "high", "label": "Faint text", "ref": "proof-a11y/nope"}]}])
+        code, out = run("--dir", self.d, "screens")
+        self.assertEqual(code, 2)
+        self.assertIn("is not a finding in the ledger", out)
+        self.assertIn(seen, out)
+        self.assertNotIn("single point of failure", out)  # nothing on a page to point at
+        self.assertIn("no phone screenshot", out)
+        self.assertIn("no 'good' note", out)
+
+    def test_screens_js_prints_a_measuring_snippet(self):
+        code, out = run("screens-js")
+        self.assertEqual(code, 0)
+        self.assertIn("getBoundingClientRect", out)
+
     def test_solo_stage_names_the_advisory_panel_and_buckets_actions(self):
         self.base()
         self.scores()

@@ -710,7 +710,15 @@ td code { overflow-wrap: anywhere; word-break: break-all; }
 .pin { position: absolute; top: -12px; left: -12px; background: #d0342c; color: #fff; font-weight: 700;
        border-radius: 50%; width: 22px; height: 22px; line-height: 22px; text-align: center; font-size: 10pt; }
 .box.medium .pin { background: #d98c00; } .box.low .pin { background: #2f6fb3; }
+.legend { list-style: none; padding-left: 0; }
 .legend li { margin: 3px 0; }
+.legend li.good { color: #1f6b43; }
+.box.good { border-color: #2e8b57; } .box.good .pin { background: #2e8b57; }
+figure { margin: 0 0 10px; page-break-inside: avoid; }
+.phones { display: flex; gap: 12px; align-items: flex-start; page-break-inside: avoid; }
+.phones figure { flex: 0 0 31%; min-width: 0; } .phones figure.ad { flex: 0 0 46%; }
+.phones h3 { font-size: 10.5pt; }
+.phones .legend { font-size: 8.5pt; }
 .draft { color: #d0342c; font-weight: 700; }
 .footer { position: fixed; bottom: -10mm; left: 0; right: 0; text-align: center; font-size: 8pt; color: #888; }
 th { background: #f2f2f2; }
@@ -821,33 +829,138 @@ def load_branding(root):
     return b
 
 
-def screens_html(root, screens):
-    """Screenshots of the store with numbered boxes over what the findings point at, and a legend under each."""
+NOTE_SEVERITIES = ("high", "medium", "low", "good")
+DEVICES = ("desktop", "phone", "ad")  # an ad screenshot is narrow and sits beside its landing page
+SCREENS_MAX = 10           # more than this and the section stops being a quick read
+SCREEN_PAGES = 2           # pages the screenshots may add to the report's page target
+PIN_SEVERITIES = ("critical", "high", "medium")  # verified findings that belong on a screenshot when visible
+# Skills whose findings a reader can see on a page; the rest (money, buyers, operations) have nothing to point at.
+SCREEN_SKILLS = ("proof-a11y", "proof-seo", "proof-privacy", "proof-offer", "proof-ads", "proof-web-e2e",
+                 "proof-compat", "proof-visual", "proof-design-match", "proof-slop", "proof-explore",
+                 "proof-mobile-a11y", "proof-mobile-e2e", "proof-mobile-explore", "proof-pwa", "proof-i18n")
+
+
+def screen_notes(shot, i, refs=None):
+    """The valid notes of one screenshot, and the problems with the rest. `refs` is the set of finding
+    references ("skill/id") a note may point at; None skips that check."""
+    notes, problems = [], []
+    for n, note in enumerate(shot.get("notes") or [], 1):
+        where = "screenshot %d (%s) note %d" % (i + 1, shot.get("image"), n)
+        try:
+            x, y, w, h = (float(note[k]) for k in ("x", "y", "w", "h"))
+        except (KeyError, TypeError, ValueError):
+            problems.append("%s: x, y, w and h are percentages of the image" % where)
+            continue
+        if not (0 <= x < 100 and 0 <= y < 100 and 0 < w <= 100 and 0 < h <= 100) or x + w > 100.5 or y + h > 100.5:
+            problems.append("%s: box outside the image" % where)
+            continue
+        sev = note.get("severity", "high")
+        if sev not in NOTE_SEVERITIES:
+            problems.append("%s: severity must be one of %s" % (where, ", ".join(NOTE_SEVERITIES)))
+            continue
+        label = " ".join(str(note.get("label") or "").split())
+        if not label:
+            problems.append("%s: label it in plain words" % where)
+            continue
+        ref = note.get("ref")
+        if ref and refs is not None and ref not in refs:
+            problems.append("%s: ref %r is not a finding in the ledger" % (where, ref))
+            continue
+        notes.append({"x": x, "y": y, "w": w, "h": h, "severity": sev, "label": label, "ref": ref})
+    if not notes and not problems:
+        problems.append("screenshot %d (%s): no notes; say what the reader should see" % (i + 1, shot.get("image")))
+    return notes, problems
+
+
+def screens_html(root, screens, refs=None):
+    """Screenshots of the store with numbered boxes over what the findings point at, and a legend under each.
+    Phone screenshots sit side by side; a "good" note marks what works, in green."""
     if not isinstance(screens, list):
         return "", []
-    out, problems = [], []
-    for i, shot in enumerate(screens):
+    blocks, problems = [], []
+    if len(screens) > SCREENS_MAX:
+        problems.append("%d screenshots: keep the %d that show the most" % (len(screens), SCREENS_MAX))
+    for i, shot in enumerate(screens[:SCREENS_MAX]):
         img = os.path.join(root, BUSINESS_DIR, "screens", str(shot.get("image") or ""))
         if not shot.get("image") or not os.path.isfile(img):
             problems.append("screenshot %d: image %r not found under business/screens/" % (i + 1, shot.get("image")))
             continue
+        device = shot.get("device", "desktop")
+        if device not in DEVICES:
+            problems.append("screenshot %d: device must be desktop or phone" % (i + 1))
+            device = "desktop"
+        notes, bad = screen_notes(shot, i, refs)
+        problems += bad
         boxes, legend = [], []
-        for n, note in enumerate(shot.get("notes") or [], 1):
-            try:
-                x, y, w, h = (float(note[k]) for k in ("x", "y", "w", "h"))
-            except (KeyError, TypeError, ValueError):
-                problems.append("screenshot %d note %d: x, y, w and h are percentages of the image" % (i + 1, n))
-                continue
-            if not (0 <= x <= 100 and 0 <= y <= 100 and 0 < w <= 100 and 0 < h <= 100):
-                problems.append("screenshot %d note %d: box outside the image" % (i + 1, n))
-                continue
-            sev = note.get("severity") if note.get("severity") in ("high", "medium", "low") else "high"
+        for n, note in enumerate(notes, 1):
             boxes.append("<div class='box %s' style='left:%.2f%%;top:%.2f%%;width:%.2f%%;height:%.2f%%'>"
-                         "<span class='pin'>%d</span></div>" % (sev, x, y, w, h, n))
-            legend.append("<li><strong>%d.</strong> %s</li>" % (n, _inline(str(note.get("label") or ""))))
-        out.append("<h3>%s</h3><div class='shot'><img src='%s' alt=''>%s</div><ol class='legend'>%s</ol>" % (
-            _inline(str(shot.get("title") or "Your store")), _data_uri(img), "".join(boxes), "".join(legend)))
+                         "<span class='pin'>%d</span></div>" % (note["severity"], note["x"], note["y"], note["w"],
+                                                                note["h"], n))
+            lead = "Works: " if note["severity"] == "good" else ""
+            legend.append("<li class='%s'><strong>%d.</strong> %s%s</li>" % (note["severity"], n, lead,
+                                                                             _inline(note["label"])))
+        blocks.append((device, "<figure class='%s'><h3>%s</h3><div class='shot'><img src='%s' alt=''>%s</div>"
+                               "<ol class='legend'>%s</ol></figure>" % (
+                                   device, _inline(str(shot.get("title") or "Your store")), _data_uri(img),
+                                   "".join(boxes), "".join(legend))))
+    out, row = [], []
+    for device, block in blocks:  # consecutive phone screenshots share a row
+        if device in ("phone", "ad"):
+            row.append(block)
+            if len(row) == 3:
+                out.append("<div class='phones'>%s</div>" % "".join(row))
+                row = []
+            continue
+        if row:
+            out.append("<div class='phones'>%s</div>" % "".join(row))
+            row = []
+        out.append(block)
+    if row:
+        out.append("<div class='phones'>%s</div>" % "".join(row))
     return "\n".join(out), problems
+
+
+def finding_refs(d):
+    """Every finding reference a screenshot note may use, and the verified ones that should be pinned."""
+    refs, pin = set(), []
+    for f in ledger.load_findings(d):
+        ref = "%s/%s" % (f["skill"], f["id"])
+        refs.add(ref)
+        if f.get("status") == "verified" and f.get("severity") in PIN_SEVERITIES and f["skill"] in SCREEN_SKILLS:
+            pin.append((ref, f["severity"], f.get("title", "")))
+    return refs, pin
+
+
+def screens_report(d, screens):
+    """Problems with the annotations, and the verified high and medium findings no screenshot points at."""
+    refs, pin = finding_refs(d)
+    _, problems = screens_html(ledger.root(d), screens, refs)
+    pinned = {n.get("ref") for s in (screens if isinstance(screens, list) else [])
+              for n in (s.get("notes") or []) if isinstance(n, dict)}
+    return problems, [p for p in pin if p[0] not in pinned]
+
+
+MEASURE_JS = r"""// Paste into the page's console (or a javascript tool) at the size you screenshot, scrolled
+// to where the screenshot starts. Each pin is [CSS selector, severity, label, ref]; ref is optional.
+// It prints the notes for annotations.json, measured from the page, never guessed.
+((pins) => {
+  const W = innerWidth, H = innerHeight, r1 = (v) => Math.round(v * 10) / 10;
+  return JSON.stringify(pins.map(([sel, severity, label, ref]) => {
+    const el = document.querySelector(sel);
+    if (!el) return {missing: sel};
+    const b = el.getBoundingClientRect();
+    const x = Math.max(0, b.left), y = Math.max(0, b.top);
+    if (y >= H || b.bottom <= 0) return {offscreen: sel};
+    const note = {x: r1(x / W * 100), y: r1(y / H * 100), w: r1((Math.min(b.right, W) - x) / W * 100),
+                  h: r1((Math.min(b.bottom, H) - y) / H * 100), severity, label};
+    if (ref) note.ref = ref;
+    return note;
+  }), null, 1);
+})([
+  ["h1, .product__title", "medium", "The product name is faint and is not the page's main heading", "proof-seo/example-id"],
+  ["form[action*='cart'] button[type=submit]", "good", "Add to cart is clear and high in the page"],
+]);
+"""
 
 
 def report_parts(g):
@@ -966,15 +1079,18 @@ def make_pdfs(d, browser=None, force=False, draft=False, appendix=True):
         for gap in g["r"]["gaps"]:
             print("  .. %s" % gap)
         return 2
-    _, problems = screens_html(g["root"], g["screens"])
+    problems, unpinned = screens_report(d, g["screens"])
     for p in problems:
         print("%s %s" % (ledger.BAD, p))
+    if unpinned:
+        print("%s %d verified high or medium finding(s) are not on a screenshot; pin the ones a reader can see "
+              "(plan.py screens lists them)" % (ledger.BAD, len(unpinned)))
     code = 0
     ok, msg, pages = render_pdf(d, "report", report_html(g, draft), browser, force)
     print("%s %s" % (ledger.OK if ok else ledger.BAD, msg))
     if ok:
-        flag = "" if pages <= REPORT_MAX_PAGES else ": over the %d-page target, trim the summary or the kit" % \
-            REPORT_MAX_PAGES
+        target = REPORT_MAX_PAGES + (SCREEN_PAGES if g["screens"] else 0)
+        flag = "" if pages <= target else ": over the %d-page target, trim the summary or the kit" % target
         print("%s report.pdf is %d page(s)%s" % (ledger.OK if not flag else ledger.BAD, pages, flag))
     else:
         code = 2
@@ -983,6 +1099,43 @@ def make_pdfs(d, browser=None, force=False, draft=False, appendix=True):
         print("%s %s" % (ledger.OK if ok2 else ledger.BAD, msg2))
         code = code or (0 if ok2 else 2)
     return code
+
+
+def cmd_screens(a):
+    """Check the annotated screenshots and list the findings a screenshot should still point at."""
+    root = ledger.root(a.dir)
+    screens = _load_json(os.path.join(root, SCREENS_FILE))
+    if screens is None:
+        print("%s no %s yet. Save screenshots under %s and describe them there; plan.py screens-js prints "
+              "a snippet that measures the boxes." % (ledger.BAD, SCREENS_FILE, os.path.join(BUSINESS_DIR, "screens")))
+        return 2
+    if not isinstance(screens, list):
+        print("%s %s must be a list of screenshots" % (ledger.BAD, SCREENS_FILE))
+        return 2
+    problems, unpinned = screens_report(a.dir, screens)
+    notes = [n for s_ in screens for n in (s_.get("notes") or []) if isinstance(n, dict)]
+    by = {k: sum(1 for n in notes if n.get("severity", "high") == k) for k in NOTE_SEVERITIES}
+    phones = sum(1 for s_ in screens if s_.get("device") == "phone")
+    print("%d screenshot(s), %d on a phone; %d note(s): %s" % (
+        len(screens), phones, len(notes), ", ".join("%d %s" % (v, k) for k, v in by.items() if v) or "none"))
+    for p in problems:
+        print("%s %s" % (ledger.BAD, p))
+    if unpinned:
+        print("Verified findings no screenshot points at (pin each one a reader can see, with its ref):")
+        for ref, sev, title in unpinned:
+            print("  .. [%s] %s: %s" % (sev, ref, title))
+    if not phones:
+        print("%s no phone screenshot: most shoppers arrive on a phone; add one at 390x844" % ledger.BAD)
+    if not by["good"]:
+        print("%s no 'good' note: mark one or two things that work, so the page is fair" % ledger.BAD)
+    if not problems:
+        print("%s the annotations are valid" % ledger.OK)
+    return 2 if problems else 0
+
+
+def cmd_screens_js(a):
+    print(MEASURE_JS)
+    return 0
 
 
 def cmd_pdf(a):
@@ -1151,13 +1304,17 @@ def main(argv=None):
     c.add_argument("--previous", required=True, help="the earlier run's proof folder")
     c.add_argument("--force", action="store_true")
     c.set_defaults(fn=cmd_refire)
+    c = sub.add_parser("screens", help="check the annotated screenshots; list findings no screenshot shows")
+    c.set_defaults(fn=cmd_screens)
+    c = sub.add_parser("screens-js", help="print a browser snippet that measures annotation boxes on the page")
+    c.set_defaults(fn=cmd_screens_js)
     c = sub.add_parser("idea-template", help="write an idea file to fill in")
     c.add_argument("--out", help="where to write it (default proof/business/idea.md)")
     c.add_argument("--force", action="store_true")
     c.set_defaults(fn=cmd_idea_template)
     a = ap.parse_args(argv)
     if not a.cmd:
-        ap.error("give a command: check, compile, pdf, teaser, refire or idea-template")
+        ap.error("give a command: check, compile, pdf, teaser, refire, screens, screens-js or idea-template")
     return a.fn(a)
 
 

@@ -21,6 +21,8 @@ python3 "${CLAUDE_SKILL_DIR}/plan.py" pdf                        # print report.
 python3 "${CLAUDE_SKILL_DIR}/plan.py" pdf --draft                # an internal draft of an Incomplete run, marked DRAFT
 python3 "${CLAUDE_SKILL_DIR}/plan.py" teaser                     # the free teaser: tech score and the one bluntest veto
 python3 "${CLAUDE_SKILL_DIR}/plan.py" refire --previous old/proof   # what changed since an earlier run
+python3 "${CLAUDE_SKILL_DIR}/plan.py" screens                    # check the annotated screenshots, list findings not yet pinned
+python3 "${CLAUDE_SKILL_DIR}/plan.py" screens-js                 # a browser snippet that measures annotation boxes
 python3 "${CLAUDE_SKILL_DIR}/plan.py" idea-template              # write proof/business/idea.md to fill in
 ```
 
@@ -31,7 +33,7 @@ Every command takes `--dir` (default `proof`) before the command name. `compile`
 
 | file | what it is |
 | --- | --- |
-| `proof/report.pdf` | 6 to 8 pages, in this order: cover, Executive Summary, Boardroom Debate (or the Advisory Panel for a solo founder), What we saw on your store (annotated screenshots), 14-Day Fix Kit, and a Re-Fire page when there is one. No ledger codes or evidence file names on these pages. The page count is checked; over 8 is flagged. |
+| `proof/report.pdf` | 6 to 8 pages, in this order: cover, Executive Summary, Boardroom Debate (or the Advisory Panel for a solo founder), What we saw on your store (annotated screenshots), 14-Day Fix Kit, and a Re-Fire page when there is one. No ledger codes or evidence file names on these pages. The page count is checked; over 8 is flagged, or over 10 with screenshots. |
 | `proof/appendix.pdf` | the full plan: the verdict and what blocks it, every seat's answer with the ledger entry behind each risk, the key numbers, every business section, the product itself, checks descoped for this client, and the research notes |
 | `proof/one-pager.md` | the same numbers, word for word, for someone deciding in two minutes |
 | `proof/teaser.md`, `proof/teaser.pdf` | free: the automated tech score and the one bluntest veto, before any owner input |
@@ -62,13 +64,39 @@ The full plan stays in `proof/business-plan.md`. The buyer panel's verbatim quot
    counts as passed. `compile` refuses the client PDF while the verdict is Incomplete and
    lists what is left; `pdf --draft` prints an internal copy marked DRAFT.
 
-4. **Screenshots.** Save two or three screenshots of the product page and the cart (the
-   browser tools can save a screenshot to disk) under `proof/business/screens/`, and write
-   `proof/business/screens/annotations.json`: a list of `{"image": "product.png",
-   "title": "Product page", "notes": [{"x": 62, "y": 18, "w": 30, "h": 8, "label": "No size
-   chart next to the size picker", "severity": "high"}]}` where x, y, w and h are
-   percentages of the image. One note per finding that can be seen; label it in plain
-   words. A box outside the image is rejected.
+4. **Annotated screenshots.** The page owners read first, so show them their own store
+   with the problems circled. Save viewport screenshots (not full-page ones) under
+   `proof/business/screens/`, six to ten in all:
+
+   | screen | device | what it usually shows |
+   | --- | --- | --- |
+   | home, first screen | desktop | the headline, the main heading, the consent banner or its absence |
+   | a collection or listing | desktop | prices, filters, missing headings |
+   | the product page | desktop | the name, price, size picker, size chart or its absence, faint text, the buy buttons |
+   | the product page | phone, 390x844 | what a shopper from an ad sees first: the buttons, the price, what is cut off |
+   | the cart | desktop or phone | totals, delivery cost, the checkout button |
+   | the first checkout step, viewed only | phone | payment options (cash on delivery or not), surprises in the total |
+   | the top ad, next to its landing page | ad + phone | whether the page shows what the ad promised |
+
+   Never type into checkout or submit a form for a screenshot. Then write
+   `proof/business/screens/annotations.json`, a list of
+   `{"image": "product.png", "title": "Product page", "device": "desktop", "notes": [...]}`.
+   `device` is `desktop`, `phone` or `ad`; phone and ad screenshots print side by side.
+   Each note is `{"x": 62, "y": 18, "w": 30, "h": 8, "severity": "high", "label": "No size
+   chart next to the size picker", "ref": "proof-offer/offer-not-built-1"}`:
+
+   - x, y, w and h are percentages of the image. Measure them, never guess: run the
+     snippet `plan.py screens-js` prints in the page at the screenshot's size, with one
+     `[selector, severity, label, ref]` per box, and paste what it returns.
+   - `severity` is `high`, `medium` or `low` for a problem and `good` for something that
+     works, drawn in green. Mark one or two good things so the page is fair.
+   - `ref` is the finding the box shows (`skill/id`); it must exist in the ledger.
+   - Two to six notes a screenshot, one sentence each, in the owner's words.
+
+   `plan.py screens` checks the file and lists the verified high and medium findings that
+   no screenshot points at yet; pin each one a reader could see. It warns when there is
+   no phone screenshot or no good note. The screenshots may add up to two pages to the
+   report.
 
 5. **White-label, when an agency runs the audit.** `proof/branding.json`:
    `{"name": "Agency name", "colour": "#0a7f5a", "logo": "branding/logo.png"}` (the logo
